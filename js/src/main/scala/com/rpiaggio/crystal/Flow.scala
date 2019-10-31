@@ -14,16 +14,17 @@ object Flow {
   type ReactFlowProps[A] = Option[A] => VdomElement
   type ReactFlowComponent[A] = CtorType.Props[ReactFlowProps[A], UnmountedWithRoot[ReactFlowProps[A], _, _, _]]
 
-
-  implicit val ioTimer = IO.timer
+//  implicit val ioTimer = IO.timer
   implicit val ioCS: ContextShift[IO] = IO.contextShift(global)
   //  implicit val ce: ConcurrentEffect[IO] = IO.ioConcurrentEffect
 
-  def flow[ /*F[_] : Sync,*/ A](stream: fs2.Stream[IO, A], key: js.UndefOr[js.Any] = js.undefined): ReactFlowComponent[A] = {
+  def flow[/*F[_] : Concurrent,*/ A](stream: fs2.Stream[/*F*/IO, A], key: js.UndefOr[js.Any] = js.undefined): ReactFlowComponent[A] = {
 
     class Backend($: BackendScope[ReactFlowProps[A], Option[A]]) {
 
-      val done = SignallingRef[IO, Boolean](false).unsafeRunSync()
+      val done =
+//        SignallingRef.in[SyncIO, F, Boolean](false).unsafeRunSync()
+        SignallingRef[IO, Boolean](false).unsafeRunSync()
 
       def willMount = Callback {
         stream
