@@ -17,7 +17,7 @@ lazy val root = project.in(file(".")).
     publishLocal := {}
   )
 
-lazy val crystal = crossProject(JSPlatform).in(file("."))
+lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
   //Settings for all projects
   .settings(
     scalacOptions ++= Seq(
@@ -51,6 +51,11 @@ lazy val crystal = crossProject(JSPlatform).in(file("."))
         </developers>,
     pomIncludeRepository := { _ => false }
   )
+  .jvmSettings(
+    libraryDependencies ++=
+        Settings.Libraries.CatsJS.value ++
+        Settings.Libraries.Fs2JS.value
+  )
   .jsSettings(
     //Scalajs dependencies that are used on the client only
     libraryDependencies ++=
@@ -60,6 +65,8 @@ lazy val crystal = crossProject(JSPlatform).in(file("."))
   )
 
 lazy val crystalJS = crystal.js
+
+lazy val crystalJVM = crystal.jvm
 
 sonatypeProfileName := "com.rpiaggio"
 
