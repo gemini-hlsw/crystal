@@ -14,29 +14,32 @@ object Flow {
   type ReactFlowProps[A] = Option[A] => VdomElement
   type ReactFlowComponent[A] = CtorType.Props[ReactFlowProps[A], UnmountedWithRoot[ReactFlowProps[A], _, _, _]]
 
-//  implicit val ioTimer = IO.timer
+  type State[A] = Option[A] // Use Pot or something else that can hold errors
+
   implicit val ioCS: ContextShift[IO] = IO.contextShift(global)
-  //  implicit val ce: ConcurrentEffect[IO] = IO.ioConcurrentEffect
 
-  def flow[/*F[_] : Concurrent,*/ A](stream: fs2.Stream[/*F*/IO, A], key: js.UndefOr[js.Any] = js.undefined): ReactFlowComponent[A] = {
+  def flow[F[_] : ConcurrentEffect : Timer, A](stream: fs2.Stream[F, A], key: js.UndefOr[js.Any] = js.undefined): ReactFlowComponent[A] = {
 
-    class Backend($: BackendScope[ReactFlowProps[A], Option[A]]) {
+    class Backend($: BackendScope[ReactFlowProps[A], State[A]]) {
 
-      val done =
-//        SignallingRef.in[SyncIO, F, Boolean](false).unsafeRunSync()
-        SignallingRef[IO, Boolean](false).unsafeRunSync()
+      var cancelToken: Option[CancelToken[F]] = None // Can we avoid the var?
+
+      val evalCancellable: SyncIO[CancelToken[F]] =
+        ConcurrentEffect[F].runCancelable(
+          stream
+            .evalMap(v => Sync[F].delay($.setState(Some(v)).runNow()))
+            .compile.drain
+        )(_ => IO.unit) // Handle Errors
+
 
       def willMount = Callback {
-        stream
-          .interruptWhen(done)
-          .evalMap(v => Sync[IO].delay($.setState(Some(v)).runNow()))
-          .compile.drain
-          .unsafeRunAsyncAndForget()
+        cancelToken = Some(evalCancellable.unsafeRunSync())
       }
 
-      def willUnmount = Callback {
-        done.set(true).unsafeRunSync()
+      def willUnmount = Callback { // Cancellation must be async. Is there a more elegant way of doing this?
+        cancelToken.foreach(token => Effect[F].toIO(token).unsafeRunAsyncAndForget())
       }
+
 
       def render(pr: ReactFlowProps[A], v: Option[A]): VdomElement =
         <.div(
