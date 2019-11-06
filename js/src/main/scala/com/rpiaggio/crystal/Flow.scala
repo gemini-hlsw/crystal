@@ -6,6 +6,7 @@ import vdom.html_<^._
 import cats.effect._
 import cats.implicits._
 import fs2.concurrent.SignallingRef
+import scala.language.higherKinds
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js

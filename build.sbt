@@ -6,9 +6,9 @@ organization in ThisBuild := "com.rpiaggio"
 
 version in ThisBuild := "0.0.2-SNAPSHOT"
 
-scalaVersion in ThisBuild := "2.13.1"
+scalaVersion in ThisBuild := "2.11.11"
 
-//crossScalaVersions := Seq("2.12.10", "2.13.1")
+//crossScalaVersions := Seq("2.11.11", "2.12.10", "2.13.1")
 
 lazy val root = project.in(file(".")).
   aggregate(crystalJS).
