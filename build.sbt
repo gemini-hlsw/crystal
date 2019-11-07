@@ -53,7 +53,7 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
   )
   .jvmSettings(
     libraryDependencies ++=
-        Settings.Libraries.CatsJS.value ++
+      Settings.Libraries.CatsJS.value ++
         Settings.Libraries.Fs2JS.value
   )
   .jsSettings(
@@ -61,7 +61,9 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
     libraryDependencies ++=
       Settings.Libraries.ReactScalaJS.value ++
         Settings.Libraries.CatsJS.value ++
-        Settings.Libraries.Fs2JS.value
+        Settings.Libraries.Fs2JS.value ++
+        Settings.Libraries.Discipline.value
+    //    jsEnv in Test := new org.scalajs.jsenv.nodejs.NodeJSEnv
   )
 
 lazy val crystalJS = crystal.js
