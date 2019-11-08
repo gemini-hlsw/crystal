@@ -5,11 +5,15 @@ import cats.effect.laws.util.{TestContext, TestInstances}
 import cats.kernel.Eq
 import japgolly.scalajs.react.CallbackTo
 import cats.tests.CatsSuite
-import org.scalacheck.Arbitrary
+import org.scalacheck.{Arbitrary, Gen}
 import CallbackToEffects._
+import org.scalacheck.Arbitrary.arbitrary
 
 final class CallbackToEffectsSpec extends CatsSuite with TestInstances {
   implicit val ec: TestContext = TestContext()
+
+  def genApply[A: Arbitrary]: Gen[CallbackTo[A]] =
+    arbitrary[A].map(CallbackTo.apply(_))
 
   implicit def arbitraryCallbackTo[A: Arbitrary]: Arbitrary[CallbackTo[A]] =
     Arbitrary(genApply[A])

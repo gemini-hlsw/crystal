@@ -32,8 +32,8 @@ trait CallbackToEffects {
   implicit val callbackToBracket: Bracket[CallbackTo, Throwable] = new CallbackToBracket {}
 
   trait CallbackToSync extends CallbackToBracket with CallbackToDefer with Sync[CallbackTo] {
-    override def suspend[A](thunk: => CallbackTo[A]): CallbackTo[A]
-    = CallbackTo.byName(thunk)
+    override def suspend[A](thunk: => CallbackTo[A]): CallbackTo[A] =
+      CallbackTo.byName(thunk)
   }
 
   implicit val callbackToSync: Sync[CallbackTo] = new CallbackToSync {}
