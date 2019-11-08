@@ -9,7 +9,8 @@ object Settings {
     val cats                        = "2.0.0"
     val fs2                         = "2.0.0"
 
-    val disciplineScalatestVersion  = "1.0.0-RC1"
+    val catsTestkitScalatest        = "1.0.0-RC1"
+    val disciplineScalatest         = "1.0.0-RC1"
   }
 
   object Libraries {
@@ -22,6 +23,11 @@ object Settings {
 
     val CatsJS = Def.setting(Seq[ModuleID](
       "org.typelevel" %%% "cats-core" % LibraryVersions.cats,
+      "org.typelevel" %%% "cats-testkit" % LibraryVersions.cats % "test",
+      "org.typelevel" %%% "cats-testkit-scalatest" % LibraryVersions.catsTestkitScalatest % "test"
+    ))
+
+    val CatsEffectsJS = Def.setting(Seq[ModuleID](
       "org.typelevel" %%% "cats-effect" % LibraryVersions.cats,
       "org.typelevel" %%% "cats-effect-laws" % LibraryVersions.cats % "test"
     ))
@@ -32,7 +38,7 @@ object Settings {
 
     val Discipline = Def.setting(Seq[ModuleID](
       "org.scalatest" %%% "scalatest" % "3.1.0-RC2" % "test",
-      "org.typelevel" %%% "discipline-scalatest" % LibraryVersions.disciplineScalatestVersion % "test"
+      "org.typelevel" %%% "discipline-scalatest" % LibraryVersions.disciplineScalatest % "test"
     ))
   }
 

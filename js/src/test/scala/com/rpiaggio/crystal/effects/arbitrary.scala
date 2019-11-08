@@ -7,7 +7,7 @@ import org.scalacheck.Arbitrary.{arbitrary => getArbitrary}
 import org.scalacheck._
 import scala.util.Either
 
-object arbitrary {
+trait arbitrary {
   def genSyncIO[A: Arbitrary: Cogen]: Gen[CallbackTo[A]] =
     Gen.frequency(5 -> genPure[A], 5 -> genApply[A], /*1 -> genFail[A],*/ 5 -> genBindSuspend[A])
 

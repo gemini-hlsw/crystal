@@ -10,6 +10,8 @@ scalaVersion in ThisBuild := "2.11.11"
 
 //crossScalaVersions := Seq("2.11.11", "2.12.10", "2.13.1")
 
+testOptions in Test in ThisBuild += Tests.Argument("-oS")
+
 lazy val root = project.in(file(".")).
   aggregate(crystalJS).
   settings(
@@ -61,9 +63,9 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
     libraryDependencies ++=
       Settings.Libraries.ReactScalaJS.value ++
         Settings.Libraries.CatsJS.value ++
+        Settings.Libraries.CatsEffectsJS.value ++
         Settings.Libraries.Fs2JS.value ++
         Settings.Libraries.Discipline.value
-    //    jsEnv in Test := new org.scalajs.jsenv.nodejs.NodeJSEnv
   )
 
 lazy val crystalJS = crystal.js
