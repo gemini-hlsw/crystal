@@ -1,20 +1,15 @@
 package com.rpiaggio.crystal.effects
 
-import cats.{Applicative, ApplicativeError, Defer, Eval, Monad, MonadError}
-import cats.effect.{Bracket, ExitCase, IO, Sync, SyncIO}
-import cats.effect.laws.discipline.{BracketTests, SyncTests}
+import cats.effect.laws.discipline.SyncTests
 import cats.effect.laws.util.{TestContext, TestInstances}
 import cats.kernel.Eq
-import japgolly.scalajs.react.{Callback, CallbackTo, CatsReact}
+import japgolly.scalajs.react.CallbackTo
 import cats.tests.CatsSuite
 import org.scalacheck.Arbitrary
+import CallbackToEffects._
 
 final class CallbackToEffectsSpec extends CatsSuite with TestInstances {
   implicit val ec: TestContext = TestContext()
-
-
-  import CallbackToEffects._
-
 
   implicit def arbitraryCallbackTo[A: Arbitrary]: Arbitrary[CallbackTo[A]] =
     Arbitrary(genApply[A])
