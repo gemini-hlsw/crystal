@@ -9,6 +9,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import CallbackToEffects._
 import org.scalacheck.Arbitrary.arbitrary
 
+
 final class CallbackToEffectsSpec extends CatsSuite with TestInstances {
   implicit val ec: TestContext = TestContext()
 

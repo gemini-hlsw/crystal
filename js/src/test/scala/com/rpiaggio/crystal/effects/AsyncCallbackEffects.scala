@@ -4,10 +4,48 @@ import cats.effect.{Bracket, ExitCase, Sync}
 import cats.{Defer, MonadError}
 import japgolly.scalajs.react.{AsyncCallback, CatsReact}
 
+import scala.util.{Either, Failure}
+
 trait AsyncCallbackEffects {
-  private val asyncCallbackMonadError: MonadError[AsyncCallback, Throwable] =
-    CatsReact.reactAsyncCallbackCatsInstance
+  //  private val asyncCallbackMonadError: MonadError[AsyncCallback, Throwable] =
+  //    CatsReact.reactAsyncCallbackCatsInstance
   //      implicitly[MonadError[AsyncCallback, Throwable]]
+
+  implicit final lazy val reactAsyncCallbackCatsInstance2: MonadError[AsyncCallback, Throwable] = new MonadError[AsyncCallback, Throwable] {
+
+    override def pure[A](x: A): AsyncCallback[A] =
+      AsyncCallback.pure(x)
+
+    override def ap[A, B](ff: AsyncCallback[A => B])(fa: AsyncCallback[A]) =
+      ff.zipWith(fa)(_ (_))
+
+    override def ap2[A, B, Z](ff: AsyncCallback[(A, B) => Z])(fa: AsyncCallback[A], fb: AsyncCallback[B]) =
+      ff.zipWith(fa.zip(fb))(_.tupled(_))
+
+    override def map2[A, B, Z](fa: AsyncCallback[A], fb: AsyncCallback[B])(f: (A, B) => Z) =
+      fa.zipWith(fb)(f)
+
+    override def map[A, B](fa: AsyncCallback[A])(f: A => B): AsyncCallback[B] =
+      fa.map(f)
+
+    override def flatMap[A, B](fa: AsyncCallback[A])(f: A => AsyncCallback[B]): AsyncCallback[B] =
+      fa.flatMap(f)
+
+    override def tailRecM[A, B](a: A)(f: A => AsyncCallback[Either[A, B]]): AsyncCallback[B] =
+      AsyncCallback.tailrec(a)(f)
+
+    override def raiseError[A](e: Throwable): AsyncCallback[A] = // This is the correct, suspending, raiseError!
+      AsyncCallback(_ (Failure(e)))
+
+    override def handleErrorWith[A](fa: AsyncCallback[A])(f: Throwable => AsyncCallback[A]): AsyncCallback[A] =
+      fa.attempt.flatMap {
+        case Right(a) => AsyncCallback pure a
+        case Left(t) => f(t)
+      }
+  }
+
+  private val asyncCallbackMonadError: MonadError[AsyncCallback, Throwable] = reactAsyncCallbackCatsInstance2
+
 
   trait AsyncCallbackDefer extends Defer[AsyncCallback] {
     override def defer[A](fa: => AsyncCallback[A]): AsyncCallback[A] =
