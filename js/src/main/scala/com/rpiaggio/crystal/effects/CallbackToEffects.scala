@@ -1,7 +1,7 @@
 package com.rpiaggio.crystal.effects
 
-import cats.{Defer, MonadError}
 import cats.effect.{Bracket, ExitCase, Sync}
+import cats.{Defer, MonadError}
 import japgolly.scalajs.react.{CallbackTo, CatsReact}
 
 trait CallbackToEffects {

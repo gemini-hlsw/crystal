@@ -2,10 +2,8 @@ package com.rpiaggio.crystal.effects
 
 import cats.effect.{Async, Bracket, ExitCase, IO, LiftIO, Sync}
 import cats.{Defer, MonadError}
-import japgolly.scalajs.react.{AsyncCallback, Callback, CatsReact}
+import japgolly.scalajs.react.{AsyncCallback, Callback}
 
-import scala.concurrent.Future
-import scala.util.control.NonFatal
 import scala.util.{Either, Failure, Left, Success, Try}
 
 trait AsyncCallbackEffects {
@@ -90,23 +88,17 @@ trait AsyncCallbackEffects {
 
   trait AsyncCallbackAsync extends AsyncCallbackSync with AsyncCallbackLiftIO with Async[AsyncCallback] {
     def async[A](cb: (Either[Throwable, A] => Unit) => Unit): AsyncCallback[A] = {
-      AsyncCallback { asyncCallbackCB =>
-        def convertCallback(asyncCB: Either[Throwable, A] => Unit): Either[Throwable, A] => Unit = {
-          case Right(a) => asyncCallbackCB(Success(a)).runNow()
-          case Left(t) => asyncCallbackCB(Failure(t)).runNow()
+      AsyncCallback { accb =>
+        Callback {
+          cb(either => accb(either.toTry).runNow())
         }
-
-        def convertBlock(Block: (Either[Throwable, A] => Unit) => Unit): (Either[Throwable, A] => Unit) => Unit = {
-          l =>
-            () =>
-              convertCallback(l)
-        }
-
-        Callback(convertBlock _)
       }
     }
+
+    override def asyncF[A](k: (Either[Throwable, A] => Unit) => AsyncCallback[Unit]) = ???
   }
 
+  implicit val asyncCallbackAsync: Async[AsyncCallback] = new AsyncCallbackAsync {}
 }
 
 object AsyncCallbackEffects extends AsyncCallbackEffects
