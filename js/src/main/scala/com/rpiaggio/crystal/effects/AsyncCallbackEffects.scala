@@ -87,15 +87,25 @@ trait AsyncCallbackEffects {
   implicit val asyncCallbackLiftIO: LiftIO[AsyncCallback] = new AsyncCallbackLiftIO {}
 
   trait AsyncCallbackAsync extends AsyncCallbackSync with AsyncCallbackLiftIO with Async[AsyncCallback] {
-    def async[A](cb: (Either[Throwable, A] => Unit) => Unit): AsyncCallback[A] = {
+    def async[A](k: (Either[Throwable, A] => Unit) => Unit): AsyncCallback[A] = {
       AsyncCallback { accb =>
+        val convertCallback: Either[Throwable, A] => Unit =
+          either => accb(either.toTry).runNow()
+
         Callback {
-          cb(either => accb(either.toTry).runNow())
+          k(convertCallback)
         }
       }
     }
 
-    override def asyncF[A](k: (Either[Throwable, A] => Unit) => AsyncCallback[Unit]) = ???
+    override def asyncF[A](k: (Either[Throwable, A] => Unit) => AsyncCallback[Unit]): AsyncCallback[A] = {
+      AsyncCallback { accb =>
+        val convertCallback: Either[Throwable, A] => Unit =
+          either => accb(either.toTry).runNow()
+
+        k(convertCallback).toCallback
+      }
+    }
   }
 
   implicit val asyncCallbackAsync: Async[AsyncCallback] = new AsyncCallbackAsync {}
