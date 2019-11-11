@@ -5,19 +5,10 @@ import cats.effect.laws.util.{TestContext, TestInstances}
 import cats.kernel.Eq
 import japgolly.scalajs.react.CallbackTo
 import cats.tests.CatsSuite
-import org.scalacheck.{Arbitrary, Gen}
 import CallbackToEffects._
-import org.scalacheck.Arbitrary.arbitrary
 
-
-final class CallbackToEffectsSpec extends CatsSuite with TestInstances {
+final class CallbackToEffectsSpec extends CatsSuite with TestInstances with CallbackToArbitraries {
   implicit val ec: TestContext = TestContext()
-
-  def genApply[A: Arbitrary]: Gen[CallbackTo[A]] =
-    arbitrary[A].map(CallbackTo.apply(_))
-
-  implicit def arbitraryCallbackTo[A: Arbitrary]: Arbitrary[CallbackTo[A]] =
-    Arbitrary(genApply[A])
 
   implicit def eqCallback[A](implicit A: Eq[A], ec: TestContext): Eq[CallbackTo[A]] =
     new Eq[CallbackTo[A]] {
@@ -26,4 +17,6 @@ final class CallbackToEffectsSpec extends CatsSuite with TestInstances {
     }
 
   checkAll("Sync[CallbackTo]", SyncTests[CallbackTo].sync[Int, Int, Int])
+//  checkAll("SyncIO", MonoidTests[CallbackTo[Int]].monoid)
+//  checkAll("SyncIO", SemigroupKTests[CallbackTo].semigroupK[Int])
 }
