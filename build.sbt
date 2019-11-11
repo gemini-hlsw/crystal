@@ -10,7 +10,8 @@ scalaVersion in ThisBuild := "2.12.10"
 
 //crossScalaVersions := Seq("2.11.11", "2.12.10", "2.13.1")
 
-testOptions in Test in ThisBuild += Tests.Argument("-oS")
+//testOptions in Test in ThisBuild += Tests.Argument("-oS")
+testOptions in Test in ThisBuild += Tests.Argument("-oF")
 
 lazy val root = project.in(file(".")).
   aggregate(crystalJS).

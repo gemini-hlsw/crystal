@@ -23,9 +23,8 @@ trait AsyncCallbackArbitraries extends CallbackToArbitraries {
       1 -> genApply[A].map(_.asAsyncCallback),
       1 -> genFail[A].map(_.asAsyncCallback),
       1 -> genAsync[A],
-//      1 -> genAsyncF[A],
+//      1 -> genAsyncF[A], // Not really sure how to generate an AsyncCallback here
       1 -> genNestedAsync[A],
-//      1 -> genCancelable[A],
       1 -> getMapOne[A],
       1 -> getMapTwo[A],
       2 -> genFlatMap[A]
@@ -33,14 +32,6 @@ trait AsyncCallbackArbitraries extends CallbackToArbitraries {
 
   def genAsync[A: Arbitrary]: Gen[AsyncCallback[A]] =
     arbitrary[(Try[A] => Callback) => Callback].map(AsyncCallback.apply)
-
-//  def genAsyncF[A: Arbitrary]: Gen[IO[A]] =
-//    arbitrary[(Either[Throwable, A] => Unit) => Unit].map { k =>
-//      IO.asyncF(cb => IO(k(cb)))
-//    }
-//
-//  def genCancelable[A: Arbitrary: Cogen]: Gen[IO[A]] =
-//    getArbitrary[IO[A]].map(io => IO.cancelBoundary *> io <* IO.cancelBoundary)
 
   def genNestedAsync[A: Arbitrary: Cogen]: Gen[AsyncCallback[A]] =
     arbitrary[(Try[AsyncCallback[A]] => Callback) => Callback]

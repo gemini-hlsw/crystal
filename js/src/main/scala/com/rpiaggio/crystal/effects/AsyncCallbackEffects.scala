@@ -1,6 +1,6 @@
 package com.rpiaggio.crystal.effects
 
-import cats.effect.{Async, Bracket, ExitCase, IO, LiftIO, Sync}
+import cats.effect.{Async, Bracket, Effect, ExitCase, IO, LiftIO, Sync, SyncIO}
 import cats.{Defer, MonadError}
 import japgolly.scalajs.react.{AsyncCallback, Callback}
 
@@ -35,7 +35,7 @@ trait AsyncCallbackEffects {
       AsyncCallback.tailrec(a)(f)
 
     override def raiseError[A](e: Throwable): AsyncCallback[A] = // This is the correct, suspending, raiseError!
-      AsyncCallback(_ (Failure(e)))
+      AsyncCallback.throwException(e)
 
     override def handleErrorWith[A](fa: AsyncCallback[A])(f: Throwable => AsyncCallback[A]): AsyncCallback[A] =
       fa.attempt.flatMap {
@@ -109,6 +109,16 @@ trait AsyncCallbackEffects {
   }
 
   implicit val asyncCallbackAsync: Async[AsyncCallback] = new AsyncCallbackAsync {}
+
+  trait AsyncCallbackEffect extends AsyncCallbackAsync with Effect[AsyncCallback] {
+    override def runAsync[A](fa: AsyncCallback[A])(cb: Either[Throwable, A] => IO[Unit]): SyncIO[Unit] = {
+      SyncIO(
+        fa.attempt.map(cb.andThen(_.unsafeRunAsyncAndForget())).toCallback.runNow()
+      )
+    }
+  }
+
+  implicit val asyncCallbackEffect: Effect[AsyncCallback] = new AsyncCallbackEffect {}
 }
 
 object AsyncCallbackEffects extends AsyncCallbackEffects
