@@ -11,7 +11,7 @@ import scala.language.higherKinds
 
 // ConcurrentEffect is needed by Flow, to .runCancelable the stream.
 sealed class ViewRO[F[_] : ConcurrentEffect, A](val get: F[A], val stream: Stream[F, A]) {
-  lazy val flow: ReactFlowComponent[A] = Flow.flow(stream)
+  lazy val flow: ReactFlowComponent[A] = Flow.flow(stream) // Should be moved to an implicit class in the react package.
 
   // Useful for getting an algebra already in F[_].
   def algebra[H[_[_]]](implicit algebra: H[F]): H[F] = algebra

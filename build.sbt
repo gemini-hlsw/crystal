@@ -4,11 +4,11 @@ ThisBuild / name := "crystal"
 
 ThisBuild / organization := "com.rpiaggio"
 
-ThisBuild / version := "0.0.4-SNAPSHOT"
+ThisBuild / version := "0.0.5"
 
 ThisBuild / scalaVersion := "2.12.10"
 
-// ThisBuild / crossScalaVersions := Seq("2.11.11", "2.12.10", "2.13.1")
+//ThisBuild / crossScalaVersions := Seq("2.12.10", "2.13.1")
 
 ThisBuild / githubOwner := "rpiaggio"
 ThisBuild / githubRepository := "crystal"
@@ -37,13 +37,13 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
       "scm:git:git@github.com:rpiaggio/crystal.git",
       Some("scm:git:git@github.com:rpiaggio/crystal.git"))),
     publishMavenStyle := false,
-//    publishTo := {
-//      val nexus = "https://oss.sonatype.org/"
-//      if (isSnapshot.value)
-//        Some("snapshots" at nexus + "content/repositories/snapshots")
-//      else
-//        Some("releases" at nexus + "service/local/staging/deploy/maven2")
-//    },
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    },
     pomExtra :=
         <developers>
           <developer>
