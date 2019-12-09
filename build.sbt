@@ -4,7 +4,7 @@ ThisBuild / name := "crystal"
 
 ThisBuild / organization := "com.rpiaggio"
 
-ThisBuild / version := "0.0.8"
+ThisBuild / version := "0.0.9"
 
 ThisBuild / scalaVersion := "2.12.10"
 
@@ -36,7 +36,7 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
       url("https://https://github.com/rpiaggio/crystal"),
       "scm:git:git@github.com:rpiaggio/crystal.git",
       Some("scm:git:git@github.com:rpiaggio/crystal.git"))),
-    publishMavenStyle := false,
+    publishMavenStyle := true,
     publishTo := sonatypePublishToBundle.value,
     pomExtra :=
         <developers>
