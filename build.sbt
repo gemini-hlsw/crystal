@@ -1,17 +1,17 @@
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
-name in ThisBuild := "crystal"
+ThisBuild / name := "crystal"
 
-organization in ThisBuild := "com.rpiaggio"
+ThisBuild / organization := "com.rpiaggio"
 
-version in ThisBuild := "0.0.2-SNAPSHOT"
+ThisBuild / version := "0.0.4-SNAPSHOT"
 
-scalaVersion in ThisBuild := "2.12.10"
+ThisBuild / scalaVersion := "2.12.10"
 
-//crossScalaVersions := Seq("2.11.11", "2.12.10", "2.13.1")
+// ThisBuild / crossScalaVersions := Seq("2.11.11", "2.12.10", "2.13.1")
 
-//testOptions in Test in ThisBuild += Tests.Argument("-oS")
-testOptions in Test in ThisBuild += Tests.Argument("-oF")
+ThisBuild / githubOwner := "rpiaggio"
+ThisBuild / githubRepository := "crystal"
 
 lazy val root = project.in(file(".")).
   aggregate(crystalJS).
@@ -37,13 +37,13 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
       "scm:git:git@github.com:rpiaggio/crystal.git",
       Some("scm:git:git@github.com:rpiaggio/crystal.git"))),
     publishMavenStyle := false,
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
+//    publishTo := {
+//      val nexus = "https://oss.sonatype.org/"
+//      if (isSnapshot.value)
+//        Some("snapshots" at nexus + "content/repositories/snapshots")
+//      else
+//        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+//    },
     pomExtra :=
         <developers>
           <developer>
@@ -73,6 +73,6 @@ lazy val crystalJS = crystal.js
 
 lazy val crystalJVM = crystal.jvm
 
-sonatypeProfileName := "com.rpiaggio"
+//sonatypeProfileName := "com.rpiaggio"
 
 packagedArtifacts in root := Map.empty

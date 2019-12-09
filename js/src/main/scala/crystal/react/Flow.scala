@@ -1,15 +1,13 @@
-package com.rpiaggio.crystal
+package crystal.react
 
-import japgolly.scalajs.react._
+import cats.effect.{CancelToken, ConcurrentEffect, Effect, IO, Sync, SyncIO}
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
-import vdom.html_<^._
-import cats.effect._
-import cats.implicits._
-import fs2.concurrent.SignallingRef
-import scala.language.higherKinds
+import japgolly.scalajs.react.vdom.html_<^.VdomElement
+import japgolly.scalajs.react.{BackendScope, Callback, CtorType, ScalaComponent}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
+
+import scala.language.higherKinds
 
 object Flow {
   type ReactFlowProps[A] = Option[A] => VdomElement
@@ -17,7 +15,9 @@ object Flow {
 
   type State[A] = Option[A] // Use Pot or something else that can hold errors
 
-  def flow[F[_] : ConcurrentEffect : Timer, A](stream: fs2.Stream[F, A], key: js.UndefOr[js.Any] = js.undefined): ReactFlowComponent[A] = {
+  // We should let pass Reusability[A] somewhere (or provide it in a View).
+
+  def flow[F[_] : ConcurrentEffect, A](stream: fs2.Stream[F, A], key: js.UndefOr[js.Any] = js.undefined): ReactFlowComponent[A] = {
 
     class Backend($: BackendScope[ReactFlowProps[A], State[A]]) {
 
@@ -40,11 +40,7 @@ object Flow {
       }
 
 
-      def render(pr: ReactFlowProps[A], v: Option[A]): VdomElement =
-        <.div(
-          pr(v),
-          <.button(^.tpe := "button", "STOP!", ^.onClick --> willUnmount)
-        )
+      def render(pr: ReactFlowProps[A], v: Option[A]): VdomElement = pr(v)
     }
 
     ScalaComponent
