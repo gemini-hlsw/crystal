@@ -81,8 +81,8 @@ A `Flow[F[_], A]` is a (`scalajs-react`) React component that wraps a `fs.Stream
 
 It provides a method `.flow(Option[A] => VdomElement)` that can be used within the components to render the received values. It will update whatever is rendered withing block whenever a new value is emitted to the stream.
 
-Note that this is completely indepedant of the core functinality of `crystal`. It can be used with ***any*** `Stream[F, A]`. 
+Note that this is completely indepedant from the core functinality of `crystal`. It can be used with ***any*** `Stream[F, A]`. 
 
-To pass values from the model to components, it should be done as a `View[F, A]` in its properties. For convenience, a `View[F, A]` does provide a `.flow` method that will return a `Flow[F, A]` on its stream.
+To pass values from the model to components, though, it should be done as a `View[F, A]` in its properties. For convenience, a `View[F, A]` does provide a `.flow` method that will return a `Flow[F, A]` on its stream.
 
 Also please note that the chosen effect context `F[_]` must have a `cats.effects.ConcurrentEffect` type class instance.
