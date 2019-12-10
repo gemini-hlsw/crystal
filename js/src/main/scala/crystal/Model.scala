@@ -1,6 +1,6 @@
 package crystal
 
-import cats.effect.{ConcurrentEffect, SyncIO, Timer}
+import cats.effect.{ConcurrentEffect, Sync, SyncIO, Timer}
 import fs2._
 import fs2.concurrent.SignallingRef
 import monocle.Lens
@@ -20,4 +20,9 @@ case class Model[F[_] : ConcurrentEffect : Timer, M](initialModel: M) {
     // Or use reusability here?
     new View(fixedLens, stream.map(lens.get).filterWithPrevious(_ != _))
   }
+}
+
+object Model {
+  def init[F[_] : ConcurrentEffect : Timer, M](initialModel: M): F[Model[F, M]] =
+    Sync[F].delay(Model(initialModel))
 }
