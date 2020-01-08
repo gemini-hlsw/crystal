@@ -1,17 +1,21 @@
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
-ThisBuild / name := "crystal"
-
-ThisBuild / organization := "com.rpiaggio"
-
-ThisBuild / version := "0.0.9"
-
-ThisBuild / scalaVersion := "2.12.10"
-
-//ThisBuild / crossScalaVersions := Seq("2.12.10", "2.13.1")
-
-//ThisBuild / githubOwner := "rpiaggio"
-//ThisBuild / githubRepository := "crystal"
+inThisBuild(List(
+  name := "crystal",
+  scalaVersion := "2.13.1",
+  crossScalaVersions := Seq("2.12.10", "2.13.1"),
+  organization := "com.rpiaggio",
+  homepage := Some(url("https://github.com/rpiaggio/crystal")),
+  licenses += ("BSD 3-Clause", url("http://opensource.org/licenses/BSD-3-Clause")),
+  developers := List(
+    Developer(
+      "rpiaggio",
+      "Raúl Piaggio",
+      "rpiaggio@gmail.com",
+      url("http://rpiaggio.com")
+    )
+  )
+))
 
 lazy val root = project.in(file(".")).
   aggregate(crystalJS).
@@ -30,28 +34,29 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
       "-encoding", "UTF-8",
       "-P:scalajs:suppressMissingJSGlobalDeprecations"
     ),
-    homepage := Some(url("https://github.com/rpiaggio/crystal")),
-    licenses += ("BSD 3-Clause", url("http://opensource.org/licenses/BSD-3-Clause")),
+//    homepage := Some(url("https://github.com/rpiaggio/crystal")),
+//    licenses += ("BSD 3-Clause", url("http://opensource.org/licenses/BSD-3-Clause")),
     scmInfo := Some(ScmInfo(
       url("https://https://github.com/rpiaggio/crystal"),
       "scm:git:git@github.com:rpiaggio/crystal.git",
       Some("scm:git:git@github.com:rpiaggio/crystal.git"))),
-    publishMavenStyle := true,
-    publishTo := sonatypePublishToBundle.value,
-    pomExtra :=
-        <developers>
-          <developer>
-            <id>rpiaggio</id>
-            <name>Raúl Piaggio</name>
-            <url>https://github.com/rpiaggio/</url>
-          </developer>
-        </developers>,
+//    publishMavenStyle := true,
+//    publishTo := sonatypePublishToBundle.value,
+//    pomExtra :=
+//        <developers>
+//          <developer>
+//            <id>rpiaggio</id>
+//            <name>Raúl Piaggio</name>
+//            <url>https://github.com/rpiaggio/</url>
+//          </developer>
+//        </developers>,
     pomIncludeRepository := { _ => false }
   )
   .jvmSettings(
     libraryDependencies ++=
       Settings.Libraries.CatsJS.value ++
-        Settings.Libraries.Fs2JS.value
+        Settings.Libraries.Fs2JS.value,
+    skip in publish := true
   )
   .jsSettings(
     //Scalajs dependencies that are used on the client only
