@@ -21,6 +21,9 @@ package object react {
         io.unsafeRunAsyncAndForget()
       }
 
+      @inline implicit def io2UndefOrCallback[A](io: IO[A]): js.UndefOr[Callback] = 
+        io2Callback(io)
+
       // All following code thanks to Michael Pilquist
 
       /*implicit class SyncIoCallbackToOps[A](val self: SyncIO[A]) {
