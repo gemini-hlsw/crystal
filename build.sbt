@@ -34,22 +34,10 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
       "-encoding", "UTF-8",
       "-P:scalajs:suppressMissingJSGlobalDeprecations"
     ),
-//    homepage := Some(url("https://github.com/rpiaggio/crystal")),
-//    licenses += ("BSD 3-Clause", url("http://opensource.org/licenses/BSD-3-Clause")),
     scmInfo := Some(ScmInfo(
       url("https://https://github.com/rpiaggio/crystal"),
       "scm:git:git@github.com:rpiaggio/crystal.git",
       Some("scm:git:git@github.com:rpiaggio/crystal.git"))),
-//    publishMavenStyle := true,
-//    publishTo := sonatypePublishToBundle.value,
-//    pomExtra :=
-//        <developers>
-//          <developer>
-//            <id>rpiaggio</id>
-//            <name>Raúl Piaggio</name>
-//            <url>https://github.com/rpiaggio/</url>
-//          </developer>
-//        </developers>,
     pomIncludeRepository := { _ => false }
   )
   .jvmSettings(
@@ -63,9 +51,8 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
     libraryDependencies ++=
       Settings.Libraries.ReactScalaJS.value ++
         Settings.Libraries.CatsJS.value ++
-        Settings.Libraries.CatsEffectsJS.value ++
-        Settings.Libraries.Fs2JS.value ++
-        Settings.Libraries.Discipline.value
+        Settings.Libraries.CatsEffectJS.value ++
+        Settings.Libraries.Fs2JS.value
   )
 
 lazy val crystalJS = crystal.js
