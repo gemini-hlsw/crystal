@@ -25,34 +25,30 @@ lazy val root = project.in(file(".")).
   )
 
 lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
-  //Settings for all projects
   .settings(
     scalacOptions ++= Seq(
       "-deprecation",
       "-feature",
       "-Xfatal-warnings",
-      "-encoding", "UTF-8",
-      "-P:scalajs:suppressMissingJSGlobalDeprecations"
+      "-encoding", "UTF-8"
     ),
+    libraryDependencies ++=
+      Settings.Libraries.CatsJS.value ++
+        Settings.Libraries.CatsEffectJS.value ++
+        Settings.Libraries.Fs2JS.value ++
+        Settings.Libraries.Monocle.value,
     scmInfo := Some(ScmInfo(
       url("https://https://github.com/rpiaggio/crystal"),
       "scm:git:git@github.com:rpiaggio/crystal.git",
       Some("scm:git:git@github.com:rpiaggio/crystal.git"))),
     pomIncludeRepository := { _ => false }
   )
-  .jvmSettings(
-    libraryDependencies ++=
-      Settings.Libraries.CatsJS.value ++
-        Settings.Libraries.Fs2JS.value,
-    skip in publish := true
-  )
   .jsSettings(
-    //Scalajs dependencies that are used on the client only
+    scalacOptions ++= Seq(
+      "-P:scalajs:suppressMissingJSGlobalDeprecations"
+    ),
     libraryDependencies ++=
-      Settings.Libraries.ReactScalaJS.value ++
-        Settings.Libraries.CatsJS.value ++
-        Settings.Libraries.CatsEffectJS.value ++
-        Settings.Libraries.Fs2JS.value
+      Settings.Libraries.ReactScalaJS.value
   )
 
 lazy val crystalJS = crystal.js

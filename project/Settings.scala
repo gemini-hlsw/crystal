@@ -8,26 +8,33 @@ object Settings {
     val scalajsReact                = "1.6.0"
     val cats                        = "2.0.0"
     val fs2                         = "2.2.1"
+    val monocle                     = "2.0.0"
   }
 
   object Libraries {
+    import LibraryVersions._
+
     val ReactScalaJS = Def.setting(Seq(
-      "com.github.japgolly.scalajs-react" %%% "core" % LibraryVersions.scalajsReact,
-      "com.github.japgolly.scalajs-react" %%% "extra" % LibraryVersions.scalajsReact,
-      "com.github.japgolly.scalajs-react" %%% "ext-monocle-cats" % LibraryVersions.scalajsReact,
-      "com.github.japgolly.scalajs-react" %%% "ext-cats" % LibraryVersions.scalajsReact
+      "com.github.japgolly.scalajs-react" %%% "core" % scalajsReact,
+      "com.github.japgolly.scalajs-react" %%% "extra" % scalajsReact,
+      "com.github.japgolly.scalajs-react" %%% "ext-monocle-cats" % scalajsReact,
+      "com.github.japgolly.scalajs-react" %%% "ext-cats" % scalajsReact
     ))
 
     val CatsJS = Def.setting(Seq[ModuleID](
-      "org.typelevel" %%% "cats-core" % LibraryVersions.cats
+      "org.typelevel" %%% "cats-core" % cats
     ))
 
     val CatsEffectJS = Def.setting(Seq[ModuleID](
-      "org.typelevel" %%% "cats-effect" % LibraryVersions.cats      
+      "org.typelevel" %%% "cats-effect" % cats      
     ))
 
     val Fs2JS = Def.setting(Seq[ModuleID](
-      "co.fs2" %%% "fs2-core" % LibraryVersions.fs2
+      "co.fs2" %%% "fs2-core" % fs2
+    ))
+
+    val Monocle = Def.setting(Seq[ModuleID](
+      "com.github.julien-truffaut" %%% "monocle-core" % monocle
     ))
   }
 

@@ -2,16 +2,20 @@ package crystal
 
 import cats.effect.ConcurrentEffect
 import cats.implicits._
-import crystal.react.Flow
-import crystal.react.Flow.ReactFlowComponent
 import fs2._
 import monocle.Lens
 
 import scala.language.higherKinds
 
+trait ViewFlowProvider {
+  type Flow[A]
+
+  def flow[F[_] : ConcurrentEffect, A](view: ViewRO[F, A]): Flow[A]
+}
+
 // ConcurrentEffect is needed by Flow, to .runCancelable the stream.
 sealed class ViewRO[F[_] : ConcurrentEffect, A](val get: F[A], val stream: Stream[F, A]) {
-  lazy val flow: ReactFlowComponent[A] = Flow.flow(stream) // Should be moved to an implicit class in the react package.
+  lazy val flow: View.Flow[A] = View.flow(this)
 
   // Useful for getting an action handler already in F[_].
   def actions[H[_[_]]](implicit actions: H[F]): H[F] = actions
@@ -41,4 +45,4 @@ class View[F[_] : ConcurrentEffect, A](fixedLens: FixedLens[F, A], stream: Strea
   }
 }
 
-
+object View extends ViewFlowProviderForPlatform

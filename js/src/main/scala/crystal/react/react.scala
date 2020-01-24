@@ -4,6 +4,7 @@ import cats.effect.{IO, SyncIO}
 import japgolly.scalajs.react.component.Generic.MountedSimple
 import japgolly.scalajs.react.{Callback, CallbackTo, StateAccess}
 import scala.scalajs.js
+import scala.collection.mutable
 
 import scala.util.control.NonFatal
 
