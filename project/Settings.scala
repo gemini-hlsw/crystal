@@ -8,7 +8,7 @@ object Settings {
     val scalajsReact                = "1.6.0"
     val cats                        = "2.0.0"
     val fs2                         = "2.2.1"
-    val monocle                     = "2.0.0"
+    val monocle                     = "2.0.1"
   }
 
   object Libraries {
