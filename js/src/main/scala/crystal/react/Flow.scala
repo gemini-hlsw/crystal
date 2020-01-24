@@ -2,7 +2,7 @@ package crystal.react
 
 import cats.effect.{CancelToken, ConcurrentEffect, Effect, IO, Sync, SyncIO}
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
-import japgolly.scalajs.react.vdom.html_<^.VdomElement
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.{BackendScope, Callback, CtorType, ScalaComponent}
 
 import scala.scalajs.js
@@ -10,10 +10,10 @@ import scala.scalajs.js
 import scala.language.higherKinds
 
 object Flow {
-  type ReactFlowProps[A] = Option[A] => VdomElement
+  type ReactFlowProps[A] = A => VdomNode
   type ReactFlowComponent[A] = CtorType.Props[ReactFlowProps[A], UnmountedWithRoot[ReactFlowProps[A], _, _, _]]
 
-  type State[A] = Option[A] // Use Pot or something else that can hold errors
+  type State[A] = Option[A] // Use Pot or something else that can hold errors?
 
   // We should let pass Reusability[A] somewhere (or provide it in a View).
 
@@ -21,7 +21,7 @@ object Flow {
 
     class Backend($: BackendScope[ReactFlowProps[A], State[A]]) {
 
-      var cancelToken: Option[CancelToken[F]] = None // Can we avoid the var?
+      var cancelToken: Option[CancelToken[F]] = None
 
       val evalCancellable: SyncIO[CancelToken[F]] =
         ConcurrentEffect[F].runCancelable(
@@ -39,8 +39,7 @@ object Flow {
         cancelToken.foreach(token => Effect[F].toIO(token).unsafeRunAsyncAndForget())
       }
 
-
-      def render(pr: ReactFlowProps[A], v: Option[A]): VdomElement = pr(v)
+      def render(props: ReactFlowProps[A], state: Option[A]): VdomNode = state.fold(VdomNode(null))(props)
     }
 
     ScalaComponent
