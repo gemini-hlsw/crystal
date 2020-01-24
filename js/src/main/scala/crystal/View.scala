@@ -13,8 +13,8 @@ import scala.language.higherKinds
 sealed class ViewRO[F[_] : ConcurrentEffect, A](val get: F[A], val stream: Stream[F, A]) {
   lazy val flow: ReactFlowComponent[A] = Flow.flow(stream) // Should be moved to an implicit class in the react package.
 
-  // Useful for getting an algebra already in F[_].
-  def algebra[H[_[_]]](implicit algebra: H[F]): H[F] = algebra
+  // Useful for getting an action handler already in F[_].
+  def actions[H[_[_]]](implicit actions: H[F]): H[F] = actions
 
   // map takes any function. We lose access to the model and cannot write to it anymore. Hence ViewRO.
   def map[B](f: A => B): ViewRO[F, B] = {
