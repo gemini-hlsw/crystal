@@ -18,7 +18,7 @@ inThisBuild(List(
 ))
 
 lazy val root = project.in(file(".")).
-  aggregate(crystalJS).
+  aggregate(crystalJVM, crystalJS).
   settings(
     publish := {},
     publishLocal := {}
