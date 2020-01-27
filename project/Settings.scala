@@ -6,7 +6,8 @@ object Settings {
 
   object LibraryVersions {
     val scalajsReact                = "1.6.0"
-    val cats                        = "2.0.0"
+    val cats                        = "2.1.0"
+    val catsEffect                  = "2.0.0"
     val fs2                         = "2.2.1"
     val monocle                     = "2.0.1"
   }
@@ -26,7 +27,7 @@ object Settings {
     ))
 
     val CatsEffectJS = Def.setting(Seq[ModuleID](
-      "org.typelevel" %%% "cats-effect" % cats      
+      "org.typelevel" %%% "cats-effect" % catsEffect
     ))
 
     val Fs2JS = Def.setting(Seq[ModuleID](
