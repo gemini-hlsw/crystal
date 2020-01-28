@@ -7,15 +7,15 @@ import monocle.Lens
 
 import scala.language.higherKinds
 
-trait ViewFlowProvider {
-  type Flow[A]
+trait ViewStreamRendererProvider {
+  type StreamRenderer[A]
 
-  def flow[F[_] : ConcurrentEffect, A](view: ViewRO[F, A]): Flow[A]
+  def streamRenderer[F[_] : ConcurrentEffect, A](view: ViewRO[F, A]): StreamRenderer[A]
 }
 
-// ConcurrentEffect is needed by Flow, to .runCancelable the stream.
+// ConcurrentEffect is needed by StreamRenderer, to .runCancelable the stream.
 sealed class ViewRO[F[_] : ConcurrentEffect, A](val get: F[A], val stream: Stream[F, A]) {
-  lazy val flow: View.Flow[A] = View.flow(this)
+  lazy val streamRender: View.StreamRenderer[A] = View.streamRenderer(this)
 
   // Useful for getting an action handler already in F[_].
   def actions[H[_[_]]](implicit actions: H[F]): H[F] = actions
@@ -45,4 +45,4 @@ class View[F[_] : ConcurrentEffect, A](fixedLens: FixedLens[F, A], stream: Strea
   }
 }
 
-object View extends ViewFlowProviderForPlatform
+object View extends ViewStreamRendererProviderForPlatform

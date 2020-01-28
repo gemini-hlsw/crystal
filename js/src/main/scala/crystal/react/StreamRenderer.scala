@@ -9,17 +9,18 @@ import scala.scalajs.js
 
 import scala.language.higherKinds
 
-object Flow {
-  type ReactFlowProps[A] = A => VdomNode
-  type ReactFlowComponent[A] = CtorType.Props[ReactFlowProps[A], UnmountedWithRoot[ReactFlowProps[A], _, _, _]]
+object StreamRenderer {
+  type ReactStreamRendererProps[A] = A => VdomNode
+  type ReactStreamRendererComponent[A] = 
+    CtorType.Props[ReactStreamRendererProps[A], UnmountedWithRoot[ReactStreamRendererProps[A], _, _, _]]
 
   type State[A] = Option[A] // Use Pot or something else that can hold errors?
 
   // We should let pass Reusability[A] somewhere (or provide it in a View).
 
-  def flow[F[_] : ConcurrentEffect, A](stream: fs2.Stream[F, A], key: js.UndefOr[js.Any] = js.undefined): ReactFlowComponent[A] = {
+  def build[F[_] : ConcurrentEffect, A](stream: fs2.Stream[F, A], key: js.UndefOr[js.Any] = js.undefined): ReactStreamRendererComponent[A] = {
 
-    class Backend($: BackendScope[ReactFlowProps[A], State[A]]) {
+    class Backend($: BackendScope[ReactStreamRendererProps[A], State[A]]) {
 
       var cancelToken: Option[CancelToken[F]] = None
 
@@ -39,11 +40,11 @@ object Flow {
         cancelToken.foreach(token => Effect[F].toIO(token).unsafeRunAsyncAndForget())
       }
 
-      def render(props: ReactFlowProps[A], state: Option[A]): VdomNode = state.fold(VdomNode(null))(props)
+      def render(props: ReactStreamRendererProps[A], state: Option[A]): VdomNode = state.fold(VdomNode(null))(props)
     }
 
     ScalaComponent
-      .builder[ReactFlowProps[A]]("FlowWrapper")
+      .builder[ReactStreamRendererProps[A]]("FlowWrapper")
       .initialState(Option.empty[A])
       .renderBackend[Backend]
       .componentWillMount(_.backend.willMount)
