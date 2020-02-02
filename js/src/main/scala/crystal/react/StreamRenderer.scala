@@ -30,7 +30,7 @@ object StreamRenderer {
             .evalMap(v => Sync[F].delay($.setState(Some(v)).runNow()))
             .compile.drain
         )(_ match {
-              case Left(e) => IO(throw e) // If the stream ends in error, we rethrow it.
+              case Left(e) => IO(e.printStackTrace()) // If the stream ends in error, we print to console.
               case _ => IO.unit
           }
         )
