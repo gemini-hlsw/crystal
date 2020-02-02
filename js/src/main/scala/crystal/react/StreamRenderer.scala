@@ -29,7 +29,11 @@ object StreamRenderer {
           stream
             .evalMap(v => Sync[F].delay($.setState(Some(v)).runNow()))
             .compile.drain
-        )(_ => IO.unit) // Handle Errors
+        )(_ match {
+              case Left(e) => IO(throw e) // If the stream ends in error, we rethrow it.
+              case _ => IO.unit
+          }
+        )
 
 
       def willMount = Callback {

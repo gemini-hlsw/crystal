@@ -77,14 +77,14 @@ Integrates with `scalajs-react`.
 
 `import crystal.react.io.implicits._` provides implicits conversions from `IO` and `SyncIO` to `Callback`.
 
-### Flow
+### StreamRenderer
 
-A `Flow[F[_], A]` is a (`scalajs-react`) React component that wraps a `fs.Stream[F, A]`.
+A `StreamRenderer[F[_], A]` is a (`scalajs-react`) React component that wraps a `fs.Stream[F, A]`.
 
-It provides a method `.flow(Option[A] => VdomElement)` that can be used within the components to render the received values. It will update whatever is rendered withing block whenever a new value is emitted to the stream.
+It provides a method `.render(A => VdomElement)` that can be used within the components to render the received values. It will invoke the passed function and rerender whenever a new value is emitted to the stream.
 
-Note that this is completely indepedant from the core functinality of `crystal`. It can be used with ***any*** `Stream[F, A]`. 
+Note that this is completely indepedant from the core functionality of `crystal`. It can be used with ***any*** `Stream[F, A]`. 
 
-To pass values from the model to components, though, it should be done as a `View[F, A]` in its properties. For convenience, a `View[F, A]` does provide a `.flow` method that will return a `Flow[F, A]` on its stream.
+To pass values from the model to components, though, it should be done as a `View[F, A]` in its properties. For convenience, a `View[F, A]` does provide a `.streamRenderer` method that will return a `StreamRenderer[F, A]` on its stream.
 
 Also please note that the chosen effect context `F[_]` must have a `cats.effects.ConcurrentEffect` type class instance.
