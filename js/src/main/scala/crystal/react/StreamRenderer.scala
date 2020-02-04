@@ -1,9 +1,9 @@
 package crystal.react
 
-import cats.effect.{CancelToken, ConcurrentEffect, Effect, IO, Sync, SyncIO}
+import cats.effect._
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
+import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import japgolly.scalajs.react.{BackendScope, Callback, CtorType, ScalaComponent}
 
 import scala.scalajs.js
 
@@ -19,6 +19,8 @@ object StreamRenderer {
   // We should let pass Reusability[A] somewhere (or provide it in a View).
 
   def build[F[_] : ConcurrentEffect, A](stream: fs2.Stream[F, A], key: js.UndefOr[js.Any] = js.undefined): ReactStreamRendererComponent[A] = {
+    implicit val propsReuse: Reusability[ReactStreamRendererProps[A]] = Reusability.byRef
+    implicit val stateReuse: Reusability[A] = Reusability.by_==
 
     class Backend($: BackendScope[ReactStreamRendererProps[A], State[A]]) {
 
@@ -26,7 +28,7 @@ object StreamRenderer {
 
       val evalCancellable: SyncIO[CancelToken[F]] =
         ConcurrentEffect[F].runCancelable(
-          stream
+          stream // Use .changes/.changesBy and pass Eq/eq function? Or use Reusability mechanism?
             .evalMap(v => Sync[F].delay($.setState(Some(v)).runNow()))
             .compile.drain
         )(_ match {
@@ -34,7 +36,6 @@ object StreamRenderer {
               case _ => IO.unit
           }
         )
-
 
       def willMount = Callback {
         cancelToken = Some(evalCancellable.unsafeRunSync())
@@ -48,12 +49,12 @@ object StreamRenderer {
     }
 
     ScalaComponent
-      .builder[ReactStreamRendererProps[A]]("FlowWrapper")
+      .builder[ReactStreamRendererProps[A]]("StreamRenderer")
       .initialState(Option.empty[A])
       .renderBackend[Backend]
       .componentWillMount(_.backend.willMount)
       .componentWillUnmount(_.backend.willUnmount)
-      .shouldComponentUpdatePure(scope => (scope.currentState ne scope.nextState) || (scope.currentProps ne scope.nextProps))
+      .configure(Reusability.shouldComponentUpdate)
       .build
       .withRawProp("key", key)
   }
