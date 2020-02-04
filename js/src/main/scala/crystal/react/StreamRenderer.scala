@@ -38,7 +38,7 @@ object StreamRenderer {
             stream
               .evalMap(v => Sync[F].delay($.setState(Some(v)).runNow()))
               .compile.drain
-          )(_.swap.foldMap(e => Logger[IO].error(e)("[StreamRenderer] Error on stream")))
+          )(_.swap.toOption.foldMap(e => Logger[IO].error(e)("[StreamRenderer] Error on stream")))
 
         def willMount = Callback {
           cancelToken = Some(evalCancellable.unsafeRunSync())
