@@ -10,6 +10,8 @@ object Settings {
     val catsEffect                  = "2.1.0"
     val fs2                         = "2.2.2"
     val monocle                     = "2.0.1"
+    val log4Cats                    = "1.0.1"
+    val log4CatsLog4s               = "0.4.0-M1"
   }
 
   object Libraries {
@@ -37,6 +39,12 @@ object Settings {
     val Monocle = Def.setting(Seq[ModuleID](
       "com.github.julien-truffaut" %%% "monocle-core" % monocle
     ))
+
+    val Log4Cats = Def.setting(Seq[ModuleID](
+      "io.chrisdavenport" %%% "log4cats-core" % log4Cats,
+      "io.chrisdavenport" %%% "log4cats-log4s" % log4CatsLog4s
+    ))
+
   }
 
 }

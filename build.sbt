@@ -1,5 +1,7 @@
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 inThisBuild(List(
   name := "crystal",
   scalaVersion := "2.13.1",
@@ -36,7 +38,8 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform).in(file("."))
       Settings.Libraries.CatsJS.value ++
         Settings.Libraries.CatsEffectJS.value ++
         Settings.Libraries.Fs2JS.value ++
-        Settings.Libraries.Monocle.value,
+        Settings.Libraries.Monocle.value ++
+        Settings.Libraries.Log4Cats.value,
     scmInfo := Some(ScmInfo(
       url("https://https://github.com/rpiaggio/crystal"),
       "scm:git:git@github.com:rpiaggio/crystal.git",
