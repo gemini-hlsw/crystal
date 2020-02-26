@@ -8,6 +8,7 @@ import scala.collection.mutable
 
 import scala.util.control.NonFatal
 
+import scala.language.higherKinds
 import scala.language.implicitConversions
 
 package object react {
