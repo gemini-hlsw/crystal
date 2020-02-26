@@ -11,7 +11,7 @@ import scala.language.higherKinds
 case class Model[F[_] : ConcurrentEffect : Timer, M](modelRef: SignallingRef[F, M]) {
   val stream: Stream[F, M] = modelRef.discrete
 
-  def view[A](lens: Lens[M, A]): View[F, A] = {
+  def view[A](lens: Lens[M, A] = Lens.id[M]): View[F, A] = {
     val fixedLens = FixedLens.fromLensAndModelRef(lens, modelRef)
     // Should we drop duplicates by Eq? Or leave it to the caller?
     new View(fixedLens, stream.map(lens.get).filterWithPrevious(_ != _))

@@ -1,6 +1,6 @@
 package crystal
 
-import cats.effect.{IO, SyncIO}
+import cats.effect.{ConcurrentEffect, IO, SyncIO}
 import japgolly.scalajs.react.component.Generic.MountedSimple
 import japgolly.scalajs.react.{Callback, CallbackTo, StateAccess}
 import scala.scalajs.js
@@ -11,6 +11,13 @@ import scala.util.control.NonFatal
 import scala.language.implicitConversions
 
 package object react {
+
+  implicit class StreamOps[F[_] : ConcurrentEffect, A](s: fs2.Stream[F, A]) {
+    import StreamRenderer._
+
+    def render: ReactStreamRendererComponent[A] = 
+      StreamRenderer.build(s)
+  }
 
   object io {
 
