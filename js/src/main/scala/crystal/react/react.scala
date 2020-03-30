@@ -47,6 +47,8 @@ package object react {
 
       implicit class CallbackToOps[A](val self: CallbackTo[A]) {
         def toIO: IO[A] = IO(self.runNow())
+
+        def toIOStream: fs2.Stream[IO, A] = fs2.Stream.eval(self.toIO)
       }
 
       implicit class ModMountedSimpleIOOps[S, P](
