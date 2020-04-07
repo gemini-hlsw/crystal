@@ -1,6 +1,7 @@
 package crystal.react
 
 import cats.effect._
+import cats.effect.implicits._
 import cats.implicits._
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react.{ Ref => ReactRef, _}
@@ -14,52 +15,54 @@ import scala.language.higherKinds
 import cats.effect.concurrent.MVar
 import cats.effect.concurrent.Ref
 import scala.concurrent.duration.FiniteDuration
-import crystal.react.io.implicits._
+import crystal.react.implicits._
+import japgolly.scalajs.react.extra.StateSnapshot
+import cats.Applicative
+import crystal.View
 
 object StreamRendererMod {
-  type ModState[A] = (A => A) => Callback
-  type ReactStreamRendererProps[A] = (A, ModState[A]) => VdomNode
-  type ReactStreamRendererComponent[A] = 
-    CtorType.Props[ReactStreamRendererProps[A], UnmountedWithRoot[ReactStreamRendererProps[A], _, _, _]]
+  type ReactStreamRendererProps[F[_], A] = View[F, A] => VdomNode
+  type ReactStreamRendererComponent[F[_], A] = 
+    CtorType.Props[ReactStreamRendererProps[F, A], UnmountedWithRoot[ReactStreamRendererProps[F, A], _, _, _]]
 
-  class Hold[A](
-    setter: A => IO[Unit],
+  class Hold[F[_] : ConcurrentEffect : Timer, A](
+    setter: A => F[Unit],
     duration: Option[FiniteDuration],
-    cancelToken: Ref[IO, Option[CancelToken[IO]]],
-    buffer: Ref[IO, Option[A]]
-  )(implicit cs: ContextShift[IO], timer: Timer[IO]) {
-    def set(a: A): IO[Unit] =
+    cancelToken: Ref[F, Option[CancelToken[F]]],
+    buffer: Ref[F, Option[A]]
+  ) {
+    def set(a: A): F[Unit] =
       cancelToken.get.flatMap(
         _.fold(setter(a))(_ => buffer.set(a.some))
       )
 
-    private val restart: Option[IO[Unit]] =
+    private val restart: Option[F[Unit]] =
       duration.map{ d =>
         for {
-          _ <- (cancelToken.getAndSet(None).flatMap(_.getOrElse(IO.unit))).uncancelable
-          _ <- Timer[IO].sleep(d)
+          _ <- (cancelToken.getAndSet(None).flatMap(_.getOrElse(Applicative[F].unit))).uncancelable
+          _ <- Timer[F].sleep(d)
           _ <- cancelToken.set(None)
           b <- buffer.getAndSet(None)
-          _ <- b.fold(IO.unit)(set)
+          _ <- b.fold(Applicative[F].unit)(set)
         } yield ()
       }
 
-    val enable: IO[Unit] =
-      restart.fold(IO.unit){
-        _.runCancelable(_ => IO.unit).toIO.flatMap{ token =>
+    val enable: F[Unit] =
+      restart.fold(Applicative[F].unit){ r =>
+        Applicative[F].pure(r.runCancelable(_ => IO.unit).unsafeRunSync()).flatMap{ token => // TODO Error handling
           cancelToken.set(token.some)
         }
       }
   }
 
   object Hold {
-    def apply[A](
-      setter: A => IO[Unit],
+    def apply[F[_] : ConcurrentEffect : Timer, A](
+      setter: A => F[Unit],
       duration: Option[FiniteDuration]
-    )(implicit cs: ContextShift[IO], timer: Timer[IO]): SyncIO[Hold[A]] =
+    ): SyncIO[Hold[F, A]] =
       for {
-        cancelToken <- Ref.in[SyncIO, IO, Option[CancelToken[IO]]](None)
-        buffer <- Ref.in[SyncIO, IO, Option[A]](None)
+        cancelToken <- Ref.in[SyncIO, F, Option[CancelToken[F]]](None)
+        buffer <- Ref.in[SyncIO, F, Option[A]](None)
       } yield {
         new Hold(setter, duration, cancelToken, buffer)
       }
@@ -69,25 +72,25 @@ object StreamRendererMod {
 
   implicit val logger = Log4sLogger.createLocal[IO]
 
-  def build[F[_] : ConcurrentEffect, A](
+  def build[F[_] : ConcurrentEffect : Timer, A](
       stream: fs2.Stream[F, A],
       reusability: Reusability[A] = Reusability.by_==[A],
       key: js.UndefOr[js.Any] = js.undefined,
       holdAfterMod: Option[FiniteDuration] = None
-    )(implicit cs: ContextShift[IO], timer: Timer[IO]): ReactStreamRendererComponent[A] = {
-      implicit val propsReuse: Reusability[ReactStreamRendererProps[A]] = Reusability.byRef
+    ): ReactStreamRendererComponent[F, A] = {
+      implicit val propsReuse: Reusability[ReactStreamRendererProps[F, A]] = Reusability.byRef
       implicit val aReuse: Reusability[A] = reusability
 
-      class Backend($: BackendScope[ReactStreamRendererProps[A], State[A]]) {
+      class Backend($: BackendScope[ReactStreamRendererProps[F, A], State[A]]) {
 
         var cancelToken: Option[CancelToken[F]] = None
 
-        val hold: Hold[Option[A]] = Hold(a => $.setStateIO(a), holdAfterMod).unsafeRunSync()
+        val hold: Hold[F, Option[A]] = Hold($.setStateIn[F], holdAfterMod).unsafeRunSync()
 
         val evalCancellable: SyncIO[CancelToken[F]] =
           ConcurrentEffect[F].runCancelable(
             stream
-              .evalMap(v => Sync[F].delay(hold.set(v.some).runNow()))
+              .evalMap(v => hold.set(v.some))
               .compile.drain
           )(_.swap.toOption.foldMap(e => Logger[IO].error(e)("[StreamRendererMod] Error on stream")))
 
@@ -95,16 +98,30 @@ object StreamRendererMod {
           cancelToken = Some(evalCancellable.unsafeRunSync())
         }
 
-        def willUnmount = Callback { // Cancellation must be async. Is there a more elegant way of doing this?
-          cancelToken.foreach(token => Effect[F].toIO(token).unsafeRunAsyncAndForget())
-        }
+        def willUnmount =
+          cancelToken.map(_.startAsCallbackAndForget()).getOrEmpty
 
-        def render(props: ReactStreamRendererProps[A], state: Option[A]): VdomNode = 
-          state.fold(VdomNode(null))(s => props(s, f => hold.enable.flatMap(_ => $.modStateIO(_.map(f)))))
+        def render(props: ReactStreamRendererProps[F, A], state: Option[A]): VdomNode = 
+          state.fold(VdomNode(null))(s => props(
+              View[F, A](s, f => hold.enable.flatMap(_ => $.modStateIn[F]((v: Option[A]) => v.map(f))))
+/*
+
+            StateSnapshot(s){ // TODO It would be nice to have a generic StateSnapshot[F]
+              (newState: Option[A], cb: Callback) => 
+              
+                println(s"IN SNAPSHOT SETTER: [$newState]")
+              
+                hold.enable.flatMap(_ => $.setStateIn[F](newState)).startAsCallbackAndThen(cb)
+            }
+
+          }*/
+
+
+          ))
       }
 
       ScalaComponent
-        .builder[ReactStreamRendererProps[A]]("StreamRendererMod")
+        .builder[ReactStreamRendererProps[F, A]]("StreamRendererMod")
         .initialState(Option.empty[A])
         .renderBackend[Backend]
         .componentWillMount(_.backend.willMount)
