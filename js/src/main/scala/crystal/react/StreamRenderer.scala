@@ -13,52 +13,61 @@ import scala.scalajs.js
 import scala.language.higherKinds
 
 object StreamRenderer {
-  type ReactStreamRendererProps[A] = A => VdomNode
-  type ReactStreamRendererComponent[A] = 
-    CtorType.Props[ReactStreamRendererProps[A], UnmountedWithRoot[ReactStreamRendererProps[A], _, _, _]]
+  type Props[A] = A => VdomNode
+  type Component[A] =
+    CtorType.Props[Props[A], UnmountedWithRoot[Props[A], _, _, _]]
 
   type State[A] = Option[A]
 
   implicit val logger = Log4sLogger.createLocal[IO]
 
-  def build[F[_] : ConcurrentEffect, A](
+  def build[F[_]: ConcurrentEffect, A](
       stream: fs2.Stream[F, A],
       reusability: Reusability[A] = Reusability.by_==[A],
       key: js.UndefOr[js.Any] = js.undefined
-    ): ReactStreamRendererComponent[A] = {
-      implicit val propsReuse: Reusability[ReactStreamRendererProps[A]] = Reusability.byRef
-      implicit val aReuse: Reusability[A] = reusability
+  ): Component[A] = {
+    implicit val propsReuse: Reusability[Props[A]] = Reusability.byRef
+    implicit val aReuse: Reusability[A] = reusability
 
-      class Backend($: BackendScope[ReactStreamRendererProps[A], State[A]]) {
+    class Backend($ : BackendScope[Props[A], State[A]]) {
 
-        var cancelToken: Option[CancelToken[F]] = None
+      var cancelToken: Option[CancelToken[F]] = None
 
-        val evalCancellable: SyncIO[CancelToken[F]] =
-          ConcurrentEffect[F].runCancelable(
-            stream
-              .evalMap(v => Sync[F].delay($.setState(Some(v)).runNow()))
-              .compile.drain
-          )(_.swap.toOption.foldMap(e => Logger[IO].error(e)("[StreamRenderer] Error on stream")))
+      val evalCancellable: SyncIO[CancelToken[F]] =
+        ConcurrentEffect[F].runCancelable(
+          stream
+            .evalMap(v => Sync[F].delay($.setState(Some(v)).runNow()))
+            .compile
+            .drain
+        )(
+          _.swap.toOption.foldMap(e =>
+            Logger[IO].error(e)("[StreamRenderer] Error on stream")
+          )
+        )
 
-        def willMount = Callback {
-          cancelToken = Some(evalCancellable.unsafeRunSync())
-        }
-
-        def willUnmount = Callback { // Cancellation must be async. Is there a more elegant way of doing this?
-          cancelToken.foreach(token => Effect[F].toIO(token).unsafeRunAsyncAndForget())
-        }
-
-        def render(props: ReactStreamRendererProps[A], state: Option[A]): VdomNode = state.fold(VdomNode(null))(props)
+      def willMount = Callback {
+        cancelToken = Some(evalCancellable.unsafeRunSync())
       }
 
-      ScalaComponent
-        .builder[ReactStreamRendererProps[A]]("StreamRenderer")
-        .initialState(Option.empty[A])
-        .renderBackend[Backend]
-        .componentWillMount(_.backend.willMount)
-        .componentWillUnmount(_.backend.willUnmount)
-        .configure(Reusability.shouldComponentUpdate)
-        .build
-        .withRawProp("key", key)
+      def willUnmount =
+        Callback { // Cancellation must be async. Is there a more elegant way of doing this?
+          cancelToken.foreach(token =>
+            Effect[F].toIO(token).unsafeRunAsyncAndForget()
+          )
+        }
+
+      def render(props: Props[A], state: Option[A]): VdomNode =
+        state.fold(VdomNode(null))(props)
+    }
+
+    ScalaComponent
+      .builder[Props[A]]("StreamRenderer")
+      .initialState(Option.empty[A])
+      .renderBackend[Backend]
+      .componentWillMount(_.backend.willMount)
+      .componentWillUnmount(_.backend.willUnmount)
+      .configure(Reusability.shouldComponentUpdate)
+      .build
+      .withRawProp("key", key)
   }
 }

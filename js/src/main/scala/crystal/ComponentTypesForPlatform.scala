@@ -4,7 +4,7 @@ import cats.effect.ConcurrentEffect
 import scala.language.higherKinds
 
 trait ComponentTypesForPlatform extends ComponentTypes {
-  type StreamRenderer[A] = react.StreamRenderer.ReactStreamRendererComponent[A]
-  type StreamRendererMod[F[_], A] = react.StreamRendererMod.ReactStreamRendererComponent[F, A]
-  type AppRoot[F[_], C, M] = react.AppRoot.ReactAppRootComponent[F, C, M]
+  type StreamRenderer[A] = react.StreamRenderer.Component[A]
+  type StreamRendererMod[F[_], A] = react.StreamRendererMod.Component[F, A]
+  type AppRoot[F[_], C, M] = react.AppRoot.Component[F, C, M]
 }
