@@ -6,5 +6,5 @@ import scala.language.higherKinds
 trait ComponentTypesForPlatform extends ComponentTypes {
   type StreamRenderer[A] = Nothing
   type StreamRendererMod[F[_], A] = Nothing
-  type AppRoot[F[_], C, M] = Nothing
+  type AppRoot[M] = Nothing
 }

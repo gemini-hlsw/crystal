@@ -6,7 +6,7 @@ import scala.language.higherKinds
 package object crystal {
   type StreamRenderer[A] = ComponentTypes.StreamRenderer[A]
   type StreamRendererMod[F[_], A] = ComponentTypes.StreamRendererMod[F, A]
-  type AppRoot[F[_], C, M] = ComponentTypes.AppRoot[F, C, M]
+  type AppRoot[M] = ComponentTypes.AppRoot[M]
 
   implicit class UnitMonadOps[F[_]: Monad](f: F[Unit]) {
     def when(cond: F[Boolean]): F[Unit] =
@@ -18,7 +18,7 @@ package crystal {
   trait ComponentTypes {
     type StreamRenderer[A]
     type StreamRendererMod[F[_], A]
-    type AppRoot[F[_], C, M]
+    type AppRoot[M]
   }
 
   object ComponentTypes extends ComponentTypesForPlatform

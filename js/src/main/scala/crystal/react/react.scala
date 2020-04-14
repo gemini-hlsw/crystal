@@ -132,8 +132,11 @@ package object react {
           Callback(
             Effect[F]
               .runAsync(self) {
-                case Right(_) => cb(Success(())).to[IO]
-                case Left(t)  => cb(Failure(t)).to[IO]
+                // This doesn't make sense. By turning AsyncCallback into .toCallback, the provided cb does nothing
+                case Right(_) =>
+                  cb(Success(()))
+                    .to[IO]
+                case Left(t) => cb(Failure(t)).to[IO]
               }
               .unsafeRunSync()
           )
