@@ -115,7 +115,7 @@ object StreamRendererMod {
       }
 
       def willUnmount =
-        cancelToken.map(_.startAsCallbackAndForget()).getOrEmpty
+        cancelToken.map(_.startCBAndForget()).getOrEmpty
 
       def render(
           props: Props[F, A],
