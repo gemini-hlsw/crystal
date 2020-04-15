@@ -1,9 +1,6 @@
 package crystal
 
-import cats.effect.Sync
 import monocle.Lens
-
-import scala.language.higherKinds
 
 case class ViewCtx[F[_], C, A](view: View[F, A], ctx: C) {
   @inline def get: A = view.value

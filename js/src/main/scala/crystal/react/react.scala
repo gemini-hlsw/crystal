@@ -3,15 +3,10 @@ package crystal
 import cats.effect._
 import japgolly.scalajs.react.component.Generic.MountedSimple
 import japgolly.scalajs.react.{AsyncCallback, Callback, CallbackTo, StateAccess}
-import scala.scalajs.js
-import scala.collection.mutable
 
 import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Success
-
-import scala.language.higherKinds
-import scala.language.implicitConversions
 
 package object react {
 

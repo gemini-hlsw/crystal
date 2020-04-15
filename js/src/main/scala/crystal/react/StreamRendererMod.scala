@@ -4,19 +4,16 @@ import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
-import japgolly.scalajs.react.{Ref => ReactRef, _}
+import japgolly.scalajs.react.{Ref => _, _}
 import japgolly.scalajs.react.vdom.html_<^._
 import _root_.io.chrisdavenport.log4cats.Logger
 import _root_.io.chrisdavenport.log4cats.log4s.Log4sLogger
 
 import scala.scalajs.js
 
-import scala.language.higherKinds
-import cats.effect.concurrent.MVar
 import cats.effect.concurrent.Ref
 import scala.concurrent.duration.FiniteDuration
 import crystal.react.implicits._
-import japgolly.scalajs.react.extra.StateSnapshot
 import crystal.View
 import cats.kernel.Monoid
 

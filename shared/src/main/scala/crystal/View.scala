@@ -1,6 +1,5 @@
 package crystal
 
-import scala.language.higherKinds
 import monocle.Lens
 
 // The difference between a View and a StateSnapshot is that the modifier doesn't act on the current value,

@@ -10,8 +10,6 @@ import _root_.io.chrisdavenport.log4cats.log4s.Log4sLogger
 
 import scala.scalajs.js
 
-import scala.language.higherKinds
-
 object StreamRenderer {
   type Props[A] = A => VdomNode
   type Component[A] =

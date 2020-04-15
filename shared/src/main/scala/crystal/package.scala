@@ -1,8 +1,6 @@
 import cats.Monad
 import cats.implicits._
 
-import scala.language.higherKinds
-
 package object crystal {
   type StreamRenderer[A] = ComponentTypes.StreamRenderer[A]
   type StreamRendererMod[F[_], A] = ComponentTypes.StreamRendererMod[F, A]

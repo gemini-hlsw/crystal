@@ -5,8 +5,6 @@ import cats.effect.concurrent.Ref
 import cats.implicits._
 import monocle._
 
-import scala.language.higherKinds
-
 // Hides the model type M. Otherwise, we have to declare it in every View.
 trait FixedLens[F[_], A] {
   def get: F[A]
