@@ -96,32 +96,32 @@ package object react {
     }
 
     implicit class EffectAOps[F[_], A](private val self: F[A]) extends AnyVal {
-      def asyncStartCB(
+      def runAsyncInCB(
           cb: Either[Throwable, A] => IO[Unit]
       )(implicit effect: Effect[F]): Callback =
         CallbackTo.lift(() => Effect[F].runAsync(self)(cb).unsafeRunSync())
 
-      def startCBAndThen(
+      def runInCBAndThen(
           cb: A => Callback
       )(implicit effect: Effect[F]): Callback =
-        asyncStartCB {
+        runAsyncInCB {
           case Right(a) => cb(a).to[IO]
           case Left(t)  => IO.raiseError(t)
         }
 
-      def startCBAndForget()(implicit effect: Effect[F]): Callback =
-        self.asyncStartCB(_ => IO.unit)
+      def runInCBAndForget()(implicit effect: Effect[F]): Callback =
+        self.runAsyncInCB(_ => IO.unit)
     }
 
     implicit class EffectUnitOps[F[_]](private val self: F[Unit])
         extends AnyVal {
-      def startCBAndThen(
+      def runInCBAndThen(
           cb: Callback
       )(implicit effect: Effect[F]): Callback =
-        new EffectAOps(self).startCBAndThen((_: Unit) => cb)
+        new EffectAOps(self).runInCBAndThen((_: Unit) => cb)
 
-      def startCB(implicit effect: Effect[F]): Callback =
-        self.startCBAndForget()
+      def runInCB(implicit effect: Effect[F]): Callback =
+        self.runInCBAndForget()
     }
 
     implicit class SyncIO2Callback[A](private val s: SyncIO[A]) extends AnyVal {

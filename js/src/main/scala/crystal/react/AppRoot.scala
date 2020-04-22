@@ -37,7 +37,7 @@ object AppRoot {
         .builder[Unit]("AppRoot")
         .initialState(model)
         .render($ => render(ViewCtx(View($.state, $.modStateIn[F]), ctx)))
-        .componentWillUnmount(_ => onUnmount.orEmpty.startCB)
+        .componentWillUnmount(_ => onUnmount.orEmpty.runInCB)
         .configure(Reusability.shouldComponentUpdate)
         .build
   }
