@@ -131,6 +131,6 @@ package object react {
     implicit def viewCtxReusability[F[_], C, A](
         implicit r: Reusability[A]
     ): Reusability[ViewCtx[F, C, A]] =
-      Reusability.by[ViewCtx[F, C, A], A](_.view.value)
+      Reusability.by[ViewCtx[F, C, A], A](_.view.get)
   }
 }
