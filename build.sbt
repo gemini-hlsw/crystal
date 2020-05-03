@@ -50,7 +50,12 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
         Settings.Libraries.CatsEffectJS.value ++
         Settings.Libraries.Fs2JS.value ++
         Settings.Libraries.Monocle.value ++
-        Settings.Libraries.Log4Cats.value,
+        Settings.Libraries.Log4Cats.value ++
+        (
+          Settings.Libraries.MUnit.value ++
+            Settings.Libraries.Discipline.value ++
+            Settings.Libraries.CatsLaws.value
+        ).map(_ % Test),
     scmInfo := Some(
       ScmInfo(
         url("https://https://github.com/rpiaggio/crystal"),
@@ -58,14 +63,16 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
         Some("scm:git:git@github.com:rpiaggio/crystal.git")
       )
     ),
-    pomIncludeRepository := { _ => false }
+    pomIncludeRepository := { _ => false },
+    testFrameworks += new TestFramework("munit.Framework")
   )
   .jsSettings(
     scalacOptions ++= Seq(
       "-P:scalajs:suppressMissingJSGlobalDeprecations"
     ),
     libraryDependencies ++=
-      Settings.Libraries.ReactScalaJS.value
+      Settings.Libraries.ReactScalaJS.value,
+    scalaJSModuleKind := ModuleKind.CommonJSModule
   )
 
 lazy val crystalJS = crystal.js

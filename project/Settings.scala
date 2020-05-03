@@ -12,6 +12,8 @@ object Settings {
     val monocle = "2.0.4"
     val log4Cats = "1.0.1"
     val log4CatsLog4s = "0.4.0-M1"
+    val mUnit = "0.7.5"
+    val discipline = "1.0.0"
   }
 
   object Libraries {
@@ -57,6 +59,24 @@ object Settings {
       )
     )
 
+    val MUnit = Def.setting(
+      Seq[ModuleID](
+        "org.scalameta" %%% "munit" % mUnit,
+        "org.scalameta" %%% "munit-scalacheck" % mUnit
+      )
+    )
+
+    val Discipline = Def.setting(
+      Seq[ModuleID](
+        "org.typelevel" %%% "discipline-core" % discipline
+      )
+    )
+
+    val CatsLaws = Def.setting(
+      Seq[ModuleID](
+        "org.typelevel" %%% "cats-laws" % cats
+      )
+    )
   }
 
 }

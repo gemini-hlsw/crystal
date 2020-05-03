@@ -4,6 +4,8 @@ import monocle.Lens
 import monocle.Optional
 import monocle.Prism
 import cats.Functor
+import cats.kernel.Eq
+import cats.implicits._
 
 // Ctx encapsulates a fixed context and a regular value.
 case class Ctx[C, +A](value: A, ctx: C) {
@@ -17,6 +19,8 @@ case class Ctx[C, +A](value: A, ctx: C) {
 }
 
 object Ctx {
+  implicit def eqCtx[C: Eq, A: Eq]: Eq[Ctx[C, A]] = Eq.by(c => (c.ctx, c.value))
+
   implicit def ctxFunctor[C, *]: Functor[Ctx[C, *]] = // TODO Functor tests
     new Functor[Ctx[C, *]] {
       override def map[A, B](fa: Ctx[C, A])(f: A => B): Ctx[C, B] = fa.map(f)
