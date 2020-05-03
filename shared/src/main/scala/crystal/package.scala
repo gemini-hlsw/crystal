@@ -20,4 +20,11 @@ package crystal {
   }
 
   object ComponentTypes extends ComponentTypesForPlatform
+
+  object implicits {
+    implicit class AnyToCtxOps[A](val a: A) extends AnyVal {
+      def inCtx[C](implicit ctx: C): Ctx[C, A] =
+        Ctx(a, ctx)
+    }
+  }
 }

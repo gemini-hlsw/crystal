@@ -3,7 +3,7 @@ package crystal.react
 import cats.implicits._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import crystal.ViewCtx
+import crystal.{Ctx, View}
 import implicits._
 
 import cats.kernel.Monoid
@@ -26,7 +26,7 @@ object AppRoot {
         model: M,
         ctx: C
     )(
-        render: ViewCtx[F, C, M] => VdomNode,
+        render: Ctx[C, View[F, M]] => VdomNode,
         onUnmount: Option[F[Unit]] = None
     )(
         implicit reusability: Reusability[M],
@@ -36,7 +36,7 @@ object AppRoot {
       ScalaComponent
         .builder[Unit]("AppRoot")
         .initialState(model)
-        .render($ => render(ViewCtx(View($.state, $.modStateIn[F]), ctx)))
+        .render($ => render(Ctx(View($.state, $.modStateIn[F]), ctx)))
         .componentWillUnmount(_ => onUnmount.orEmpty.runInCB)
         .configure(Reusability.shouldComponentUpdate)
         .build

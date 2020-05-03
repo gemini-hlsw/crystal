@@ -19,6 +19,9 @@ inThisBuild(
         "rpiaggio@gmail.com",
         url("http://rpiaggio.com")
       )
+    ),
+    addCompilerPlugin(
+      "org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full
     )
   )
 )

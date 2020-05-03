@@ -130,7 +130,13 @@ package object react {
 
     implicit def viewCtxReusability[F[_], C, A](
         implicit r: Reusability[A]
-    ): Reusability[ViewCtx[F, C, A]] =
-      Reusability.by[ViewCtx[F, C, A], A](_.view.get)
+    ): Reusability[Ctx[C, View[F, A]]] =
+      Reusability.by[Ctx[C, View[F, A]], A](_.get)
+
+    implicit def viewOptCtxReusability[F[_], C, A](
+        implicit
+        r: Reusability[A]
+    ): Reusability[Ctx[C, ViewOpt[F, A]]] =
+      Reusability.by[Ctx[C, ViewOpt[F, A]], Option[A]](_.getOption)
   }
 }
