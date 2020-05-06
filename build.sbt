@@ -54,6 +54,7 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
         (
           Settings.Libraries.MUnit.value ++
             Settings.Libraries.Discipline.value ++
+            Settings.Libraries.DisciplineMUnit.value ++
             Settings.Libraries.CatsLaws.value
         ).map(_ % Test),
     scmInfo := Some(
@@ -72,7 +73,7 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
     ),
     libraryDependencies ++=
       Settings.Libraries.ReactScalaJS.value,
-    scalaJSModuleKind := ModuleKind.CommonJSModule
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
 
 lazy val crystalJS = crystal.js

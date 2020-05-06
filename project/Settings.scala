@@ -14,6 +14,7 @@ object Settings {
     val log4CatsLog4s = "0.4.0-M1"
     val mUnit = "0.7.5"
     val discipline = "1.0.0"
+    val disciplineMUnit = "0.1.0"
   }
 
   object Libraries {
@@ -69,6 +70,12 @@ object Settings {
     val Discipline = Def.setting(
       Seq[ModuleID](
         "org.typelevel" %%% "discipline-core" % discipline
+      )
+    )
+
+    val DisciplineMUnit = Def.setting(
+      Seq[ModuleID](
+        "com.rpiaggio" %%% "discipline-munit" % disciplineMUnit
       )
     )
 

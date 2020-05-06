@@ -4,7 +4,6 @@
 .#*
 *.iml
 .metals/
-.DS_Store
 *.pem
 *.der
 *.p12
@@ -15,7 +14,6 @@ yarn.lock
 .java-version
 package.json
 package-lock.json
-calibrations/
 .metals/
 .bloop/
 project/project/.bloop/
@@ -37,6 +35,9 @@ project/plugins/project/
 sbt-ctags-dep-srcs/
 buildinfo.properties
 
+# OS X
+.DS_Store
+
 # Scala-IDE specific
 .scala_dependencies
 .cache
@@ -49,8 +50,6 @@ bin/
 *.ipr
 *.iws
 
-# OS X
-.DS_Store
 
 # Tags
 .tags
@@ -70,6 +69,3 @@ smartgcal
 # Node modules
 node_modules/
 package-lock.json
-
-# Project specific
-modules/edu.gemini.seqexec.web/edu.gemini.seqexec.web.server/log/
