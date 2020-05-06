@@ -14,7 +14,7 @@ yarn.lock
 .java-version
 package.json
 package-lock.json
-.metals/
+project/metals.sbt
 .bloop/
 project/project/.bloop/
 
