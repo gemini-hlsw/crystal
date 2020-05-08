@@ -5,16 +5,16 @@ import sbt.librarymanagement._
 object Settings {
 
   object LibraryVersions {
-    val scalajsReact = "1.6.0"
-    val cats = "2.1.1"
-    val catsEffect = "2.1.3"
-    val fs2 = "2.3.0"
-    val monocle = "2.0.4"
-    val log4Cats = "1.0.1"
-    val log4CatsLog4s = "0.4.0-M1"
-    val mUnit = "0.7.5"
-    val discipline = "1.0.2"
-    val disciplineMUnit = "0.1.0"
+    val scalajsReact    = "1.6.0"
+    val cats            = "2.1.1"
+    val catsEffect      = "2.1.3"
+    val fs2             = "2.3.0"
+    val monocle         = "2.0.4"
+    val log4Cats        = "1.0.1"
+    val log4CatsLog4s   = "0.4.0-M1"
+    val mUnit           = "0.7.5"
+    val discipline      = "1.0.2"
+    val disciplineMUnit = "0.2.0"
   }
 
   object Libraries {
@@ -22,10 +22,10 @@ object Settings {
 
     val ReactScalaJS = Def.setting(
       Seq(
-        "com.github.japgolly.scalajs-react" %%% "core" % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "extra" % scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "core"             % scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra"            % scalajsReact,
         "com.github.japgolly.scalajs-react" %%% "ext-monocle-cats" % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "ext-cats" % scalajsReact
+        "com.github.japgolly.scalajs-react" %%% "ext-cats"         % scalajsReact
       )
     )
 
@@ -55,14 +55,14 @@ object Settings {
 
     val Log4Cats = Def.setting(
       Seq[ModuleID](
-        "io.chrisdavenport" %%% "log4cats-core" % log4Cats,
+        "io.chrisdavenport" %%% "log4cats-core"  % log4Cats,
         "io.chrisdavenport" %%% "log4cats-log4s" % log4CatsLog4s
       )
     )
 
     val MUnit = Def.setting(
       Seq[ModuleID](
-        "org.scalameta" %%% "munit" % mUnit,
+        "org.scalameta" %%% "munit"            % mUnit,
         "org.scalameta" %%% "munit-scalacheck" % mUnit
       )
     )
@@ -75,7 +75,7 @@ object Settings {
 
     val DisciplineMUnit = Def.setting(
       Seq[ModuleID](
-        "com.rpiaggio" %%% "discipline-munit" % disciplineMUnit
+        "org.typelevel" %%% "discipline-munit" % disciplineMUnit
       )
     )
 
