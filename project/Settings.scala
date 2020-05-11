@@ -14,7 +14,7 @@ object Settings {
     val log4CatsLog4s   = "0.4.0-M1"
     val mUnit           = "0.7.6"
     val discipline      = "1.0.2"
-    val disciplineMUnit = "0.2.0"
+    val disciplineMUnit = "0.2.1"
   }
 
   object Libraries {
