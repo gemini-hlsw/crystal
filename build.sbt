@@ -5,8 +5,8 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 inThisBuild(
   List(
     name := "crystal",
-    scalaVersion := "2.13.1",
-    crossScalaVersions := Seq("2.12.10", "2.13.1"),
+    scalaVersion := "2.13.2",
+    crossScalaVersions := Seq("2.12.11", scalaVersion.value),
     organization := "com.rpiaggio",
     homepage := Some(url("https://github.com/rpiaggio/crystal")),
     licenses += ("BSD 3-Clause", url(
@@ -21,7 +21,7 @@ inThisBuild(
       )
     ),
     addCompilerPlugin(
-      "org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full
+      ("org.typelevel" % "kind-projector" % "0.11.0").cross(CrossVersion.full)
     )
   )
 )
@@ -68,9 +68,6 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
     testFrameworks += new TestFramework("munit.Framework")
   )
   .jsSettings(
-    scalacOptions ++= Seq(
-      "-P:scalajs:suppressMissingJSGlobalDeprecations"
-    ),
     libraryDependencies ++=
       Settings.Libraries.ReactScalaJS.value,
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
