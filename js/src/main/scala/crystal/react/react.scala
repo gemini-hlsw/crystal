@@ -5,6 +5,7 @@ import japgolly.scalajs.react.component.Generic.MountedSimple
 import japgolly.scalajs.react._
 
 import scala.util.control.NonFatal
+import io.chrisdavenport.log4cats.Logger
 
 package object react {
 
@@ -16,7 +17,7 @@ package object react {
   implicit class StreamOps[F[_], A](private val s: fs2.Stream[F, A]) {
     import StreamRenderer._
 
-    def render(implicit ce: ConcurrentEffect[F]): Component[A] =
+    def render(implicit ce: ConcurrentEffect[F], logger: Logger[F]): Component[A] =
       StreamRenderer.build(s)
   }
 
@@ -31,13 +32,13 @@ package object react {
     }
 
     implicit class ModMountedSimpleFOps[S, P](
-        private val self: MountedSimple[CallbackTo, P, S]
+      private val self: MountedSimple[CallbackTo, P, S]
     ) extends AnyVal {
       def propsIn[F[_]: Sync]: F[P] = self.props.to[F]
     }
 
     implicit class StateAccessorFOps[S](
-        private val self: StateAccess[CallbackTo, S]
+      private val self: StateAccess[CallbackTo, S]
     ) extends AnyVal {
 
       /** Provides access to state `S` in an `F` */
@@ -45,7 +46,7 @@ package object react {
     }
 
     implicit class ModStateWithPropsFOps[S, P](
-        private val self: StateAccess.WriteWithProps[CallbackTo, P, S]
+      private val self: StateAccess.WriteWithProps[CallbackTo, P, S]
     ) extends AnyVal {
       def setStateIn[F[_]: Async](s: S): F[Unit] =
         Async[F].async[Unit] { cb =>
@@ -97,12 +98,12 @@ package object react {
 
     implicit class EffectAOps[F[_], A](private val self: F[A]) extends AnyVal {
       def runAsyncInCB(
-          cb: Either[Throwable, A] => IO[Unit]
+        cb:              Either[Throwable, A] => IO[Unit]
       )(implicit effect: Effect[F]): Callback =
         CallbackTo.lift(() => Effect[F].runAsync(self)(cb).unsafeRunSync())
 
       def runInCBAndThen(
-          cb: A => Callback
+        cb:              A => Callback
       )(implicit effect: Effect[F]): Callback =
         runAsyncInCB {
           case Right(a) => cb(a).to[IO]
@@ -113,11 +114,10 @@ package object react {
         self.runAsyncInCB(_ => IO.unit)
     }
 
-    implicit class EffectUnitOps[F[_]](private val self: F[Unit])
-        extends AnyVal {
+    implicit class EffectUnitOps[F[_]](private val self: F[Unit]) extends AnyVal {
       def runInCBAndThen(
-          cb: Callback
-      )(implicit effect: Effect[F]): Callback =
+        cb:                        Callback
+      )(implicit effect:           Effect[F]): Callback =
         new EffectAOps(self).runInCBAndThen((_: Unit) => cb)
 
       def runInCB(implicit effect: Effect[F]): Callback =
@@ -128,14 +128,13 @@ package object react {
       @inline def toCB: CallbackTo[A] = CallbackTo(s.unsafeRunSync())
     }
 
-    implicit def viewCtxReusability[F[_], C, A](
-        implicit r: Reusability[A]
+    implicit def viewCtxReusability[F[_], C, A](implicit
+      r: Reusability[A]
     ): Reusability[Ctx[C, View[F, A]]] =
       Reusability.by[Ctx[C, View[F, A]], A](_.get)
 
-    implicit def viewOptCtxReusability[F[_], C, A](
-        implicit
-        r: Reusability[A]
+    implicit def viewOptCtxReusability[F[_], C, A](implicit
+      r: Reusability[A]
     ): Reusability[Ctx[C, ViewOpt[F, A]]] =
       Reusability.by[Ctx[C, ViewOpt[F, A]], Option[A]](_.getOption)
   }

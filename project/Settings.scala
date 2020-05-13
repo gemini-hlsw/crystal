@@ -5,13 +5,12 @@ import sbt.librarymanagement._
 object Settings {
 
   object LibraryVersions {
-    val scalajsReact    = "1.6.0"
+    val scalajsReact    = "1.7.0"
     val cats            = "2.1.1"
     val catsEffect      = "2.1.3"
     val fs2             = "2.3.0"
     val monocle         = "2.0.4"
-    val log4Cats        = "1.0.1"
-    val log4CatsLog4s   = "0.4.0-M1"
+    val log4Cats        = "1.1.1"
     val mUnit           = "0.7.6"
     val discipline      = "1.0.2"
     val disciplineMUnit = "0.2.1"
@@ -55,8 +54,7 @@ object Settings {
 
     val Log4Cats = Def.setting(
       Seq[ModuleID](
-        "io.chrisdavenport" %%% "log4cats-core"  % log4Cats,
-        "io.chrisdavenport" %%% "log4cats-log4s" % log4CatsLog4s
+        "io.chrisdavenport" %%% "log4cats-core" % log4Cats
       )
     )
 

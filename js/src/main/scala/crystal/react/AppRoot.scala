@@ -3,7 +3,7 @@ package crystal.react
 import cats.implicits._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import crystal.{Ctx, View}
+import crystal.Ctx
 import implicits._
 
 import cats.kernel.Monoid
@@ -23,15 +23,15 @@ object AppRoot {
 
   class Apply[F[_]] {
     def apply[M, C](
-        model: M,
-        ctx: C
+      model:       M,
+      ctx:         C
     )(
-        render: Ctx[C, View[F, M]] => VdomNode,
-        onUnmount: Option[F[Unit]] = None
-    )(
-        implicit reusability: Reusability[M],
-        effect: Effect[F],
-        monoidF: Monoid[F[Unit]]
+      render:      Ctx[C, View[F, M]] => VdomNode,
+      onUnmount:   Option[F[Unit]] = None
+    )(implicit
+      reusability: Reusability[M],
+      effect:      Effect[F],
+      monoidF:     Monoid[F[Unit]]
     ): Component[M] =
       ScalaComponent
         .builder[Unit]("AppRoot")
