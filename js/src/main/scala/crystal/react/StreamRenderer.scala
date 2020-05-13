@@ -7,7 +7,6 @@ import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import _root_.io.chrisdavenport.log4cats.Logger
-import _root_.io.chrisdavenport.log4cats.log4s.Log4sLogger
 
 import scala.scalajs.js
 
@@ -18,9 +17,7 @@ object StreamRenderer {
 
   type State[A] = Option[A]
 
-  implicit val logger = Log4sLogger.createLocal[IO]
-
-  def build[F[_]: ConcurrentEffect, A](
+  def build[F[_]: ConcurrentEffect: Logger, A](
     stream:      fs2.Stream[F, A],
     reusability: Reusability[A] = Reusability.by_==[A],
     key:         js.UndefOr[js.Any] = js.undefined
@@ -39,7 +36,9 @@ object StreamRenderer {
             .compile
             .drain
         )(
-          _.swap.toOption.foldMap(e => Logger[IO].error(e)("[StreamRenderer] Error on stream"))
+          _.swap.toOption.foldMap(e =>
+            Effect[F].toIO(Logger[F].error(e)("[StreamRenderer] Error on stream"))
+          )
         )
 
       def startUpdates =
