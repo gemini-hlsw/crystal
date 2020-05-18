@@ -151,7 +151,4 @@ object Pot {
       }
   }
 
-  implicit final class PotOps[A](private val a: A) extends AnyVal {
-    def asReady: Pot[A] = Ready(a)
-  }
 }

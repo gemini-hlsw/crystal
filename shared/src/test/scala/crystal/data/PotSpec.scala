@@ -5,11 +5,10 @@ import arbitraries._
 import cats.implicits._
 import cats.kernel.laws.discipline.EqTests
 import org.scalacheck.Prop.forAll
-import crystal.data.implicits._
 import cats.laws.discipline._
 import cats.laws.discipline.arbitrary._
 import cats.laws.discipline.SemigroupalTests.Isomorphisms
-import Pot._
+import crystal.data.implicits._
 
 class PotSpec extends DisciplineSuite {
   implicit def iso: Isomorphisms[Pot] = Isomorphisms.invariant[Pot]
@@ -48,6 +47,6 @@ class PotSpec extends DisciplineSuite {
   }
 
   property("Pot[Int].asReady: a.asReady === Ready(a)") {
-    forAll((i: Int) => i.asReady === Ready(i))
+    forAll((i: Int) => i.asReady === Pot.Ready(i))
   }
 }

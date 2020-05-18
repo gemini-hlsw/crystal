@@ -1,4 +1,4 @@
-package crystal.data
+package crystal.data.react
 
 import japgolly.scalajs.react.Reusability
 

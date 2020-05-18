@@ -15,4 +15,8 @@ package object implicits {
         // that wraps them (e.g. ExecutionException)
         (x ne null) == (y ne null)
     }
+
+  implicit final class PotOps[A](private val a: A) extends AnyVal {
+    def asReady: Pot[A] = Pot.Ready(a)
+  }
 }
