@@ -4,7 +4,6 @@ import cats.Monad
 import scala.annotation.tailrec
 import cats.kernel.Eq
 import cats.implicits._
-import crystal.data.implicits._
 
 sealed trait Pot[A] {
   def map[B](f: A => B): Pot[B] =
@@ -45,7 +44,7 @@ object Pot {
 
   def apply[A](a: A): Pot[A] = Ready(a)
 
-  implicit def potEq[A: Eq]: Eq[Pot[A]] =
+  implicit def potEq[A: Eq](implicit eqThrowable: Eq[Throwable]): Eq[Pot[A]] =
     new Eq[Pot[A]] {
       def eqv(x: Pot[A], y: Pot[A]): Boolean =
         x match {

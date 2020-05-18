@@ -6,6 +6,7 @@ import arbitraries._
 import cats.implicits._
 import cats.kernel.laws.discipline.EqTests
 import org.scalacheck.Prop.forAll
+import crystal.data.implicits._
 
 class PotSpec extends DisciplineSuite {
   checkAll(

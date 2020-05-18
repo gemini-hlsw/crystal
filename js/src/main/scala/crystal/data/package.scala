@@ -2,17 +2,34 @@ package crystal
 
 import cats.implicits._
 import crystal.data.Pot._
-import crystal.data.implicits._
-import japgolly.scalajs.react.vdom.VdomNode
+import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react._
 
 package object data {
   implicit class PotRender[A](val pot: Pot[A]) extends AnyVal {
-    def render(rp: Long => VdomNode, re: Throwable => VdomNode, rr: A => VdomNode): VdomNode =
-      pot.fold(start => rp(System.currentTimeMillis() - start), re, rr)
+    def renderPending(f: Long => VdomNode): VdomNode =
+      pot match {
+        case Pending(start) => f(start)
+        case _              => EmptyVdom
+      }
+
+    def renderError(f: Throwable => VdomNode): VdomNode =
+      pot match {
+        case Error(t) => f(t)
+        case _        => EmptyVdom
+      }
+
+    def renderReady(f: A => VdomNode): VdomNode =
+      pot match {
+        case Ready(a) => f(a)
+        case _        => EmptyVdom
+      }
   }
 
-  implicit def potReuse[A: Reusability]: Reusability[Pot[A]] =
+  implicit def throwableReusability: Reusability[Throwable] =
+    Reusability.byRef[Throwable]
+
+  implicit def potReusability[A: Reusability]: Reusability[Pot[A]] =
     Reusability((x, y) =>
       x match {
         case Pending(startx) =>
@@ -22,7 +39,7 @@ package object data {
           }
         case Error(tx)       =>
           y match {
-            case Error(ty) => tx === ty
+            case Error(ty) => tx ~=~ ty
             case _         => false
           }
         case Ready(ax)       =>
