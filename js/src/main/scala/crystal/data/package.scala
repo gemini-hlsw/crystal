@@ -26,10 +26,9 @@ package object data {
       }
   }
 
-  implicit def throwableReusability: Reusability[Throwable] =
-    Reusability.byRef[Throwable]
-
-  implicit def potReusability[A: Reusability]: Reusability[Pot[A]] =
+  implicit def potReusability[A: Reusability](implicit
+    throwableReusability: Reusability[Throwable]
+  ): Reusability[Pot[A]] =
     Reusability((x, y) =>
       x match {
         case Pending(startx) =>
