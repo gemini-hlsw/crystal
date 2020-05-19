@@ -9,6 +9,11 @@ import cats.laws.discipline._
 import cats.laws.discipline.arbitrary._
 import cats.laws.discipline.SemigroupalTests.Isomorphisms
 import crystal.data.implicits._
+import crystal.data.implicits.throwable._
+import scala.util.Failure
+import scala.util.Success
+import org.scalacheck.Prop
+import scala.util.Try
 
 class PotSpec extends DisciplineSuite {
   implicit def iso: Isomorphisms[Pot] = Isomorphisms.invariant[Pot]
@@ -34,19 +39,72 @@ class PotSpec extends DisciplineSuite {
   )
 
   property("Pot[Int].toOption: Pending(_) is None") {
-    forAll((l: Long) => Pot.Pending[Int](l).toOption === none)
+    forAll((l: Long) => Pending[Int](l).toOption === none)
 
   }
 
   property("Pot[Int].toOption: Error(_) is None") {
-    forAll((t: Throwable) => Pot.Error[Int](t).toOption === none)
+    forAll((t: Throwable) => Error[Int](t).toOption === none)
   }
 
   property("Pot[Int].toOption: Ready(a) is Some(a)") {
-    forAll((i: Int) => Pot.Ready(i).toOption === i.some)
+    forAll((i: Int) => Ready(i).toOption === i.some)
   }
 
-  property("Pot[Int].asReady: a.asReady === Ready(a)") {
-    forAll((i: Int) => i.asReady === Pot.Ready(i))
+  property("Pot[Int].toTryOption: Pending(_) is None") {
+    forAll((l: Long) => Pending[Int](l).toTryOption === none)
+
   }
+
+  property("Pot[Int].toTryOption: Error(t) is Some(Failure(t))") {
+    forAll((t: Throwable) => Error[Int](t).toTryOption === Failure(t).some)
+
+  }
+
+  property("Pot[Int].toTryOption: Ready(a) is Some(Success(a))") {
+    forAll((i: Int) => Ready(i).toTryOption === Success(i).some)
+  }
+
+  property("Pot[Int] (Any.ready): a.ready === Ready(a)") {
+    forAll((i: Int) => i.ready === Ready(i))
+  }
+
+  property("Pot[Int] (Option.toPot): None.toPot === Pending(_)") {
+    Prop(
+      none[Int].toPot match {
+        case Pending(_) => true
+        case _          => false
+      }
+    )
+  }
+
+  property("Pot[Int] (Option.toPot): Some(a).toPot === Ready(a)") {
+    forAll((i: Int) => i.some.toPot === Ready(i))
+  }
+
+  property("Pot[Int] (Option[Try].toPot): None.toPot === Pending(_)") {
+    Prop(
+      none[Try[Int]].toPot match {
+        case Pending(_) => true
+        case _          => false
+      }
+    )
+  }
+
+  property("Pot[Int] (Option[Try].toPot): Some(Failure[Int](t)).toPot === Error(t)") {
+    forAll((t: Throwable) => Failure[Int](t).some.toPot === Error(t))
+  }
+
+  property("Pot[Int] (Option[Try].toPot): Some(Success(a).toPot) === Ready(a)") {
+    forAll((i: Int) => Success(i).some.toPot === Ready(i))
+  }
+
+  property("Pot[Int] (Try.toPot): Failure[Int](t).toPot === Error(t)") {
+    forAll((t: Throwable) => Failure[Int](t).toPot === Error(t))
+  }
+
+  property("Pot[Int] (Try.toPot): Success(a).toPot === Ready(a)") {
+    forAll((i: Int) => Success(i).toPot === Ready(i))
+  }
+
 }

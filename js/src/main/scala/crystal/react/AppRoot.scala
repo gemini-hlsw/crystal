@@ -34,7 +34,7 @@ object AppRoot {
       monoidF:     Monoid[F[Unit]]
     ): Component[M] =
       ScalaComponent
-        .builder[Unit]("AppRoot")
+        .builder[Unit]
         .initialState(model)
         .render($ => render(Ctx(View($.state, $.modStateIn[F]), ctx)))
         .componentWillUnmount(_ => onUnmount.orEmpty.runInCB)

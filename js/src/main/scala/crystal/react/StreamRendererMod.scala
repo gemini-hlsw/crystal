@@ -15,9 +15,12 @@ import cats.effect.concurrent.Ref
 import scala.concurrent.duration.FiniteDuration
 import crystal.View
 import cats.kernel.Monoid
+import crystal.data._
+import crystal.data.implicits._
+import crystal.data.react.implicits._
 
 object StreamRendererMod {
-  type Props[F[_], A]     = View[F, A] => VdomNode
+  type Props[F[_], A]     = View[F, Pot[A]] => VdomNode
   type Component[F[_], A] =
     CtorType.Props[Props[F, A], UnmountedWithRoot[
       Props[F, A],
@@ -53,9 +56,10 @@ object StreamRendererMod {
     val enable: F[Unit] =
       restart.map { r =>
         Sync[F].delay(r.runCancelable(_ => IO.unit).unsafeRunSync()).flatMap {
-          token => // TODO Error handling
+          token => // No error handling on purpose. If Hold fails, just do no Hold. There isn't much we can do here.
             cancelToken.set(token.some)
         }
+
       }.orEmpty
   }
 
@@ -72,7 +76,7 @@ object StreamRendererMod {
       } yield new Hold(setter, duration, cancelToken, buffer)
   }
 
-  type State[A] = Option[A]
+  type State[A] = Pot[A]
 
   def build[F[_]: ConcurrentEffect: Timer: Logger, A](
     stream:       fs2.Stream[F, A],
@@ -83,25 +87,26 @@ object StreamRendererMod {
     monoidF:      Monoid[F[Unit]]
   ): Component[F, A] = {
     implicit val propsReuse: Reusability[Props[F, A]] =
-      Reusability.byRef
-    implicit val aReuse: Reusability[A]               = reusability
+      Reusability.byRef // Should this be Reusable[Props[A]]?
+    implicit val aReuse: Reusability[A] = reusability
 
     class Backend($ : BackendScope[Props[F, A], State[A]]) {
 
       var cancelToken: Option[CancelToken[F]] = None
 
-      val hold: Hold[F, Option[A]] =
+      val hold: Hold[F, Pot[A]] =
         Hold($.setStateIn[F], holdAfterMod).unsafeRunSync()
 
       val evalCancellable: SyncIO[CancelToken[F]] =
         ConcurrentEffect[F].runCancelable(
           stream
-            .evalMap(v => hold.set(v.some))
+            .evalMap(v => hold.set(v.ready))
             .compile
             .drain
         )(
-          _.swap.toOption.foldMap(e =>
-            Effect[F].toIO(Logger[F].error(e)("[StreamRendererMod] Error on stream"))
+          _.swap.toOption.foldMap(t =>
+            $.setStateIn[IO](Error(t)) >>
+              Effect[F].toIO(Logger[F].error(t)("[StreamRendererMod] Error on stream"))
           )
         )
 
@@ -115,21 +120,19 @@ object StreamRendererMod {
 
       def render(
         props: Props[F, A],
-        state: Option[A]
+        state: Pot[A]
       ): VdomNode =
-        state.fold(VdomNode(null))(s =>
-          props(
-            View[F, A](
-              s,
-              f => hold.enable.flatMap(_ => $.modStateIn[F]((v: Option[A]) => v.map(f)))
-            )
+        props(
+          View[F, Pot[A]](
+            state,
+            f => hold.enable.flatMap(_ => $.modStateIn[F](f))
           )
         )
     }
 
     ScalaComponent
-      .builder[Props[F, A]]("StreamRendererMod")
-      .initialState(Option.empty[A])
+      .builder[Props[F, A]]
+      .initialState(Pot.pending[A])
       .renderBackend[Backend]
       .componentDidMount(_.backend.startUpdates)
       .componentWillUnmount(_.backend.stopUpdates)
