@@ -13,14 +13,15 @@ import scala.scalajs.js
 
 import cats.effect.concurrent.Ref
 import scala.concurrent.duration.FiniteDuration
-import crystal.View
+// import crystal.View
 import cats.kernel.Monoid
 import crystal.data._
 import crystal.data.implicits._
 import crystal.data.react.implicits._
+import japgolly.scalajs.react.extra.StateSnapshot
 
 object StreamRendererMod {
-  type Props[F[_], A]     = View[F, Pot[A]] => VdomNode
+  type Props[F[_], A]     = StateSnapshot[Pot[A]] => VdomNode
   type Component[F[_], A] =
     CtorType.Props[Props[F, A], UnmountedWithRoot[
       Props[F, A],
@@ -92,12 +93,12 @@ object StreamRendererMod {
 
     class Backend($ : BackendScope[Props[F, A], State[A]]) {
 
-      var cancelToken: Option[CancelToken[F]] = None
+      private var cancelToken: Option[CancelToken[F]] = None
 
       val hold: Hold[F, Pot[A]] =
         Hold($.setStateIn[F], holdAfterMod).unsafeRunSync()
 
-      val evalCancellable: SyncIO[CancelToken[F]] =
+      private val evalCancellable: SyncIO[CancelToken[F]] =
         ConcurrentEffect[F].runCancelable(
           stream
             .evalMap(v => hold.set(v.ready))
@@ -118,14 +119,18 @@ object StreamRendererMod {
       def stopUpdates =
         cancelToken.map(_.runInCBAndForget()).getOrEmpty
 
+      private val holdAndModStateSnapshot = StateSnapshot.withReuse.prepareVia($)
+
       def render(
         props: Props[F, A],
         state: Pot[A]
       ): VdomNode =
-        props(
-          View[F, Pot[A]](
-            state,
-            f => hold.enable.flatMap(_ => $.modStateIn[F](f))
+        state.fold(VdomNode(null))(s =>
+          props(
+            holdAndModStateSnapshot(s)
+            // View[F, Pot[A]](
+            //   state,
+            //   f => hold.enable.flatMap(_ => $.modStateIn[F](f))
           )
         )
     }
