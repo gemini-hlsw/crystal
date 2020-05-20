@@ -3,7 +3,6 @@ package crystal.data
 import org.scalacheck._
 import Arbitrary._
 import Gen._
-import Pot._
 
 object arbitraries {
   implicit def arbPot[A: Arbitrary]: Arbitrary[Pot[A]] =

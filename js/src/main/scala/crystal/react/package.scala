@@ -17,7 +17,11 @@ package object react {
   implicit class StreamOps[F[_], A](private val s: fs2.Stream[F, A]) {
     import StreamRenderer._
 
-    def render(implicit ce: ConcurrentEffect[F], logger: Logger[F]): Component[A] =
+    def render(implicit
+      ce:     ConcurrentEffect[F],
+      logger: Logger[F],
+      reuse:  Reusability[A]
+    ): Component[A] =
       StreamRenderer.build(s)
   }
 
@@ -45,8 +49,8 @@ package object react {
       def stateIn[F[_]: Sync]: F[S] = self.state.to[F]
     }
 
-    implicit class ModStateWithPropsFOps[S, P](
-      private val self: StateAccess.WriteWithProps[CallbackTo, P, S]
+    implicit class ModStateFOps[S](
+      private val self: StateAccess.Write[CallbackTo, S]
     ) extends AnyVal {
       def setStateIn[F[_]: Async](s: S): F[Unit] =
         Async[F].async[Unit] { cb =>
@@ -76,6 +80,11 @@ package object react {
             }
             .runNow()
         }
+    }
+
+    implicit class ModStateWithPropsFOps[S, P](
+      private val self: StateAccess.WriteWithProps[CallbackTo, P, S]
+    ) extends AnyVal {
 
       /**
         * Like `modState` but completes with a `Unit` value *after* the state modification has
@@ -84,7 +93,9 @@ package object react {
         *
         * Provides access to both state and props.
         */
-      def modStateIn[F[_]: Async](mod: (S, P) => S): F[Unit] =
+      def modStateWithPropsIn[F[_]: Async](
+        mod: (S, P) => S
+      ): F[Unit] =
         Async[F].async[Unit] { cb =>
           val doMod = self.modState(mod, Callback(cb(Right(()))))
           doMod
