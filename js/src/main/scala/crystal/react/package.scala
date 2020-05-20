@@ -6,6 +6,9 @@ import japgolly.scalajs.react._
 
 import scala.util.control.NonFatal
 import io.chrisdavenport.log4cats.Logger
+import japgolly.scalajs.react.extra.StateSnapshot
+import japgolly.scalajs.react.MonocleReact._
+import monocle.Lens
 
 package object react {
 
@@ -137,5 +140,19 @@ package object react {
       r: Reusability[A]
     ): Reusability[Ctx[C, ViewOpt[F, A]]] =
       Reusability.by[Ctx[C, ViewOpt[F, A]], Option[A]](_.getOption)
+
+    implicit class StateSnapshotCtxOps[F[_], C, A](val ctx: Ctx[C, StateSnapshot[A]])
+        extends AnyVal {
+      @inline def get: A = ctx.value.value
+
+      /*def zoom[B](lens: Reusable[(A => B, B => A => A)]): Ctx[C, StateSnapshot[B]] =
+        ctx.map(_.withReuse.zoomState(lens))
+
+      def zoomL[B](lens: Reusable[Lens[A, B]]): Ctx[C, StateSnapshot[B]] =
+        ctx.map(_.withReuse.zoomStateL(lens))*/
+
+      // def interpreter[I[_[_]]](f: C => ActionInterpreter[F, I, A]): I[F] =
+      // f(ctx.ctx).of(ctx.value)
+    }
   }
 }

@@ -13,7 +13,6 @@ import scala.scalajs.js
 
 import cats.effect.concurrent.Ref
 import scala.concurrent.duration.FiniteDuration
-// import crystal.View
 import cats.kernel.Monoid
 import crystal.data._
 import crystal.data.implicits._
@@ -119,19 +118,17 @@ object StreamRendererMod {
       def stopUpdates =
         cancelToken.map(_.runInCBAndForget()).getOrEmpty
 
-      private val holdAndModStateSnapshot = StateSnapshot.withReuse.prepareVia($)
+      private val holdAndModStateSnapshot =
+        StateSnapshot.withReuse.prepare[Pot[A]]((optS, cb) =>
+          hold.enable.runInCBAndThen($.setStateOption(optS, cb))
+        )
 
       def render(
         props: Props[F, A],
         state: Pot[A]
       ): VdomNode =
-        state.fold(VdomNode(null))(s =>
-          props(
-            holdAndModStateSnapshot(s)
-            // View[F, Pot[A]](
-            //   state,
-            //   f => hold.enable.flatMap(_ => $.modStateIn[F](f))
-          )
+        props(
+          holdAndModStateSnapshot(state)
         )
     }
 

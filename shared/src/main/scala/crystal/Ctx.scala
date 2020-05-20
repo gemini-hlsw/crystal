@@ -26,8 +26,7 @@ object Ctx {
       override def map[A, B](fa: Ctx[C, A])(f: A => B): Ctx[C, B] = fa.map(f)
     }
 
-  implicit class ViewOptCtxOps[F[_], C, A](val ctx: Ctx[C, ViewOpt[F, A]])
-      extends AnyVal {
+  implicit class ViewOptCtxOps[F[_], C, A](val ctx: Ctx[C, ViewOpt[F, A]]) extends AnyVal {
     @inline def getOption: Option[A] = ctx.value.getOption
 
     @inline def set(a: A): F[Unit] = ctx.value.set(a)
@@ -50,8 +49,7 @@ object Ctx {
       f(ctx.ctx).of(ctx.value)
   }
 
-  implicit class ViewCtxOps[F[_], C, A](val ctx: Ctx[C, View[F, A]])
-      extends AnyVal {
+  implicit class ViewCtxOps[F[_], C, A](val ctx: Ctx[C, View[F, A]]) extends AnyVal {
     @inline def get: A = ctx.value.get
 
     def zoom[B](f: A => B)(g: (B => B) => A => A): Ctx[C, View[F, B]] =
@@ -63,4 +61,5 @@ object Ctx {
     def interpreter[I[_[_]]](f: C => ActionInterpreter[F, I, A]): I[F] =
       f(ctx.ctx).of(ctx.value)
   }
+
 }
