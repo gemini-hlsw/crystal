@@ -10,7 +10,6 @@ import _root_.io.chrisdavenport.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration
 import crystal.View
-import cats.kernel.Monoid
 import crystal.data._
 import crystal.data.react.implicits._
 
@@ -31,7 +30,6 @@ object StreamRendererMod {
     stream:       fs2.Stream[F, A],
     holdAfterMod: Option[FiniteDuration] = None
   )(implicit
-    monoidF:      Monoid[F[Unit]],
     reuse:        Reusability[A], // Used to derive Reusability[State[A]]
     renderReuse:  Reusability[Props[F, A]] = Reusability
       .always[Props[F, A]] // We assume rendering function doesn't change, but can be overriden.

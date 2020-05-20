@@ -1,6 +1,6 @@
 package crystal.react
 
-import cats.kernel.Monoid
+import crystal.implicits._
 import cats.effect._
 import cats.implicits._
 import cats.effect.implicits._
@@ -17,8 +17,6 @@ class Hold[F[_]: ConcurrentEffect: Timer, A](
   duration:    Option[FiniteDuration],
   cancelToken: Ref[F, Option[CancelToken[F]]],
   buffer:      Ref[F, Option[A]]
-)(implicit
-  monoidF:     Monoid[F[Unit]]
 ) {
   def set(a: A): F[Unit] =
     cancelToken.get.flatMap(
@@ -28,11 +26,11 @@ class Hold[F[_]: ConcurrentEffect: Timer, A](
   private val restart: Option[F[Unit]] =
     duration.map { d =>
       for {
-        _ <- (cancelToken.getAndSet(None).flatMap(_.orEmpty)).uncancelable
+        _ <- (cancelToken.getAndSet(None).flatMap(_.orUnit)).uncancelable
         _ <- Timer[F].sleep(d)
         _ <- cancelToken.set(None)
         b <- buffer.getAndSet(None)
-        _ <- b.map(set).orEmpty
+        _ <- b.map(set).orUnit
       } yield ()
     }
 
@@ -43,15 +41,13 @@ class Hold[F[_]: ConcurrentEffect: Timer, A](
           cancelToken.set(token.some)
       }
 
-    }.orEmpty
+    }.orUnit
 }
 
 object Hold {
   def apply[F[_]: ConcurrentEffect: Timer, A](
     setter:   A => F[Unit],
     duration: Option[FiniteDuration]
-  )(implicit
-    monoidF:  Monoid[F[Unit]]
   ): SyncIO[Hold[F, A]] =
     for {
       cancelToken <- Ref.in[SyncIO, F, Option[CancelToken[F]]](None)
