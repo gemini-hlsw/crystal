@@ -43,7 +43,7 @@ object StreamRendererMod {
 
       override protected val directSetState: Pot[A] => F[Unit] = $.setStateIn[F]
 
-      override protected val streamSetState: Pot[A] => F[Unit] = hold.set
+      override protected lazy val streamSetState: Pot[A] => F[Unit] = hold.set
 
       def render(
         props: Props[F, A],

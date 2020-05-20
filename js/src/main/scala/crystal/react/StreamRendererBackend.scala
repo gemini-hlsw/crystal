@@ -15,9 +15,9 @@ abstract class StreamRendererBackend[F[_]: ConcurrentEffect: Logger, A](stream: 
 
   protected val directSetState: Pot[A] => F[Unit]
 
-  protected val streamSetState: Pot[A] => F[Unit] = directSetState
+  protected lazy val streamSetState: Pot[A] => F[Unit] = directSetState
 
-  private val evalCancellable: SyncIO[CancelToken[F]] =
+  private lazy val evalCancellable: SyncIO[CancelToken[F]] =
     ConcurrentEffect[F].runCancelable(
       stream
         .evalMap(v => streamSetState(v.ready))
