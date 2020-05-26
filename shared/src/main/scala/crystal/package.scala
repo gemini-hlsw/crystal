@@ -1,6 +1,5 @@
 import cats.Monad
 import cats.implicits._
-import cats.Applicative
 
 package object crystal {
   type StreamRenderer[A]          = ComponentTypes.StreamRenderer[A]
@@ -21,10 +20,4 @@ package crystal {
   }
 
   object ComponentTypes extends ComponentTypesForPlatform
-
-  object implicits {
-    implicit class OptionApplicativeUnitOps[F[_]: Applicative](opt: Option[F[Unit]]) {
-      def orUnit: F[Unit] = opt.getOrElse(Applicative[F].unit)
-    }
-  }
 }
