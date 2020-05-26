@@ -9,13 +9,13 @@ import japgolly.scalajs.react.vdom.html_<^._
 import _root_.io.chrisdavenport.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration
-import crystal.View
+import crystal.ViewF
 import crystal.data._
 import crystal.data.react.implicits._
 
 object StreamRendererMod {
 
-  type Props[F[_], A] = Pot[View[F, A]] => VdomNode
+  type Props[F[_], A] = Pot[ViewF[F, A]] => VdomNode
 
   type State[A]           = Pot[A]
   type Component[F[_], A] =
@@ -51,7 +51,7 @@ object StreamRendererMod {
       ): VdomNode =
         props(
           state.map(a =>
-            View[F, A](
+            ViewF[F, A](
               a,
               f => hold.enable.flatMap(_ => $.modStateIn[F](_.map(f)))
             )

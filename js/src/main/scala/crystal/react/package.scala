@@ -139,7 +139,7 @@ package object react {
       @inline def toCB: CallbackTo[A] = CallbackTo(s.unsafeRunSync())
     }
 
-    implicit def viewReusability[F[_], A: Reusability]: Reusability[View[F, A]] =
+    implicit def viewReusability[F[_], A: Reusability]: Reusability[ViewF[F, A]] =
       Reusability.by(_.get)
   }
 }
