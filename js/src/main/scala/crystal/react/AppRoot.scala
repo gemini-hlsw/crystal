@@ -1,12 +1,9 @@
 package crystal.react
 
-import cats.implicits._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import crystal.Ctx
 import implicits._
 
-import cats.kernel.Monoid
 import crystal.View
 import cats.effect.Effect
 
@@ -23,21 +20,19 @@ object AppRoot {
 
   class Apply[F[_]] {
     def apply[M, C](
-      model:       M,
-      ctx:         C
+      model:       M
     )(
-      render:      Ctx[C, View[F, M]] => VdomNode,
+      render:      View[F, M] => VdomNode,
       onUnmount:   Option[F[Unit]] = None
     )(implicit
       reusability: Reusability[M],
-      effect:      Effect[F],
-      monoidF:     Monoid[F[Unit]]
+      effect:      Effect[F]
     ): Component[M] =
       ScalaComponent
         .builder[Unit]
         .initialState(model)
-        .render($ => render(Ctx(View($.state, $.modStateIn[F]), ctx)))
-        .componentWillUnmount(_ => onUnmount.orEmpty.runInCB)
+        .render($ => render(View($.state, $.modStateIn[F])))
+        .componentWillUnmount(_ => onUnmount.map(_.runInCB).getOrEmpty)
         .configure(Reusability.shouldComponentUpdate)
         .build
   }

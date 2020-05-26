@@ -23,11 +23,6 @@ package crystal {
   object ComponentTypes extends ComponentTypesForPlatform
 
   object implicits {
-    implicit class AnyToCtxOps[A](val a: A) extends AnyVal {
-      def inCtx[C](implicit ctx: C): Ctx[C, A] =
-        Ctx(a, ctx)
-    }
-
     implicit class OptionApplicativeUnitOps[F[_]: Applicative](opt: Option[F[Unit]]) {
       def orUnit: F[Unit] = opt.getOrElse(Applicative[F].unit)
     }

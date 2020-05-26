@@ -139,14 +139,7 @@ package object react {
       @inline def toCB: CallbackTo[A] = CallbackTo(s.unsafeRunSync())
     }
 
-    implicit def viewCtxReusability[F[_], C, A](implicit
-      r: Reusability[A]
-    ): Reusability[Ctx[C, View[F, A]]] =
-      Reusability.by[Ctx[C, View[F, A]], A](_.get)
-
-    implicit def viewOptCtxReusability[F[_], C, A](implicit
-      r: Reusability[A]
-    ): Reusability[Ctx[C, ViewOpt[F, A]]] =
-      Reusability.by[Ctx[C, ViewOpt[F, A]], Option[A]](_.getOption)
+    implicit def viewReusability[F[_], A: Reusability]: Reusability[View[F, A]] =
+      Reusability.by(_.get)
   }
 }

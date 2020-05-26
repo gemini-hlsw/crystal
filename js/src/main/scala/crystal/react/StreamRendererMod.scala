@@ -15,7 +15,7 @@ import crystal.data.react.implicits._
 
 object StreamRendererMod {
 
-  type Props[F[_], A] = View[F, Pot[A]] => VdomNode
+  type Props[F[_], A] = Pot[View[F, A]] => VdomNode
 
   type State[A]           = Pot[A]
   type Component[F[_], A] =
@@ -50,9 +50,11 @@ object StreamRendererMod {
         state: Pot[A]
       ): VdomNode =
         props(
-          View[F, Pot[A]](
-            state,
-            f => hold.enable.flatMap(_ => $.modStateIn[F](f))
+          state.map(a =>
+            View[F, A](
+              a,
+              f => hold.enable.flatMap(_ => $.modStateIn[F](_.map(f)))
+            )
           )
         )
     }
