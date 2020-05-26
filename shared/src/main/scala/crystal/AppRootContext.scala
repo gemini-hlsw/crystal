@@ -31,5 +31,5 @@ trait AppRootContext[C] {
 
   def map[A, F[_]: LiftIO: Functor](f: C => A): F[A] = apply[F].map(f)
 
-  def eval[A](f: C => A): A = get.map(f).unsafeRunSync()
+  def withCtx[A](f: C => A): A = get.map(f).unsafeRunSync()
 }
