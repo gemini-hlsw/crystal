@@ -47,6 +47,8 @@ class ViewOptF[F[_], A](
 
   def zoomP[B](prism: Prism[A, B]): ViewOptF[F, B] =
     zoomOpt(prism.getOption)(prism.modify)
+
+  override def toString(): String = s"ViewOptF($value, <modFn>)"
 }
 
 object ViewOptF {
@@ -64,7 +66,6 @@ class ViewF[F[_], A](value: A, mod: (A => A) => F[Unit])
     extends ViewOptF[F, A](
       value.some,
       (f: Option[A] => Option[A]) => mod(a => f(a.some).getOrElse(a))
-      // (funcOptA => funcOptA((a: Option[A]) => a.map(mod))  )
     ) {
   @inline def get: A = value
 
@@ -73,6 +74,8 @@ class ViewF[F[_], A](value: A, mod: (A => A) => F[Unit])
 
   override def zoomL[B](lens: Lens[A, B]): ViewF[F, B] =
     zoom(lens.get)(lens.modify)
+
+  override def toString(): String = s"ViewF($value, <modFn>)"
 }
 
 object ViewF {

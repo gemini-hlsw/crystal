@@ -21,7 +21,9 @@ object StreamRenderer {
   )(implicit
     reuse:       Reusability[A], // Used to derive Reusability[State[A]]
     renderReuse: Reusability[Props[A]] = Reusability
-      .always[Props[A]] // We assume rendering function doesn't change, but can be overriden.
+      .never[Props[A]]
+    // If a rerender is triggered, reusability should be controlled by enclosing component.
+    // We therefore don't apply reusability to the rendering function, but can be overriden.
   ): Component[A] = {
     class Backend($ : BackendScope[Props[A], State[A]])
         extends StreamRendererBackend[F, A](stream) {
