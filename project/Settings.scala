@@ -11,7 +11,7 @@ object Settings {
     val fs2             = "2.3.0"
     val monocle         = "2.0.4"
     val log4Cats        = "1.1.1"
-    val mUnit           = "0.7.7"
+    val mUnit           = "0.7.8"
     val discipline      = "1.0.2"
     val disciplineMUnit = "0.2.2"
   }
