@@ -4,8 +4,9 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import implicits._
 
-import crystal.ViewF
+import crystal.data.ViewF
 import cats.effect.Effect
+import cats.effect.ContextShift
 
 object AppRoot {
   type Component[M] =
@@ -26,7 +27,8 @@ object AppRoot {
       onUnmount:   Option[F[Unit]] = None
     )(implicit
       reusability: Reusability[M],
-      effect:      Effect[F]
+      effect:      Effect[F],
+      cs:          ContextShift[F]
     ): Component[M] =
       ScalaComponent
         .builder[Unit]

@@ -1,6 +1,7 @@
 package crystal
 
 import cats.effect._
+import crystal.data._
 import japgolly.scalajs.react.component.Generic.MountedSimple
 import japgolly.scalajs.react._
 
@@ -140,6 +141,12 @@ package object react {
     }
 
     implicit def viewReusability[F[_], A: Reusability]: Reusability[ViewF[F, A]] =
+      Reusability.by(_.get)
+
+    implicit def viewOptReusability[F[_], A: Reusability]: Reusability[ViewOptF[F, A]] =
+      Reusability.by(_.get)
+
+    implicit def viewListReusability[F[_], A: Reusability]: Reusability[ViewListF[F, A]] =
       Reusability.by(_.get)
   }
 }

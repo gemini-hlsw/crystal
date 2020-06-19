@@ -52,6 +52,12 @@ object Settings {
       )
     )
 
+    val MonocleMacro = Def.setting(
+      Seq[ModuleID](
+        "com.github.julien-truffaut" %%% "monocle-macro" % monocle
+      )
+    )
+
     val Log4Cats = Def.setting(
       Seq[ModuleID](
         "io.chrisdavenport" %%% "log4cats-core" % log4Cats
