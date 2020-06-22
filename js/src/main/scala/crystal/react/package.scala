@@ -139,14 +139,5 @@ package object react {
     implicit class SyncIO2Callback[A](private val s: SyncIO[A]) extends AnyVal {
       @inline def toCB: CallbackTo[A] = CallbackTo(s.unsafeRunSync())
     }
-
-    implicit def viewReusability[F[_], A: Reusability]: Reusability[ViewF[F, A]] =
-      Reusability.by(_.get)
-
-    implicit def viewOptReusability[F[_], A: Reusability]: Reusability[ViewOptF[F, A]] =
-      Reusability.by(_.get)
-
-    implicit def viewListReusability[F[_], A: Reusability]: Reusability[ViewListF[F, A]] =
-      Reusability.by(_.get)
   }
 }
