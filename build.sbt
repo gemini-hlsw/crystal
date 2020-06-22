@@ -45,6 +45,7 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
       "-encoding",
       "UTF-8"
     ),
+    scalacOptions in Test += "-Ymacro-annotations",
     libraryDependencies ++=
       Settings.Libraries.CatsJS.value ++
         Settings.Libraries.CatsEffectJS.value ++
@@ -55,7 +56,8 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
           Settings.Libraries.MUnit.value ++
             Settings.Libraries.Discipline.value ++
             Settings.Libraries.DisciplineMUnit.value ++
-            Settings.Libraries.CatsLaws.value
+            Settings.Libraries.CatsLaws.value ++
+            Settings.Libraries.MonocleMacro.value
         ).map(_ % Test),
     scmInfo := Some(
       ScmInfo(
