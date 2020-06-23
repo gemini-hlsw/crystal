@@ -1,4 +1,4 @@
-package crystal.data
+package crystal
 
 import org.scalacheck._
 import Arbitrary._

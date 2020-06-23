@@ -1,14 +1,12 @@
 package crystal.react
 
-import implicits._
+import crystal._
+import crystal.implicits._
+import crystal.react.implicits._
 import cats.effect._
 import cats.implicits._
 import japgolly.scalajs.react._
 import _root_.io.chrisdavenport.log4cats.Logger
-
-import crystal.data._
-import crystal.data.implicits._
-// import crystal.data.react.implicits._
 
 abstract class StreamRendererBackend[F[_]: ConcurrentEffect: Logger, A](stream: fs2.Stream[F, A]) {
   private var cancelToken: Option[CancelToken[F]] = None

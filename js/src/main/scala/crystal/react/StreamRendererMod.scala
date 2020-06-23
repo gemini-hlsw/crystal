@@ -1,6 +1,7 @@
 package crystal.react
 
-import implicits._
+import crystal._
+import crystal.react.implicits._
 import cats.effect._
 import cats.implicits._
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
@@ -9,8 +10,6 @@ import japgolly.scalajs.react.vdom.html_<^._
 import _root_.io.chrisdavenport.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration
-import crystal.data._
-import crystal.data.react.implicits._
 
 object StreamRendererMod {
 

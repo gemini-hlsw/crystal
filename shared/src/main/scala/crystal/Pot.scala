@@ -1,4 +1,4 @@
-package crystal.data
+package crystal
 
 import cats.implicits._
 import scala.util.Failure

@@ -1,4 +1,4 @@
-package crystal.data
+package crystal
 
 import munit.DisciplineSuite
 import arbitraries._
@@ -8,8 +8,8 @@ import org.scalacheck.Prop.forAll
 import cats.laws.discipline._
 import cats.laws.discipline.arbitrary._
 import cats.laws.discipline.SemigroupalTests.Isomorphisms
-import crystal.data.implicits._
-import crystal.data.implicits.throwable._
+import crystal.implicits._
+import crystal.implicits.throwable._
 import scala.util.Failure
 import scala.util.Success
 import org.scalacheck.Prop

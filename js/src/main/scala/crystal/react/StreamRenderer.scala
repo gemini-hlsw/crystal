@@ -5,9 +5,8 @@ import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import _root_.io.chrisdavenport.log4cats.Logger
+import crystal._
 import crystal.react.implicits._
-import crystal.data._
-import crystal.data.react.implicits._
 
 object StreamRenderer {
   type Props[A]     = Pot[A] => VdomNode

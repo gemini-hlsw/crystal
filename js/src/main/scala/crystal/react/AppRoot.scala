@@ -4,7 +4,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import implicits._
 
-import crystal.data.ViewF
+import crystal.ViewF
 import cats.effect.Effect
 import cats.effect.ContextShift
 

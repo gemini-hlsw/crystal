@@ -1,5 +1,3 @@
-package crystal
-
 import cats.effect.IO
 import cats.effect.ContextShift
 import cats.implicits._
@@ -10,14 +8,14 @@ import monocle.Optional
 import monocle.Traversal
 import monocle.function.Possible.possible
 
-package object data {
+package object crystal {
   implicit lazy val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 }
 
-package data {
+package crystal {
   @Lenses
   case class Wrap[A](a: A)
-  object Wrap       {
+  object Wrap {
     implicit def eqWrap[A: Eq]: Eq[Wrap[A]] = Eq.fromUniversalEquals
   }
 
