@@ -4,15 +4,15 @@
 
 `crystal` is a toolbelt to help build reactive UI apps in Scala by providing:
 * Utilities for initializing and accessing global immutable context (`AppRootContext`).
-* A structure for managing server roundtrips (`data.Pot`).
-* Wrappers for values derived from state with a callback function to modify them (`data.{ViewF, ViewOptF, ViewListF}`).
+* A structure for managing server roundtrips (`Pot`).
+* Wrappers for values derived from state with a callback function to modify them (`ViewF`, `ViewOptF`, `ViewListF`).
 
 Additionally, for `scalajs-react` apps it provides:
 * A root component to hold the application state (`AppRoot`).
 * A component that dynamically renders values from `fs2.Stream`s (`StreamRenderer`).
 * A component that dynamically renders values from `fs2.Stream`s, allowing children to modify the value too (`StreamRendererMod`).
 * Conversions between `Callback`s and `cats-effect` effects (`implicits._`).
-* `Reusability` and other utilities for `data.Pot` and `data.View*F` (`data.implicits._`)
+* `Reusability` and other utilities for `Pot` and `View*F` (`implicits._`)
 
 The library takes a tagless approach based on `cats-effect`. Logging is performed via `log4cats`.
 
@@ -35,11 +35,11 @@ It is a sum type consisting of:
 * `toOption: Option[A]`
 * `toTryOption: Option[Try[A]]`
 
-The `crystal.data.implicits._` import will provide:
+The `crystal.implicits._` import will provide:
 * Instances for `cats` `MonadError`, `Traverse`, `Align` and `Eq` (as long as there's an `Eq[A]` in scope).
 * Convenience methods: `<Any>.ready`, `<Option[A]>.toPot`, `<Try[A]>.toPot` and `<Option[Try[A]]>.toPot`.
 
-The `crystal.data.react.implicits._` import will provide:
+The `crystal.react.implicits._` import will provide:
 * `Reusability[Pot[A]]` (as long as there's a `Reusability[A]` in scope).
 * Convenience methods:
   * `renderPending(f: Long => VdomNode): VdomNode`
@@ -66,7 +66,7 @@ Requires the following implicits in scope:
 * `Async[F]`
 * `ContextShift[F]`
 
-The `crystal.data.react.implicits._` import will provide:
+The `crystal.react.implicits._` import will provide:
 * `Reusability[ViewF[F, A]]`, `Reusability[ViewOptF[F, A]]` and `Reusability[ViewListF[F, A]]`, based solely on the wrapped value `A` (and as long as there's a `Reusability[A]` in scope).
 
 ## scalajs-react
