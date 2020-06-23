@@ -1,7 +1,6 @@
 package crystal
 
 import cats.effect._
-import crystal.data._
 import japgolly.scalajs.react.component.Generic.MountedSimple
 import japgolly.scalajs.react._
 
