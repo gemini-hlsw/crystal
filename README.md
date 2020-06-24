@@ -58,7 +58,10 @@ Provides the following methods:
 * `set(a: A): F[Unit]` = `mod(_ => a)`.
 * `modAndGet(f: A => A): F[A]` - same as `mod(f)` but returns the modified `A`.
 * `withOnMod(f: A => F[Unit])` - creates a new `ViewF` that chains the passed effect whenever `mod` (or `set`) is called.
-* `zoom` methods - Create a new `ViewF` focused on a part of `A`. This method can take either raw getter and setter functions or a `monocle` `Lens`, `Optional`, `Prism` or `Traversal`.
+* `zoom` methods - creates a new `ViewF` focused on a part of `A`. This method can take either raw getter and setter functions or a `monocle` `Lens`, `Optional`, `Prism` or `Traversal`.
+* `as(iso: Iso[A, B])` - creates a new `ViewF[F, B]`.
+* `asOpt` - creates a new `ViewOptF[F, A]`.
+* `asList` - creates a new `ViewListF[F, A]`.
 
 `ViewOptF[F, A]` and `ViewListF[F, A]` are variants that hold a value known to be an `Option[A]` or `List[A]` respectively. They are returned when `zoom`ing using `Optional`, `Prism` or `Traversal`.
 
@@ -68,6 +71,7 @@ Requires the following implicits in scope:
 
 The `crystal.react.implicits._` import will provide:
 * `Reusability[ViewF[F, A]]`, `Reusability[ViewOptF[F, A]]` and `Reusability[ViewListF[F, A]]`, based solely on the wrapped value `A` (and as long as there's a `Reusability[A]` in scope).
+* `ViewF.fromState[F]($: BackendScope[_, S])`: create a `View[F, S]` from `scalajs-react`'s `BackendScope`.
 
 ## scalajs-react
 

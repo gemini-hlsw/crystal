@@ -1,13 +1,15 @@
 package crystal
 
 import cats.implicits._
-import munit.FunSuite
-import cats.effect.IO
-import cats.effect.concurrent.Ref
-import monocle.macros.Lenses
 import cats.kernel.Eq
-import monocle.Optional
 import cats.effect.concurrent.Deferred
+import cats.effect.concurrent.Ref
+import cats.effect.IO
+import monocle.macros.Lenses
+import monocle.Optional
+import monocle.Iso
+import monocle.std.option.some
+import munit.FunSuite
 
 class ViewOptFSpec extends FunSuite {
 
@@ -52,5 +54,59 @@ class ViewOptFSpec extends FunSuite {
       assert(get === WrapOpt(1.some))
       assert(captured === 2.some)
     }).unsafeToFuture()
+  }
+
+  val valueOpt = Wrap(0).some
+
+  test("ViewF[Option[Wrap[Int]]].zoom(some).as(Wrap.iso).mod") {
+    (for {
+      ref <- Ref[IO].of(valueOpt)
+      view = ViewF(valueOpt, ref.update).zoom(some[Wrap[Int]]).as(Wrap.iso)
+      _   <- view.mod(_ + 1)
+      get <- ref.get
+    } yield assert(get === Wrap(1).some)).unsafeToFuture()
+  }
+
+  test("ViewF[Option[Wrap[Int]]].zoom(some).as(Wrap.iso).set") {
+    (for {
+      ref <- Ref[IO].of(valueOpt)
+      view = ViewF(valueOpt, ref.update).zoom(some[Wrap[Int]]).as(Wrap.iso)
+      _   <- view.set(1)
+      get <- ref.get
+    } yield assert(get === Wrap(1).some)).unsafeToFuture()
+  }
+
+  test("ViewF[Option[Wrap[Int]]].zoom(some).as(Wrap.iso).modAndGet") {
+    (for {
+      ref <- Ref[IO].of(valueOpt)
+      view = ViewF(valueOpt, ref.update).zoom(some[Wrap[Int]]).as(Wrap.iso)
+      get <- view.modAndGet(_ + 1)
+    } yield assert(get === 1.some)).unsafeToFuture()
+  }
+
+  test("ViewF[Option[Wrap[Int]]].zoom(some).asList.mod") {
+    (for {
+      ref <- Ref[IO].of(valueOpt)
+      view = ViewF(valueOpt, ref.update).zoom(some[Wrap[Int]]).asList
+      _   <- view.mod(_.map(_ + 1))
+      get <- ref.get
+    } yield assert(get === Wrap(1).some)).unsafeToFuture()
+  }
+
+  test("ViewF[Option[Wrap[Int]]].zoom(some).asList.set") {
+    (for {
+      ref <- Ref[IO].of(valueOpt)
+      view = ViewF(valueOpt, ref.update).zoom(some[Wrap[Int]]).asList
+      _   <- view.set(Wrap(1))
+      get <- ref.get
+    } yield assert(get === Wrap(1).some)).unsafeToFuture()
+  }
+
+  test("ViewF[Option[Wrap[Int]]].zoom(some).asList.modAndGet") {
+    (for {
+      ref <- Ref[IO].of(valueOpt)
+      view = ViewF(valueOpt, ref.update).zoom(some[Wrap[Int]]).asList
+      get <- view.modAndGet(_.map(_ + 1))
+    } yield assert(get === List(Wrap(1)))).unsafeToFuture()
   }
 }

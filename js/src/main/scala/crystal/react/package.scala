@@ -1,6 +1,9 @@
 package crystal
 
+import crystal.react.implicits._
+import cats.effect.Async
 import cats.effect.ConcurrentEffect
+import cats.effect.ContextShift
 import japgolly.scalajs.react._
 import io.chrisdavenport.log4cats.Logger
 
@@ -17,5 +20,13 @@ package object react {
     ): StreamRenderer.Component[A] =
       StreamRenderer.build(s)
   }
+}
 
+package react {
+  class FromStateViewF[F[_]]() {
+    def apply[S](
+      $              : BackendScope[_, S]
+    )(implicit async: Async[F], cs: ContextShift[F]): ViewF[F, S] =
+      ViewF($.state.runNow(), $.modStateIn[F])
+  }
 }

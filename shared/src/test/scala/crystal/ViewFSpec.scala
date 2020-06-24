@@ -6,6 +6,7 @@ import cats.effect.concurrent.Ref
 import monocle.function.Possible.possible
 import munit.FunSuite
 import cats.effect.concurrent.Deferred
+import monocle.Iso
 
 class ViewFSpec extends FunSuite {
 
@@ -75,9 +76,86 @@ class ViewFSpec extends FunSuite {
   test("ViewF[Wrap[Int]].zoom(Lens).modAndGet") {
     (for {
       ref <- Ref[IO].of(wrappedValue)
-      view = ViewF(wrappedValue, ref.update).zoom(Wrap.a[Int])
+      view = ViewF(wrappedValue, ref.update).zoom(lens)
       get <- view.modAndGet(_ + 1)
     } yield assert(get === 1)).unsafeToFuture()
   }
 
+  test("ViewF[Wrap[Int]].as(Wrap.iso).mod") {
+    (for {
+      ref <- Ref[IO].of(wrappedValue)
+      view = ViewF(wrappedValue, ref.update).as(Wrap.iso)
+      _   <- view.mod(_ + 1)
+      get <- ref.get
+    } yield assert(get === Wrap(1))).unsafeToFuture()
+  }
+
+  test("ViewF[Wrap[Int]].as(Wrap.iso).set") {
+    (for {
+      ref <- Ref[IO].of(wrappedValue)
+      view = ViewF(wrappedValue, ref.update).as(Wrap.iso)
+      _   <- view.set(1)
+      get <- ref.get
+    } yield assert(get === Wrap(1))).unsafeToFuture()
+  }
+
+  test("ViewF[Wrap[Int]].as(Wrap.iso).modAndGet") {
+    (for {
+      ref <- Ref[IO].of(wrappedValue)
+      view = ViewF(wrappedValue, ref.update).as(Wrap.iso)
+      get <- view.modAndGet(_ + 1)
+    } yield assert(get === 1)).unsafeToFuture()
+  }
+
+  test("ViewF[Wrap[Int]].asOpt.zoom(Lens).mod") {
+    (for {
+      ref <- Ref[IO].of(wrappedValue)
+      view = ViewF(wrappedValue, ref.update).asOpt.zoom(lens)
+      _   <- view.mod(_ + 1)
+      get <- ref.get
+    } yield assert(get === Wrap(1))).unsafeToFuture()
+  }
+
+  test("ViewF[Wrap[Int]].asOpt.zoom(Lens).set") {
+    (for {
+      ref <- Ref[IO].of(wrappedValue)
+      view = ViewF(wrappedValue, ref.update).asOpt.zoom(lens)
+      _   <- view.set(1)
+      get <- ref.get
+    } yield assert(get === Wrap(1))).unsafeToFuture()
+  }
+
+  test("ViewF[Wrap[Int]].asOpt.zoom(Lens).modAndGet") {
+    (for {
+      ref <- Ref[IO].of(wrappedValue)
+      view = ViewF(wrappedValue, ref.update).asOpt.zoom(lens)
+      get <- view.modAndGet(_ + 1)
+    } yield assert(get === 1.some)).unsafeToFuture()
+  }
+
+  test("ViewF[Wrap[Int]].asList.zoom(Lens).mod") {
+    (for {
+      ref <- Ref[IO].of(wrappedValue)
+      view = ViewF(wrappedValue, ref.update).asList.zoom(lens)
+      _   <- view.mod(_ + 1)
+      get <- ref.get
+    } yield assert(get === Wrap(1))).unsafeToFuture()
+  }
+
+  test("ViewF[Wrap[Int]].asList.zoom(Lens).set") {
+    (for {
+      ref <- Ref[IO].of(wrappedValue)
+      view = ViewF(wrappedValue, ref.update).asList.zoom(lens)
+      _   <- view.set(1)
+      get <- ref.get
+    } yield assert(get === Wrap(1))).unsafeToFuture()
+  }
+
+  test("ViewF[Wrap[Int]].asList.zoom(Lens).modAndGet") {
+    (for {
+      ref <- Ref[IO].of(wrappedValue)
+      view = ViewF(wrappedValue, ref.update).asList.zoom(lens)
+      get <- view.modAndGet(_ + 1)
+    } yield assert(get === List(1))).unsafeToFuture()
+  }
 }
