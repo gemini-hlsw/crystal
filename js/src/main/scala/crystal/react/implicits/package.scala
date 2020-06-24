@@ -184,4 +184,9 @@ package object implicits {
 
   implicit def viewListReusability[F[_], A: Reusability]: Reusability[ViewListF[F, A]] =
     Reusability.by(_.get)
+
+  implicit class ViewFModuleOps(val viewFModule: ViewF.type) extends AnyVal {
+    def fromState[F[_]]: FromStateViewF[F] =
+      new FromStateViewF[F]()
+  }
 }

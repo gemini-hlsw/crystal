@@ -1,16 +1,16 @@
 package crystal
 
 import cats.implicits._
-import munit.FunSuite
-import cats.effect.IO
-import cats.effect.concurrent.Ref
-import cats.effect.ContextShift
-import scala.concurrent.ExecutionContext
-import monocle.macros.Lenses
 import cats.kernel.Eq
+import cats.effect.ContextShift
+import cats.effect.concurrent.Deferred
+import cats.effect.concurrent.Ref
+import cats.effect.IO
+import monocle.macros.Lenses
 import monocle.Optional
 import monocle.Traversal
-import cats.effect.concurrent.Deferred
+import munit.FunSuite
+import scala.concurrent.ExecutionContext
 
 class ViewListFSpec extends FunSuite {
 
@@ -55,6 +55,34 @@ class ViewListFSpec extends FunSuite {
       assert(get === WrapList(List(1, 2, 3)))
       assert(captured === List(2, 4, 6))
     }).unsafeToFuture()
+  }
+
+  val valueList = List(Wrap(0))
+
+  test("ViewF[List[Wrap[Int]]].zoom(Traversal).as(Wrap.iso).mod") {
+    (for {
+      ref <- Ref[IO].of(valueList)
+      view = ViewF(valueList, ref.update).zoom(Traversal.fromTraverse[List, Wrap[Int]]).as(Wrap.iso)
+      _   <- view.mod(_ + 1)
+      get <- ref.get
+    } yield assert(get === List(Wrap(1)))).unsafeToFuture()
+  }
+
+  test("ViewF[Option[Wrap[Int]]].zoom(Traversal).as(Wrap.iso).set") {
+    (for {
+      ref <- Ref[IO].of(valueList)
+      view = ViewF(valueList, ref.update).zoom(Traversal.fromTraverse[List, Wrap[Int]]).as(Wrap.iso)
+      _   <- view.set(1)
+      get <- ref.get
+    } yield assert(get === List(Wrap(1)))).unsafeToFuture()
+  }
+
+  test("ViewF[Option[Wrap[Int]]].zoom(Traversal).as(Wrap.iso).modAndGet") {
+    (for {
+      ref <- Ref[IO].of(valueList)
+      view = ViewF(valueList, ref.update).zoom(Traversal.fromTraverse[List, Wrap[Int]]).as(Wrap.iso)
+      get <- view.modAndGet(_ + 1)
+    } yield assert(get === List(1))).unsafeToFuture()
   }
 
   val complexValue1     = Wrap(WrapOpt(WrapList(List(0, 1, 2)).some))

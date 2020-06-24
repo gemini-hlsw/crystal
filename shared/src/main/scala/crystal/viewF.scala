@@ -6,6 +6,7 @@ import cats.effect.Sync
 import scala.concurrent.Promise
 import cats.effect.Async
 import cats.effect.ContextShift
+import monocle.Iso
 import monocle.Lens
 import monocle.Optional
 import monocle.Prism
@@ -65,6 +66,12 @@ final class ViewF[F[_]: Async: ContextShift, A](val get: A, val mod: (A => A) =>
       (f: B => B) => modAndGet(modB(f)).map(getB)
     )
 
+  def as[B](iso: Iso[A, B]): ViewF[F, B] = zoom(iso.asLens)
+
+  def asOpt: ViewOptF[F, A] = zoom(Iso.id[A].asOptional)
+
+  def asList: ViewListF[F, A] = zoom(Iso.id[A].asTraversal)
+
   def zoom[B](lens: Lens[A, B]): ViewF[F, B] =
     zoom(lens.get _)(lens.modify)
 
@@ -100,6 +107,10 @@ final class ViewOptF[F[_]: FlatMap, A](
   val modAndGet: (A => A) => F[Option[A]]
 ) extends ViewOps[F, Option, A] {
   val set: A => F[Unit] = a => mod(_ => a)
+
+  def as[B](iso: Iso[A, B]): ViewOptF[F, B] = zoom(iso.asLens)
+
+  def asList: ViewListF[F, A] = zoom(Iso.id[A].asTraversal)
 
   def zoom[B](getB: A => B)(modB: (B => B) => A => A): ViewOptF[F, B] =
     new ViewOptF(
@@ -154,6 +165,8 @@ final class ViewListF[F[_]: FlatMap, A](
   val modAndGet: (A => A) => F[List[A]]
 ) extends ViewOps[F, List, A] {
   val set: A => F[Unit] = a => mod(_ => a)
+
+  def as[B](iso: Iso[A, B]): ViewListF[F, B] = zoom(iso.asLens)
 
   def zoom[B](getB: A => B)(modB: (B => B) => A => A): ViewListF[F, B] =
     new ViewListF(

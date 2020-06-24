@@ -7,6 +7,7 @@ import scala.concurrent.ExecutionContext
 import monocle.Optional
 import monocle.Traversal
 import monocle.function.Possible.possible
+import monocle.Iso
 
 package object crystal {
   implicit lazy val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
@@ -14,9 +15,13 @@ package object crystal {
 
 package crystal {
   @Lenses
-  case class Wrap[A](a: A)
+  case class Wrap[A](a: A) {
+    def map[B](f: A => B): Wrap[B] = Wrap(f(a))
+  }
   object Wrap {
     implicit def eqWrap[A: Eq]: Eq[Wrap[A]] = Eq.fromUniversalEquals
+
+    def iso[A]: Iso[Wrap[A], A] = Iso[Wrap[A], A](_.a)(Wrap.apply)
   }
 
   @Lenses
