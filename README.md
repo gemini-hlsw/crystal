@@ -71,7 +71,7 @@ Requires the following implicits in scope:
 
 The `crystal.react.implicits._` import will provide:
 * `Reusability[ViewF[F, A]]`, `Reusability[ViewOptF[F, A]]` and `Reusability[ViewListF[F, A]]`, based solely on the wrapped value `A` (and as long as there's a `Reusability[A]` in scope).
-* `ViewF.fromState[F]($: BackendScope[_, S])`: create a `View[F, S]` from `scalajs-react`'s `BackendScope`.
+* `ViewF.fromState[F]($: BackendScope[_, S])`: create a `ViewF[F, S]` from `scalajs-react`'s `BackendScope`.
 
 ## scalajs-react
 
