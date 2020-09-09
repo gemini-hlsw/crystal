@@ -1,5 +1,5 @@
 import cats.Monad
-import cats.implicits._
+import cats.syntax.all._
 
 package object crystal {
   type StreamRenderer[A]          = ComponentTypes.StreamRenderer[A]

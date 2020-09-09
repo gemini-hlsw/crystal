@@ -1,6 +1,6 @@
 package crystal
 
-import cats.implicits._
+import cats.syntax.all._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try

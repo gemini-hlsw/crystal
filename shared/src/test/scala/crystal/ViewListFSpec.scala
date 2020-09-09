@@ -1,6 +1,6 @@
 package crystal
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.Eq
 import cats.effect.ContextShift
 import cats.effect.concurrent.Deferred

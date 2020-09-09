@@ -2,7 +2,7 @@ package crystal
 
 import munit.DisciplineSuite
 import arbitraries._
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.laws.discipline.EqTests
 import org.scalacheck.Prop.forAll
 import cats.laws.discipline._

@@ -1,6 +1,6 @@
 package crystal
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.Id
 import cats.effect.Sync
 import scala.concurrent.Promise
