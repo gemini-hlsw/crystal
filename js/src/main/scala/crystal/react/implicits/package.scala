@@ -47,9 +47,8 @@ package object implicits {
       Async[F].async[Unit] { cb =>
         val doMod = self.setState(s, Callback(cb(Right(()))))
         doMod
-          .maybeHandleError {
-            case NonFatal(t) =>
-              Callback(cb(Left(t)))
+          .maybeHandleError { case NonFatal(t) =>
+            Callback(cb(Left(t)))
           }
           .runNow()
       }
@@ -65,9 +64,8 @@ package object implicits {
       Async[F].async[Unit] { cb =>
         val doMod = self.modState(mod, Callback(cb(Right(()))))
         doMod
-          .maybeHandleError {
-            case NonFatal(t) =>
-              Callback(cb(Left(t)))
+          .maybeHandleError { case NonFatal(t) =>
+            Callback(cb(Left(t)))
           }
           .runNow()
       }
@@ -90,9 +88,8 @@ package object implicits {
       Async[F].async[Unit] { cb =>
         val doMod = self.modState(mod, Callback(cb(Right(()))))
         doMod
-          .maybeHandleError {
-            case NonFatal(t) =>
-              Callback(cb(Left(t)))
+          .maybeHandleError { case NonFatal(t) =>
+            Callback(cb(Left(t)))
           }
           .runNow()
       }
