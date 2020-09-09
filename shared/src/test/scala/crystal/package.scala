@@ -1,6 +1,6 @@
 import cats.effect.IO
 import cats.effect.ContextShift
-import cats.implicits._
+import cats.syntax.all._
 import cats.kernel.Eq
 import monocle.macros.Lenses
 import scala.concurrent.ExecutionContext

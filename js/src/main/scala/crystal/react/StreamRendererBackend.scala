@@ -4,7 +4,7 @@ import crystal._
 import crystal.implicits._
 import crystal.react.implicits._
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import japgolly.scalajs.react._
 import _root_.io.chrisdavenport.log4cats.Logger
 

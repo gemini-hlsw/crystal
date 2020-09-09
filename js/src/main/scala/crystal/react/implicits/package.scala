@@ -1,12 +1,7 @@
 package crystal.react
 
-// import crystal.Pot
-// import crystal.Pending
-// import crystal.Ready
-// import crystal.Error
-// import crystal.View
 import crystal._
-import cats.implicits._
+import cats.syntax.all._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.component.Generic.MountedSimple

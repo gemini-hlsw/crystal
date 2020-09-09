@@ -2,7 +2,7 @@ package crystal.react
 
 import crystal.implicits._
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.implicits._
 import cats.effect.concurrent.Ref
 import scala.concurrent.duration.FiniteDuration

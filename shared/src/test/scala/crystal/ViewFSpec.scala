@@ -1,6 +1,6 @@
 package crystal
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.IO
 import cats.effect.concurrent.Ref
 import monocle.function.Possible.possible

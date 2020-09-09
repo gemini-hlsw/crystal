@@ -1,7 +1,7 @@
 package crystal
 
 import cats.FlatMap
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.SyncIO
 import cats.effect.LiftIO
 import cats.effect.concurrent.Ref
