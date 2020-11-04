@@ -5,14 +5,14 @@ import sbt.librarymanagement._
 object Settings {
 
   object LibraryVersions {
-    val scalajsReact    = "1.7.5"
+    val scalajsReact    = "1.7.6"
     val cats            = "2.2.0"
     val catsEffect      = "2.2.0"
     val fs2             = "2.4.4"
     val monocle         = "2.1.0"
     val log4Cats        = "1.1.1"
-    val mUnit           = "0.7.15"
-    val discipline      = "1.1.0"
+    val mUnit           = "0.7.16"
+    val discipline      = "1.0.3"
     val disciplineMUnit = "0.3.0"
   }
 
