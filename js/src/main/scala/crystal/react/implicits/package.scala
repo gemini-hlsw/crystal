@@ -48,8 +48,7 @@ package object implicits {
           .runNow()
       }
 
-    /**
-      * Like `modState` but completes with a `Unit` value *after* the state modification has
+    /** Like `modState` but completes with a `Unit` value *after* the state modification has
       * been completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
       * modification has been enqueued.
       *
@@ -70,8 +69,7 @@ package object implicits {
     private val self: StateAccess.WriteWithProps[CallbackTo, P, S]
   ) extends AnyVal {
 
-    /**
-      * Like `modState` but completes with a `Unit` value *after* the state modification has
+    /** Like `modState` but completes with a `Unit` value *after* the state modification has
       * been completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
       * modification has been enqueued.
       *
@@ -91,31 +89,31 @@ package object implicits {
   }
 
   implicit class EffectAOps[F[_], A](private val self: F[A]) extends AnyVal {
-    def runAsyncInCB(
+    def runAsyncCB(
       cb:              Either[Throwable, A] => IO[Unit]
     )(implicit effect: Effect[F]): Callback =
       CallbackTo.lift(() => Effect[F].runAsync(self)(cb).unsafeRunSync())
 
-    def runInCBAndThen(
+    def runAsyncAndThenCB(
       cb:              A => Callback
     )(implicit effect: Effect[F]): Callback =
-      runAsyncInCB {
+      runAsyncCB {
         case Right(a) => cb(a).to[IO]
         case Left(t)  => IO.raiseError(t)
       }
 
-    def runInCBAndForget()(implicit effect: Effect[F]): Callback =
-      self.runAsyncInCB(_ => IO.unit)
+    def runAsyncAndForgetCB(implicit effect: Effect[F]): Callback =
+      self.runAsyncCB(_ => IO.unit)
   }
 
   implicit class EffectUnitOps[F[_]](private val self: F[Unit]) extends AnyVal {
-    def runInCBAndThen(
-      cb:                        Callback
-    )(implicit effect:           Effect[F]): Callback =
-      new EffectAOps(self).runInCBAndThen((_: Unit) => cb)
+    def runAsyncAndThenCB(
+      cb:                           Callback
+    )(implicit effect:              Effect[F]): Callback =
+      new EffectAOps(self).runAsyncAndThenCB((_: Unit) => cb)
 
-    def runInCB(implicit effect: Effect[F]): Callback =
-      self.runInCBAndForget()
+    def runAsyncCB(implicit effect: Effect[F]): Callback =
+      self.runAsyncAndForgetCB
   }
 
   implicit class SyncIO2Callback[A](private val s: SyncIO[A]) extends AnyVal {
