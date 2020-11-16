@@ -3,6 +3,7 @@ package crystal.react
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import implicits._
+import scala.scalajs.js
 
 import crystal.ViewF
 import cats.effect.Effect
@@ -24,7 +25,8 @@ object AppRoot {
       model:       M
     )(
       render:      ViewF[F, M] => VdomNode,
-      onUnmount:   Option[F[Unit]] = None
+      onMount:     js.UndefOr[ViewF[F, M] => F[Unit]] = js.undefined,
+      onUnmount:   js.UndefOr[M => F[Unit]] = js.undefined
     )(implicit
       reusability: Reusability[M],
       effect:      Effect[F],
@@ -33,8 +35,9 @@ object AppRoot {
       ScalaComponent
         .builder[Unit]
         .initialState(model)
-        .render($ => render(ViewF($.state, $.modStateIn[F])))
-        .componentWillUnmount(_ => onUnmount.map(_.runInCB).getOrEmpty)
+        .render($ => render(ViewF.fromState($)))
+        .componentDidMount($ => onMount.toOption.map(_(ViewF.fromState($)).runAsyncCB).getOrEmpty)
+        .componentWillUnmount($ => onUnmount.toOption.map(_($.state).runAsyncCB).getOrEmpty)
         .configure(Reusability.shouldComponentUpdate)
         .build
   }

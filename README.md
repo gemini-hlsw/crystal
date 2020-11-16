@@ -109,7 +109,7 @@ The `crystal.react.implicits._` import will provide the following methods:
 * `<BackendScope[P, S]>.modStateIn[F](f: S => S): F[Unit]` - same as above. (Requires implicit `Async[F]`).
 * `<BackendScope[P, S]>.modStateWithPropsIn[F](f: (S, P) => S): F[Unit]` - (Requires implicit `Async[F]`).
 * `<SyncIO[A]>.toCB: CallbackTo[A]` - converts a `SyncIO` to `CallbackTo`.
-* `<F[A]>.runInCBAndThen(cb: A => Callback): Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its value passed to `cb`, whose returned `Callback` will be run then. (Requires implicit `Effect[F]`).
-* `<F[A]>.runInCBAndForget(): Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its value discarded. (Requires implicit `Effect[F]`).
-* `<F[Unit]>.runInCBAndThen(cb: Callback): Callback` - When the resulting `Callback` is run, `F[Unit]` will be run asynchronously and when it completes, then `cb` will be run. (Requires implicit `Effect[F]`).
-* `<F[Unit]>.runInCB: Callback` - When the resulting `Callback` is run, `F[Unit]` will be run asynchronously. (Requires implicit `Effect[F]`). Please note that the `Callback` will complete immediately.
+* `<F[A]>.runAsyncAndThenCB(cb: A => Callback): Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its value passed to `cb`, whose returned `Callback` will be run then. (Requires implicit `Effect[F]`).
+* `<F[A]>.runAsyncAndForgetCB: Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its value discarded. (Requires implicit `Effect[F]`).
+* `<F[Unit]>.runAsyncAndThenCB(cb: Callback): Callback` - When the resulting `Callback` is run, `F[Unit]` will be run asynchronously and when it completes, then `cb` will be run. (Requires implicit `Effect[F]`).
+* `<F[Unit]>.runAsyncCB: Callback` - When the resulting `Callback` is run, `F[Unit]` will be run asynchronously. (Requires implicit `Effect[F]`). Please note that the `Callback` will complete immediately.

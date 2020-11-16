@@ -23,10 +23,17 @@ package object react {
 }
 
 package react {
+
+  import japgolly.scalajs.react.component.builder.Lifecycle.StateRW
   class FromStateViewF[F[_]]() {
     def apply[S](
-      $              : BackendScope[_, S]
+      $              : StateAccess[CallbackTo, S]
     )(implicit async: Async[F], cs: ContextShift[F]): ViewF[F, S] =
       ViewF($.state.runNow(), $.modStateIn[F])
+
+    def apply[S](
+      $              : StateRW[_, S, _]
+    )(implicit async: Async[F], cs: ContextShift[F]): ViewF[F, S] =
+      ViewF($.state, $.modStateIn[F])
   }
 }
