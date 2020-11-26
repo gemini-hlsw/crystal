@@ -5,7 +5,7 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-sealed trait Pot[A] {
+sealed trait Pot[+A] {
   def map[B](f: A => B): Pot[B] =
     this match {
       case pend @ Pending(_) => pend.valueCast[B]

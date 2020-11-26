@@ -107,4 +107,13 @@ class PotSpec extends DisciplineSuite {
     forAll((i: Int) => Success(i).toPot === Ready(i))
   }
 
+  property("Pot[Pot[Int]] (Pot.flatten): Ready(Ready(a)).flatten === Ready(a)") {
+    forAll((i: Int) => Ready(Ready(i)).flatten === Ready(i))
+  }
+
+  property("Pot[Pot[Int]] (Pot.flatten): Ready(Error(t)).flatten === Error(t)") {
+    forAll { (t: Throwable) =>
+      Pot[Pot[Int]](Error(t)).flatten === Error(t)
+    }
+  }
 }
