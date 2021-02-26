@@ -10,7 +10,7 @@ object Settings {
     val catsEffect      = "2.3.1"
     val fs2             = "2.5.0"
     val monocle         = "2.1.0"
-    val log4Cats        = "1.1.1"
+    val log4Cats        = "1.2.0"
     val mUnit           = "0.7.21"
     val discipline      = "1.1.3"
     val disciplineMUnit = "1.0.5"
@@ -60,7 +60,7 @@ object Settings {
 
     val Log4Cats = Def.setting(
       Seq[ModuleID](
-        "io.chrisdavenport" %%% "log4cats-core" % log4Cats
+        "org.typelevel" %%% "log4cats-core" % log4Cats
       )
     )
 
