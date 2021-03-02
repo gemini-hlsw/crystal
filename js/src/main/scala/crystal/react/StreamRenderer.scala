@@ -4,7 +4,7 @@ import cats.effect._
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import _root_.io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 import crystal._
 import crystal.react.implicits._
 

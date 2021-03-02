@@ -1,16 +1,11 @@
 package crystal
 
 import cats.syntax.all._
-import cats.kernel.Eq
-import cats.effect.ContextShift
 import cats.effect.concurrent.Deferred
 import cats.effect.concurrent.Ref
 import cats.effect.IO
-import monocle.macros.Lenses
-import monocle.Optional
 import monocle.Traversal
 import munit.FunSuite
-import scala.concurrent.ExecutionContext
 
 class ViewListFSpec extends FunSuite {
 

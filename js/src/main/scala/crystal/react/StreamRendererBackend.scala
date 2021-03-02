@@ -6,7 +6,7 @@ import crystal.react.implicits._
 import cats.effect._
 import cats.syntax.all._
 import japgolly.scalajs.react._
-import _root_.io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 
 abstract class StreamRendererBackend[F[_]: ConcurrentEffect: Logger, A](stream: fs2.Stream[F, A]) {
   private var cancelToken: Option[CancelToken[F]] = None

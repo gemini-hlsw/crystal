@@ -5,7 +5,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 inThisBuild(
   List(
     name := "crystal",
-    scalaVersion := "2.13.2",
+    scalaVersion := "2.13.5",
     organization := "com.rpiaggio",
     homepage := Some(url("https://github.com/rpiaggio/crystal")),
     licenses += ("BSD 3-Clause", url(
