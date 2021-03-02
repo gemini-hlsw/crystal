@@ -7,7 +7,7 @@ import cats.syntax.all._
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react.{ Ref => _, _ }
 import japgolly.scalajs.react.vdom.html_<^._
-import _root_.io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration
 

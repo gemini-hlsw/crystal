@@ -1,13 +1,9 @@
 package crystal
 
 import cats.syntax.all._
-import cats.kernel.Eq
 import cats.effect.concurrent.Deferred
 import cats.effect.concurrent.Ref
 import cats.effect.IO
-import monocle.macros.Lenses
-import monocle.Optional
-import monocle.Iso
 import monocle.std.option.some
 import munit.FunSuite
 

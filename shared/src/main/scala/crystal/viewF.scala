@@ -34,7 +34,7 @@ final class ViewF[F[_]: Async: ContextShift, A](val get: A, val mod: (A => A) =>
   // In a ViewF, we can derive modAndGet. In ViewOptF and ViewListF we have to pass it, since their
   // mod functions have no idea of the enclosing structure.
   val modAndGet: (A => A) => F[A] = f =>
-    Sync[F].delay(Promise[A]).flatMap { p =>
+    Sync[F].delay(Promise[A]()).flatMap { p =>
       mod { a: A =>
         val fa = f(a)
         p.success(fa)

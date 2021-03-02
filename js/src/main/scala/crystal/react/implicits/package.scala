@@ -12,6 +12,7 @@ import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Effect
 import cats.effect.SyncIO
+import monocle.Lens
 
 package object implicits {
   implicit class CallbackToOps[A](private val self: CallbackTo[A]) {
@@ -38,6 +39,13 @@ package object implicits {
   implicit class ModStateFOps[S](
     private val self: StateAccess.Write[CallbackTo, S]
   ) extends AnyVal {
+
+    /** Like `setState` but completes with a `Unit` value *after* the state modification has
+      * been completed. In contrast, `setState(mod).to[F]` completes with a unit once the state
+      * modification has been enqueued.
+      *
+      * Provides access only to state.
+      */
     def setStateIn[F[_]: Async](s: S): F[Unit] =
       Async[F].async[Unit] { cb =>
         val doMod = self.setState(s, Callback(cb(Right(()))))
@@ -52,7 +60,7 @@ package object implicits {
       * been completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
       * modification has been enqueued.
       *
-      * Provides access to both state and props.
+      * Provides access only to state.
       */
     def modStateIn[F[_]: Async](mod: S => S): F[Unit] =
       Async[F].async[Unit] { cb =>
@@ -63,6 +71,12 @@ package object implicits {
           }
           .runNow()
       }
+
+    def setStateLIn[F[_]: Async, A](lens: Lens[S, A])(a: A): F[Unit] =
+      modStateIn(lens.set(a))
+
+    def modStateLIn[F[_]: Async, A](lens: Lens[S, A])(f: A => A): F[Unit] =
+      modStateIn(lens.modify(f))
   }
 
   implicit class ModStateWithPropsFOps[S, P](

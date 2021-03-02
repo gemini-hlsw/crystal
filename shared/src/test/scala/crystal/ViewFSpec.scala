@@ -3,10 +3,8 @@ package crystal
 import cats.syntax.all._
 import cats.effect.IO
 import cats.effect.concurrent.Ref
-import monocle.function.Possible.possible
 import munit.FunSuite
 import cats.effect.concurrent.Deferred
-import monocle.Iso
 
 class ViewFSpec extends FunSuite {
 

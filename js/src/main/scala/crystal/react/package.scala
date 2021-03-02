@@ -5,7 +5,7 @@ import cats.effect.Async
 import cats.effect.ConcurrentEffect
 import cats.effect.ContextShift
 import japgolly.scalajs.react._
-import io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 
 package object react {
 
