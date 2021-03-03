@@ -72,11 +72,11 @@ package object implicits {
           .runNow()
       }
 
-    def setStateLIn[F[_]: Async, A](lens: Lens[S, A])(a: A): F[Unit] =
-      modStateIn(lens.set(a))
+    def setStateLIn[F[_]]: SetStateLApplied[F, S] =
+      new SetStateLApplied[F, S](self)
 
-    def modStateLIn[F[_]: Async, A](lens: Lens[S, A])(f: A => A): F[Unit] =
-      modStateIn(lens.modify(f))
+    def modStateLIn[F[_]]: ModStateLApplied[F, S] =
+      new ModStateLApplied[F, S](self)
   }
 
   implicit class ModStateWithPropsFOps[S, P](
@@ -189,8 +189,22 @@ package object implicits {
   implicit def viewListReusability[F[_], A: Reusability]: Reusability[ViewListF[F, A]] =
     Reusability.by(_.get)
 
-  implicit class ViewFModuleOps(val viewFModule: ViewF.type) extends AnyVal {
+  implicit class ViewFModuleOps(private val viewFModule: ViewF.type) extends AnyVal {
     def fromState[F[_]]: FromStateViewF[F] =
       new FromStateViewF[F]()
+  }
+}
+
+package implicits {
+  protected class SetStateLApplied[F[_], S](private val self: StateAccess.Write[CallbackTo, S])
+      extends AnyVal     {
+    @inline def apply[A, B](lens: Lens[S, B])(a: A)(implicit conv: A => B, F: Async[F]): F[Unit] =
+      self.modStateIn(lens.set(a))
+  }
+
+  protected class ModStateLApplied[F[_], S](private val self: StateAccess.Write[CallbackTo, S])
+      extends AnyVal {
+    @inline def apply[A](lens: Lens[S, A])(f: A => A)(implicit F: Async[F]): F[Unit] =
+      self.modStateIn(lens.modify(f))
   }
 }
