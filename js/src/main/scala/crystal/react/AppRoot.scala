@@ -8,6 +8,7 @@ import scala.scalajs.js
 import crystal.ViewF
 import cats.effect.Effect
 import cats.effect.ContextShift
+import org.typelevel.log4cats.Logger
 
 object AppRoot {
   type Component[M] =
@@ -30,13 +31,18 @@ object AppRoot {
     )(implicit
       reusability: Reusability[M],
       effect:      Effect[F],
-      cs:          ContextShift[F]
+      cs:          ContextShift[F],
+      logger:      Logger[F]
     ): Component[M] =
       ScalaComponent
         .builder[Unit]
         .initialState(model)
         .render($ => render(ViewF.fromState($)))
-        .componentDidMount($ => onMount.toOption.map(_(ViewF.fromState($)).runAsyncCB).getOrEmpty)
+        .componentDidMount($ =>
+          onMount.toOption
+            .map(_(ViewF.fromState($)).runAsyncCB("Error in AppRoot.onMount."))
+            .getOrEmpty
+        )
         .componentWillUnmount($ => onUnmount.toOption.map(_($.state).runAsyncCB).getOrEmpty)
         .configure(Reusability.shouldComponentUpdate)
         .build

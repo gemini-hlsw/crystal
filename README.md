@@ -109,7 +109,10 @@ The `crystal.react.implicits._` import will provide the following methods:
 * `<BackendScope[P, S]>.modStateIn[F](f: S => S): F[Unit]` - same as above. (Requires implicit `Async[F]`).
 * `<BackendScope[P, S]>.modStateWithPropsIn[F](f: (S, P) => S): F[Unit]` - (Requires implicit `Async[F]`).
 * `<SyncIO[A]>.toCB: CallbackTo[A]` - converts a `SyncIO` to `CallbackTo`.
-* `<F[A]>.runAsyncAndThenCB(cb: A => Callback): Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its value passed to `cb`, whose returned `Callback` will be run then. (Requires implicit `Effect[F]`).
-* `<F[A]>.runAsyncAndForgetCB: Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its value discarded. (Requires implicit `Effect[F]`).
-* `<F[Unit]>.runAsyncAndThenCB(cb: Callback): Callback` - When the resulting `Callback` is run, `F[Unit]` will be run asynchronously and when it completes, then `cb` will be run. (Requires implicit `Effect[F]`).
-* `<F[Unit]>.runAsyncCB: Callback` - When the resulting `Callback` is run, `F[Unit]` will be run asynchronously. (Requires implicit `Effect[F]`). Please note that the `Callback` will complete immediately.
+* `<F[A]>.runAsyncCB(cb: Either[Throwable, A] => F[Unit]): Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its result will be handled by `cb`. (Requires implicit `Effect[F]`).
+* `<F[A]>.runAsyncAndThenCB(cb: Either[Throwable, A] => Callback): Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its result will be handled by `cb`. The difference with `runAsyncCB` is that the result handler returns a `Callback` instead of `F[A]`. (Requires implicit `Effect[F]`).
+* `<F[A]>.runAsyncAndForgetCB: Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its result will be ignored, as well as any errors it may raise. (Requires implicit `Effect[F]`).
+* `<F[Unit]>.runAsyncAndThenCB(cb: Callback, errorMsg: String?): Callback` - When the resulting `Callback` is run, `F[Unit]` will be run asynchronously. If it succeeds, then `cb` will be run. If it fails, `errorMsg` will be logged. (Requires implicit `Effect[F]` and `Logger[F]`).
+* `<F[Unit]>.runAsyncCB(errorMsg: String?): Callback` - When the resulting `Callback` is run, `F[Unit]` will be run asynchronously. If it fails, `errorMsg` will be logged. (Requires implicit `Effect[F]` and `Logger[F]`).
+
+Please note that in all cases the the `Callback` returned by `.runAsync*` will complete immediately.
