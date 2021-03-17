@@ -9,10 +9,11 @@ import japgolly.scalajs.react.component.Generic.MountedSimple
 import scala.util.control.NonFatal
 import cats.effect.Sync
 import cats.effect.Async
-import cats.effect.IO
 import cats.effect.Effect
 import cats.effect.SyncIO
+import cats.effect.implicits._
 import monocle.Lens
+import org.typelevel.log4cats.Logger
 
 package object implicits {
   implicit class CallbackToOps[A](private val self: CallbackTo[A]) {
@@ -103,31 +104,53 @@ package object implicits {
   }
 
   implicit class EffectAOps[F[_], A](private val self: F[A]) extends AnyVal {
+
+    /** Return a `Callback` that will run the effect `F[A]` asynchronously.
+      *
+      * @param cb Result handler returning a `F[Unit]`.
+      */
     def runAsyncCB(
-      cb:              Either[Throwable, A] => IO[Unit]
-    )(implicit effect: Effect[F]): Callback =
-      CallbackTo.lift(() => Effect[F].runAsync(self)(cb).unsafeRunSync())
+      cb:         Either[Throwable, A] => F[Unit]
+    )(implicit F: Effect[F]): Callback =
+      CallbackTo.lift(() => self.runAsync(r => cb(r).toIO).unsafeRunSync())
 
+    /** Return a `Callback` that will run the effect `F[A]` asynchronously.
+      *
+      * @param cb Result handler returning a `Callback`.
+      */
     def runAsyncAndThenCB(
-      cb:              A => Callback
-    )(implicit effect: Effect[F]): Callback =
-      runAsyncCB {
-        case Right(a) => cb(a).to[IO]
-        case Left(t)  => IO.raiseError(t)
-      }
+      cb:         Either[Throwable, A] => Callback
+    )(implicit F: Effect[F]): Callback =
+      runAsyncCB(cb.andThen(c => F.delay(c.runNow())))
 
-    def runAsyncAndForgetCB(implicit effect: Effect[F]): Callback =
-      self.runAsyncCB(_ => IO.unit)
+    /** Return a `Callback` that will run the effect `F[A]` asynchronously and discard the result or errors. */
+    def runAsyncAndForgetCB(implicit F: Effect[F]): Callback =
+      self.runAsyncCB(_ => F.unit)
   }
 
   implicit class EffectUnitOps[F[_]](private val self: F[Unit]) extends AnyVal {
-    def runAsyncAndThenCB(
-      cb:                           Callback
-    )(implicit effect:              Effect[F]): Callback =
-      new EffectAOps(self).runAsyncAndThenCB((_: Unit) => cb)
 
-    def runAsyncCB(implicit effect: Effect[F]): Callback =
-      self.runAsyncAndForgetCB
+    /** Return a `Callback` that will run the effect `F[Unit]` asynchronously and log possible errors.
+      *
+      * @param cb `Callback` to run in case of success.
+      */
+    def runAsyncAndThenCB(
+      cb:         Callback,
+      errorMsg:   String = "Error in F[Unit].runAsyncAndThenCB"
+    )(implicit F: Effect[F], logger: Logger[F]): Callback =
+      new EffectAOps(self).runAsyncCB {
+        case Right(()) => F.delay(cb.runNow())
+        case Left(t)   => logger.error(t)(errorMsg)
+      }
+
+    /** Return a `Callback` that will run the effect F[Unit] asynchronously and log possible errors. */
+    def runAsyncCB(
+      errorMsg:   String = "Error in F[Unit].runAsyncCB"
+    )(implicit F: Effect[F], logger: Logger[F]): Callback =
+      runAsyncAndThenCB(Callback.empty, errorMsg)
+
+    def runAsyncCB(implicit F: Effect[F], logger: Logger[F]): Callback =
+      runAsyncCB()
   }
 
   implicit class SyncIO2Callback[A](private val s: SyncIO[A]) extends AnyVal {
