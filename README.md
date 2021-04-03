@@ -3,12 +3,11 @@
 [![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org) ![Build Status](https://github.com/rpiaggio/crystal/workflows/build/badge.svg) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.rpiaggio/crystal_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.rpiaggio/crystal_2.13)
 
 `crystal` is a toolbelt to help build reactive UI apps in Scala by providing:
-* Utilities for initializing and accessing global immutable context (`AppRootContext`).
 * A structure for managing server roundtrips (`Pot`).
 * Wrappers for values derived from state with a callback function to modify them (`ViewF`, `ViewOptF`, `ViewListF`).
 
 Additionally, for `scalajs-react` apps it provides:
-* A root component to hold the application state (`AppRoot`).
+* Components to hold global state and context (`StateProvider`, `ContextProvider`).
 * A component that dynamically renders values from `fs2.Stream`s (`StreamRenderer`).
 * A component that dynamically renders values from `fs2.Stream`s, allowing children to modify the value too (`StreamRendererMod`).
 * Conversions between `Callback`s and `cats-effect` effects (`implicits._`).
