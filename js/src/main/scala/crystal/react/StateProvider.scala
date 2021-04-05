@@ -3,7 +3,6 @@ package crystal.react
 import crystal.ViewF
 import implicits._
 import cats.effect.Effect
-import cats.effect.ContextShift
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 
@@ -15,9 +14,7 @@ object StateProvider {
       render:           ViewF[F, M] => VdomNode
     )(implicit
       reusabilityM:     Reusability[M],
-      effect:           Effect[F],
-      cs:               ContextShift[F]
-    ): StateComponent[M] =
+      effect:           Effect[F]): StateComponent[M] =
       ScalaComponent
         .builder[Unit]
         .initialState(model)
