@@ -43,7 +43,7 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
       "-encoding",
       "UTF-8"
     ),
-    scalacOptions in Test += "-Ymacro-annotations",
+    Test / scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++=
       Settings.Libraries.CatsJS.value ++
         Settings.Libraries.CatsEffectJS.value ++
@@ -79,4 +79,4 @@ lazy val crystalJVM = crystal.jvm
 
 sonatypeProfileName := "com.rpiaggio"
 
-packagedArtifacts in root := Map.empty
+root / packagedArtifacts := Map.empty
