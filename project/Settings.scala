@@ -6,11 +6,11 @@ object Settings {
 
   object LibraryVersions {
     val scalajsReact    = "1.7.7"
-    val cats            = "2.4.2"
+    val cats            = "2.5.0"
     val catsEffect      = "2.4.1"
     val fs2             = "2.5.4"
     val monocle         = "2.1.0"
-    val log4Cats        = "1.2.1"
+    val log4Cats        = "1.2.2"
     val mUnit           = "0.7.23"
     val discipline      = "1.1.4"
     val disciplineMUnit = "1.0.7"
