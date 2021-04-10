@@ -3,7 +3,6 @@ package crystal
 import crystal.react.implicits._
 import cats.effect.Async
 import cats.effect.ConcurrentEffect
-import cats.effect.ContextShift
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomNode
 import org.typelevel.log4cats.Logger
@@ -39,12 +38,12 @@ package react {
   class FromStateViewF[F[_]]() {
     def apply[S](
       $              : StateAccess[CallbackTo, S]
-    )(implicit async: Async[F], cs: ContextShift[F]): ViewF[F, S] =
+    )(implicit async: Async[F]): ViewF[F, S] =
       ViewF($.state.runNow(), $.modStateIn[F])
 
     def apply[S](
       $              : StateRW[_, S, _]
-    )(implicit async: Async[F], cs: ContextShift[F]): ViewF[F, S] =
+    )(implicit async: Async[F]): ViewF[F, S] =
       ViewF($.state, $.modStateIn[F])
   }
 }

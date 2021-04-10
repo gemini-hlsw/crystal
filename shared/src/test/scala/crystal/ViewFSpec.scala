@@ -2,9 +2,8 @@ package crystal
 
 import cats.syntax.all._
 import cats.effect.IO
-import cats.effect.concurrent.Ref
 import munit.FunSuite
-import cats.effect.concurrent.Deferred
+import cats.effect.{ Deferred, Ref }
 
 class ViewFSpec extends FunSuite {
 

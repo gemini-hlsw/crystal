@@ -5,7 +5,6 @@ import cats.Id
 import cats.effect.Sync
 import scala.concurrent.Promise
 import cats.effect.Async
-import cats.effect.ContextShift
 import monocle.Iso
 import monocle.Lens
 import monocle.Optional

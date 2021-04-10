@@ -48,7 +48,7 @@ package object implicits {
       * Provides access only to state.
       */
     def setStateIn[F[_]: Async](s: S): F[Unit] =
-      Async[F].async[Unit] { cb =>
+      Async[F].async_[Unit] { cb =>
         val doMod = self.setState(s, Callback(cb(Right(()))))
         doMod
           .maybeHandleError { case NonFatal(t) =>
@@ -64,7 +64,7 @@ package object implicits {
       * Provides access only to state.
       */
     def modStateIn[F[_]: Async](mod: S => S): F[Unit] =
-      Async[F].async[Unit] { cb =>
+      Async[F].async_[Unit] { cb =>
         val doMod = self.modState(mod, Callback(cb(Right(()))))
         doMod
           .maybeHandleError { case NonFatal(t) =>
@@ -93,7 +93,7 @@ package object implicits {
     def modStateWithPropsIn[F[_]: Async](
       mod: (S, P) => S
     ): F[Unit] =
-      Async[F].async[Unit] { cb =>
+      Async[F].async_[Unit] { cb =>
         val doMod = self.modState(mod, Callback(cb(Right(()))))
         doMod
           .maybeHandleError { case NonFatal(t) =>
