@@ -4,15 +4,15 @@ import crystal.implicits._
 import cats.effect._
 import cats.syntax.all._
 import cats.effect.implicits._
-import cats.effect.concurrent.Ref
 import scala.concurrent.duration.FiniteDuration
+import cats.effect.{ Ref, Temporal }
 
 /** Encapsulates an effectful `setter`. When `enable` is called, calls to
   * `setter` will be delayed for `duration`. Each call to `enable` resets
   * the internal timer, i.e: `duration` is guaranteed to have elapsed
   * since last call to `enable` before calling `setter`.
   */
-class Hold[F[_]: ConcurrentEffect: Timer, A](
+class Hold[F[_]: ConcurrentEffect: Temporal, A](
   setter:      A => F[Unit],
   duration:    Option[FiniteDuration],
   cancelToken: Ref[F, Option[CancelToken[F]]],
@@ -27,7 +27,7 @@ class Hold[F[_]: ConcurrentEffect: Timer, A](
     duration.map { d =>
       for {
         _ <- (cancelToken.getAndSet(None).flatMap(_.orUnit)).uncancelable
-        _ <- Timer[F].sleep(d)
+        _ <- Temporal[F].sleep(d)
         _ <- cancelToken.set(None)
         b <- buffer.getAndSet(None)
         _ <- b.map(set).orUnit
@@ -45,7 +45,7 @@ class Hold[F[_]: ConcurrentEffect: Timer, A](
 }
 
 object Hold {
-  def apply[F[_]: ConcurrentEffect: Timer, A](
+  def apply[F[_]: ConcurrentEffect: Temporal, A](
     setter:   A => F[Unit],
     duration: Option[FiniteDuration]
   ): SyncIO[Hold[F, A]] =
