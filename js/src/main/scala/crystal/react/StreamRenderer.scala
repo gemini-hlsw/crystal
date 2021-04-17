@@ -15,7 +15,7 @@ object StreamRenderer {
 
   type State[A] = Pot[A]
 
-  def build[F[_]: ConcurrentEffect: Logger, A](
+  def build[F[_]: Async: Logger, A](
     stream:      fs2.Stream[F, A]
   )(implicit
     reuse:       Reusability[A], // Used to derive Reusability[State[A]]

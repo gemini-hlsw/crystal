@@ -10,7 +10,6 @@ import japgolly.scalajs.react.vdom.html_<^._
 import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration
-import cats.effect.Temporal
 
 object StreamRendererMod {
 
@@ -25,7 +24,7 @@ object StreamRendererMod {
       _
     ]]
 
-  def build[F[_]: ConcurrentEffect: Temporal: ContextShift: Logger, A](
+  def build[F[_]: Async: Logger, A](
     stream:       fs2.Stream[F, A],
     holdAfterMod: Option[FiniteDuration] = None
   )(implicit

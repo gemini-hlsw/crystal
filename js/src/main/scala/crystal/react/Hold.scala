@@ -6,16 +6,18 @@ import cats.syntax.all._
 import cats.effect.implicits._
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.{ Ref, Temporal }
+import scala.concurrent.Future
+import cats.effect.std.Dispatcher
 
 /** Encapsulates an effectful `setter`. When `enable` is called, calls to
   * `setter` will be delayed for `duration`. Each call to `enable` resets
   * the internal timer, i.e: `duration` is guaranteed to have elapsed
   * since last call to `enable` before calling `setter`.
   */
-class Hold[F[_]: ConcurrentEffect: Temporal, A](
+class Hold[F[_]: Async, A](
   setter:      A => F[Unit],
   duration:    Option[FiniteDuration],
-  cancelToken: Ref[F, Option[CancelToken[F]]],
+  cancelToken: Ref[F, Option[() => Future[Unit]]],
   buffer:      Ref[F, Option[A]]
 ) {
   def set(a: A): F[Unit] =
@@ -26,7 +28,7 @@ class Hold[F[_]: ConcurrentEffect: Temporal, A](
   private val restart: Option[F[Unit]] =
     duration.map { d =>
       for {
-        _ <- (cancelToken.getAndSet(None).flatMap(_.orUnit)).uncancelable
+        _ <- (cancelToken.getAndSet(None).map(_.getOrElse(() => Future.unit))).uncancelable
         _ <- Temporal[F].sleep(d)
         _ <- cancelToken.set(None)
         b <- buffer.getAndSet(None)
@@ -36,21 +38,19 @@ class Hold[F[_]: ConcurrentEffect: Temporal, A](
 
   val enable: F[Unit] =
     restart.map { r =>
-      Sync[F].delay(r.runCancelable(_ => IO.unit).unsafeRunSync()).flatMap {
-        token => // No error handling on purpose. If Hold fails, just do no Hold. There isn't much we can do here.
-          cancelToken.set(token.some)
+      Dispatcher[F].use { dispatcher =>
+        cancelToken.set(dispatcher.unsafeRunCancelable(r).some)
       }
-
     }.orUnit
 }
 
 object Hold {
-  def apply[F[_]: ConcurrentEffect: Temporal, A](
+  def apply[F[_]: Async, A](
     setter:   A => F[Unit],
     duration: Option[FiniteDuration]
   ): SyncIO[Hold[F, A]] =
     for {
-      cancelToken <- Ref.in[SyncIO, F, Option[CancelToken[F]]](None)
+      cancelToken <- Ref.in[SyncIO, F, Option[() => Future[Unit]]](None)
       buffer      <- Ref.in[SyncIO, F, Option[A]](None)
     } yield new Hold(setter, duration, cancelToken, buffer)
 }

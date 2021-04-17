@@ -1,15 +1,9 @@
-import cats.effect.IO
 import cats.kernel.Eq
 import monocle.macros.Lenses
-import scala.concurrent.ExecutionContext
 import monocle.Optional
 import monocle.Traversal
 import monocle.function.Possible.possible
 import monocle.Iso
-
-package object crystal {
-  implicit lazy val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-}
 
 package crystal {
   @Lenses
