@@ -1,11 +1,10 @@
 package crystal
 
 import cats.syntax.all._
-import cats.effect.concurrent.Deferred
-import cats.effect.concurrent.Ref
 import cats.effect.IO
 import monocle.std.option.some
 import munit.FunSuite
+import cats.effect.{ Deferred, Ref }
 
 class ViewOptFSpec extends FunSuite {
 
