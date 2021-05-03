@@ -2,6 +2,7 @@ package crystal
 
 import crystal.react.implicits._
 import cats.effect.Async
+import cats.effect.std.Dispatcher
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomNode
 import org.typelevel.log4cats.Logger
@@ -23,9 +24,10 @@ package object react {
 
   implicit class StreamOps[F[_], A](private val s: fs2.Stream[F, A]) {
     def render(implicit
-      async:  Async[F],
-      logger: Logger[F],
-      reuse:  Reusability[A]
+      async:      Async[F],
+      dispatcher: Dispatcher[F],
+      logger:     Logger[F],
+      reuse:      Reusability[A]
     ): StreamRenderer.Component[A] =
       StreamRenderer.build(s)
   }
@@ -34,15 +36,11 @@ package object react {
 package react {
   import japgolly.scalajs.react.component.builder.Lifecycle.StateRW
 
-  class FromStateViewF[F[_]: Async]() {
-    def apply[S](
-      $ : StateAccess[CallbackTo, S]
-    ): ViewF[F, S] =
+  class FromStateViewF[F[_]]() {
+    def apply[S]($ : StateAccess[CallbackTo, S])(implicit F: Async[F]): ViewF[F, S] =
       ViewF($.state.runNow(), $.modStateIn[F])
 
-    def apply[S](
-      $ : StateRW[_, S, _]
-    ): ViewF[F, S] =
+    def apply[S]($ : StateRW[_, S, _])(implicit F: Async[F]): ViewF[F, S] =
       ViewF($.state, $.modStateIn[F])
   }
 }

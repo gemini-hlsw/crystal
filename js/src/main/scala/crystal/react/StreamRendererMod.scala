@@ -3,6 +3,7 @@ package crystal.react
 import crystal._
 import crystal.react.implicits._
 import cats.effect._
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react.{ Ref => _, _ }
@@ -24,7 +25,7 @@ object StreamRendererMod {
       _
     ]]
 
-  def build[F[_]: Async: Logger, A](
+  def build[F[_]: Async: Dispatcher: Logger, A](
     stream:       fs2.Stream[F, A],
     holdAfterMod: Option[FiniteDuration] = None
   )(implicit

@@ -16,7 +16,7 @@ object StateProvider {
       ScalaComponent
         .builder[Unit]
         .initialState(model)
-        .render($ => render(ViewF.fromState(async)($)))
+        .render($ => render(ViewF.fromState($)))
         .configure(Reusability.shouldComponentUpdate)
         .build
   }

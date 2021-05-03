@@ -17,7 +17,7 @@ object ContextProvider {
       ScalaComponent
         .builder[Unit]
         .initialState(initCtx)
-        .render($ => ctx.provide(ViewF.fromState[F](async)($))(render))
+        .render($ => ctx.provide(ViewF.fromState[F]($))(render))
         .configure(Reusability.shouldComponentUpdate)
         .build
   }
