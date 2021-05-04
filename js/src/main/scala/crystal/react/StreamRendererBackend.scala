@@ -4,37 +4,33 @@ import crystal._
 import crystal.implicits._
 import crystal.react.implicits._
 import cats.effect._
+import cats.effect.syntax.all._
+import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import japgolly.scalajs.react._
 import org.typelevel.log4cats.Logger
 
-abstract class StreamRendererBackend[F[_]: ConcurrentEffect: Logger, A](stream: fs2.Stream[F, A]) {
-  private var cancelToken: Option[CancelToken[F]] = None
+abstract class StreamRendererBackend[F[_]: Async: Dispatcher: Logger, A](stream: fs2.Stream[F, A]) {
+  type CancelToken = F[Unit]
+  private var cancelToken: Option[CancelToken] = None
 
   protected val directSetState: Pot[A] => F[Unit]
 
   protected lazy val streamSetState: Pot[A] => F[Unit] = directSetState
 
-  private lazy val evalCancellable: SyncIO[CancelToken[F]] =
-    ConcurrentEffect[F].runCancelable(
-      stream
-        .evalMap(v => streamSetState(v.ready))
-        .compile
-        .drain
-    )(
-      _.swap.toOption.foldMap(t =>
-        Effect[F].toIO(
-          directSetState(Error(t)) >>
-            Logger[F].error(t)("[StreamRenderer] Error on stream")
-        )
-      )
-    )
+  def startUpdates: Callback =
+    stream
+      .evalMap(v => streamSetState(v.ready))
+      .compile
+      .drain
+      .handleErrorWith { case t =>
+        cancelToken = none
+        directSetState(Error(t)) >> Logger[F].error(t)("[StreamRenderer] Error on stream")
+      }
+      .start
+      .map(fiber => cancelToken = fiber.cancel.some)
+      .runAsyncCB
 
-  def startUpdates =
-    evalCancellable.toCB >>= ((token: CancelToken[F]) =>
-      Callback.lift(() => cancelToken = token.some)
-    )
-
-  def stopUpdates =
-    cancelToken.map(token => Effect[F].runAsync(token)(_ => IO.unit).toCB).getOrEmpty
+  def stopUpdates: Callback =
+    cancelToken.map(_.runAsyncCB).getOrEmpty
 }

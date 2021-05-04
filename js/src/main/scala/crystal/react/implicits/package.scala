@@ -1,6 +1,7 @@
 package crystal.react
 
 import crystal._
+import cats.MonadError
 import cats.syntax.all._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
@@ -9,9 +10,8 @@ import japgolly.scalajs.react.component.Generic.MountedSimple
 import scala.util.control.NonFatal
 import cats.effect.Sync
 import cats.effect.Async
-import cats.effect.Effect
 import cats.effect.SyncIO
-import cats.effect.implicits._
+import cats.effect.std.Dispatcher
 import monocle.Lens
 import org.typelevel.log4cats.Logger
 
@@ -48,7 +48,7 @@ package object implicits {
       * Provides access only to state.
       */
     def setStateIn[F[_]: Async](s: S): F[Unit] =
-      Async[F].async[Unit] { cb =>
+      Async[F].async_[Unit] { cb =>
         val doMod = self.setState(s, Callback(cb(Right(()))))
         doMod
           .maybeHandleError { case NonFatal(t) =>
@@ -64,7 +64,7 @@ package object implicits {
       * Provides access only to state.
       */
     def modStateIn[F[_]: Async](mod: S => S): F[Unit] =
-      Async[F].async[Unit] { cb =>
+      Async[F].async_[Unit] { cb =>
         val doMod = self.modState(mod, Callback(cb(Right(()))))
         doMod
           .maybeHandleError { case NonFatal(t) =>
@@ -93,7 +93,7 @@ package object implicits {
     def modStateWithPropsIn[F[_]: Async](
       mod: (S, P) => S
     ): F[Unit] =
-      Async[F].async[Unit] { cb =>
+      Async[F].async_[Unit] { cb =>
         val doMod = self.modState(mod, Callback(cb(Right(()))))
         doMod
           .maybeHandleError { case NonFatal(t) =>
@@ -111,8 +111,8 @@ package object implicits {
       */
     def runAsyncCB(
       cb:         Either[Throwable, A] => F[Unit]
-    )(implicit F: Effect[F]): Callback =
-      CallbackTo.lift(() => self.runAsync(r => cb(r).toIO).unsafeRunSync())
+    )(implicit F: MonadError[F, Throwable], dispatcher: Dispatcher[F]): Callback =
+      Callback(dispatcher.unsafeRunAndForget(self.attempt.flatMap(cb)))
 
     /** Return a `Callback` that will run the effect `F[A]` asynchronously.
       *
@@ -120,11 +120,11 @@ package object implicits {
       */
     def runAsyncAndThenCB(
       cb:         Either[Throwable, A] => Callback
-    )(implicit F: Effect[F]): Callback =
+    )(implicit F: Async[F], dispatcher: Dispatcher[F]): Callback =
       runAsyncCB(cb.andThen(c => F.delay(c.runNow())))
 
     /** Return a `Callback` that will run the effect `F[A]` asynchronously and discard the result or errors. */
-    def runAsyncAndForgetCB(implicit F: Effect[F]): Callback =
+    def runAsyncAndForgetCB(implicit F: Async[F], dispatcher: Dispatcher[F]): Callback =
       self.runAsyncCB(_ => F.unit)
   }
 
@@ -137,7 +137,7 @@ package object implicits {
     def runAsyncAndThenCB(
       cb:         Callback,
       errorMsg:   String = "Error in F[Unit].runAsyncAndThenCB"
-    )(implicit F: Effect[F], logger: Logger[F]): Callback =
+    )(implicit F: Async[F], dispatcher: Dispatcher[F], logger: Logger[F]): Callback =
       new EffectAOps(self).runAsyncCB {
         case Right(()) => F.delay(cb.runNow())
         case Left(t)   => logger.error(t)(errorMsg)
@@ -146,10 +146,10 @@ package object implicits {
     /** Return a `Callback` that will run the effect F[Unit] asynchronously and log possible errors. */
     def runAsyncCB(
       errorMsg:   String = "Error in F[Unit].runAsyncCB"
-    )(implicit F: Effect[F], logger: Logger[F]): Callback =
+    )(implicit F: Async[F], dispatcher: Dispatcher[F], logger: Logger[F]): Callback =
       runAsyncAndThenCB(Callback.empty, errorMsg)
 
-    def runAsyncCB(implicit F: Effect[F], logger: Logger[F]): Callback =
+    def runAsyncCB(implicit F: Async[F], dispatcher: Dispatcher[F], logger: Logger[F]): Callback =
       runAsyncCB()
   }
 
