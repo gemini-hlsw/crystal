@@ -150,7 +150,7 @@ package object implicits {
       runAsyncAndThenCB(Callback.empty, errorMsg)
 
     def runAsyncCB(implicit F: Async[F], dispatcher: Dispatcher[F], logger: Logger[F]): Callback =
-      runAsyncCB
+      runAsyncCB()
   }
 
   implicit class SyncIO2Callback[A](private val s: SyncIO[A]) extends AnyVal {
