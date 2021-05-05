@@ -9,7 +9,6 @@ import monocle.Optional
 import monocle.Prism
 import monocle.Traversal
 import cats.FlatMap
-import scala.concurrent.Promise
 
 sealed trait ViewOps[F[_], G[_], A] {
   val get: G[A]
@@ -31,15 +30,15 @@ final class ViewF[F[_]: Async, A](val get: A, val mod: (A => A) => F[Unit])
 
   // In a ViewF, we can derive modAndGet. In ViewOptF and ViewListF we have to pass it, since their
   // mod functions have no idea of the enclosing structure.
-  val modAndGet: (A => A) => F[A] = f => {
-    Sync[F].delay(Promise[A]()).flatMap { p =>
+  val modAndGet: (A => A) => F[A] = f =>
+    Async[F].async { cb =>
       mod { a: A =>
         val fa = f(a)
-        p.success(fa)
+        cb(fa.asRight)
         fa
-      } >> Async[F].fromFuture(Sync[F].delay(p.future))
+      // No need to run cb on errors, it will fail the async installation effect.
+      }.as(none)
     }
-  }
 
   def zoom[B](getB: A => B)(modB: (B => B) => A => A): ViewF[F, B] =
     new ViewF(
