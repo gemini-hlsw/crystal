@@ -120,15 +120,35 @@ package object implicits {
       */
     def runAsyncAndThenCB(
       cb:         Either[Throwable, A] => Callback
-    )(implicit F: Async[F], dispatcher: Dispatcher[F]): Callback =
+    )(implicit F: Sync[F], dispatcher: Dispatcher[F]): Callback =
       runAsyncCB(cb.andThen(c => F.delay(c.runNow())))
 
     /** Return a `Callback` that will run the effect `F[A]` asynchronously and discard the result or errors. */
-    def runAsyncAndForgetCB(implicit F: Async[F], dispatcher: Dispatcher[F]): Callback =
+    def runAsyncAndForgetCB(implicit
+      F:          MonadError[F, Throwable],
+      dispatcher: Dispatcher[F]
+    ): Callback =
       self.runAsyncCB(_ => F.unit)
   }
 
   implicit class EffectUnitOps[F[_]](private val self: F[Unit]) extends AnyVal {
+
+    /** Return a `Callback` that will run the effect `F[Unit]` asynchronously and log possible errors.
+      *
+      * @param cb `F[Unit]` to run in case of success.
+      */
+    def runAsyncAndThen(
+      cb:         F[Unit],
+      errorMsg:   String = "Error in F[Unit].runAsyncAndThen"
+    )(implicit
+      F:          MonadError[F, Throwable],
+      dispatcher: Dispatcher[F],
+      logger:     Logger[F]
+    ): Callback =
+      new EffectAOps(self).runAsyncCB {
+        case Right(()) => cb
+        case Left(t)   => logger.error(t)(errorMsg)
+      }
 
     /** Return a `Callback` that will run the effect `F[Unit]` asynchronously and log possible errors.
       *
@@ -137,19 +157,24 @@ package object implicits {
     def runAsyncAndThenCB(
       cb:         Callback,
       errorMsg:   String = "Error in F[Unit].runAsyncAndThenCB"
-    )(implicit F: Async[F], dispatcher: Dispatcher[F], logger: Logger[F]): Callback =
-      new EffectAOps(self).runAsyncCB {
-        case Right(()) => F.delay(cb.runNow())
-        case Left(t)   => logger.error(t)(errorMsg)
-      }
+    )(implicit F: Sync[F], dispatcher: Dispatcher[F], logger: Logger[F]): Callback =
+      runAsyncAndThen(F.delay(cb.runNow()), errorMsg)
 
     /** Return a `Callback` that will run the effect F[Unit] asynchronously and log possible errors. */
     def runAsyncCB(
       errorMsg:   String = "Error in F[Unit].runAsyncCB"
-    )(implicit F: Async[F], dispatcher: Dispatcher[F], logger: Logger[F]): Callback =
-      runAsyncAndThenCB(Callback.empty, errorMsg)
+    )(implicit
+      F:          MonadError[F, Throwable],
+      dispatcher: Dispatcher[F],
+      logger:     Logger[F]
+    ): Callback =
+      runAsyncAndThen(F.unit, errorMsg)
 
-    def runAsyncCB(implicit F: Async[F], dispatcher: Dispatcher[F], logger: Logger[F]): Callback =
+    def runAsyncCB(implicit
+      F:          MonadError[F, Throwable],
+      dispatcher: Dispatcher[F],
+      logger:     Logger[F]
+    ): Callback =
       runAsyncCB()
   }
 
