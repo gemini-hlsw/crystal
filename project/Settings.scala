@@ -14,7 +14,7 @@ object Settings {
     val mUnit           = "0.7.25"
     val mUnitCatsEffect = "1.0.2"
     val discipline      = "1.1.4"
-    val disciplineMUnit = "1.0.8"
+    val disciplineMUnit = "1.0.9"
   }
 
   object Libraries {
