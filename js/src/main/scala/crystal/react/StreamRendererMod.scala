@@ -9,12 +9,13 @@ import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react.{ Ref => _, _ }
 import japgolly.scalajs.react.vdom.html_<^._
 import org.typelevel.log4cats.Logger
+import crystal.react.reuse._
 
 import scala.concurrent.duration.FiniteDuration
 
 object StreamRendererMod {
 
-  type Props[F[_], A] = Pot[ViewF[F, A]] => VdomNode
+  type Props[F[_], A] = Pot[ViewF[F, A]] ==> VdomNode
 
   type State[A]           = Pot[A]
   type Component[F[_], A] =
@@ -26,15 +27,9 @@ object StreamRendererMod {
     ]]
 
   def build[F[_]: Async: Dispatcher: Logger, A](
-    stream:       fs2.Stream[F, A],
-    holdAfterMod: Option[FiniteDuration] = None
-  )(implicit
-    reuse:        Reusability[A], // Used to derive Reusability[State[A]]
-    renderReuse:  Reusability[Props[F, A]] = Reusability
-      .never[Props[F, A]]
-    // If a rerender is triggered, reusability should be controlled by enclosing component.
-    // We therefore don't apply reusability to the rendering function, but can be overriden.
-  ): Component[F, A] = {
+    stream:         fs2.Stream[F, A],
+    holdAfterMod:   Option[FiniteDuration] = None
+  )(implicit reuse: Reusability[A] /* Used to derive Reusability[State[A]] */ ): Component[F, A] = {
     class Backend($ : BackendScope[Props[F, A], State[A]])
         extends StreamRendererBackend[F, A](stream) {
 
