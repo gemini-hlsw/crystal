@@ -14,6 +14,7 @@ import cats.effect.SyncIO
 import cats.effect.std.Dispatcher
 import monocle.Lens
 import org.typelevel.log4cats.Logger
+import crystal.react.reuse.Reuse
 
 package object implicits {
   implicit class CallbackToOps[A](private val self: CallbackTo[A]) {
@@ -240,6 +241,14 @@ package object implicits {
   implicit class ViewFModuleOps(private val viewFModule: ViewF.type) extends AnyVal {
     def fromState[F[_]]: FromStateViewF[F] =
       new FromStateViewF[F]()
+  }
+
+  implicit class ViewFOps[F[_], G[_], A](private val viewF: ViewOps[F, G, A]) extends AnyVal {
+    def reuseSet: Reuse[A => F[Unit]] = Reuse.always(viewF.set)
+
+    def reuseMod: Reuse[(A => A) => F[Unit]] = Reuse.always(viewF.mod)
+
+    def reuseModAndGet: Reuse[(A => A) => F[G[A]]] = Reuse.always(viewF.modAndGet)
   }
 }
 
