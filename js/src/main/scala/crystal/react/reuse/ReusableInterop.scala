@@ -11,7 +11,7 @@ protected trait ReusableInterop {
     Reusable.implicitly(new Fn1(ra.map(ev)))
 
   class Fn1[R, B](val f: Reuse[R => B]) extends Function1[R, B] {
-    def apply(r: R): B = f.value()(r)
+    def apply(r: R): B = f.value(r)
   }
   implicit def reusablityFn1[R, B]: Reusability[Fn1[R, B]] = Reusability.by(_.f)
 

@@ -29,10 +29,12 @@ import scala.reflect.ClassTag
  *  * A `Reuse[A]` is automatically converted to `Reusable[A]` when needed.
  *
  */
-trait Reuse[A] {
+trait Reuse[+A] {
   type B
 
-  val value: () => A
+  val get: () => A
+
+  lazy val value: A = get()
 
   protected[reuse] val reuseBy: B // We need to store it to combine into tuples when currying.
 
@@ -40,11 +42,11 @@ trait Reuse[A] {
 
   protected[reuse] implicit val reusability: Reusability[B]
 
-  def map[C](f: A => C): Reuse[C] = Reuse.by(reuseBy)(f(value()))
+  def map[C](f: A => C): Reuse[C] = Reuse.by(reuseBy)(f(value))
 }
 
 object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with ReusableInterop {
-  implicit def toA[A](reuseFn: Reuse[A]): A = reuseFn.value()
+  implicit def toA[A](reuseFn: Reuse[A]): A = reuseFn.value
 
   implicit def reusability[A]: Reusability[Reuse[A]] =
     Reusability.apply((reuseA, reuseB) =>
@@ -112,7 +114,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
       new Reuse[A] {
         type B = R
 
-        val value = () => valueA
+        val get = () => valueA
 
         protected[reuse] val reuseBy = reuseByR
 
