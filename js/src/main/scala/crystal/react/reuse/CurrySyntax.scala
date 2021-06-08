@@ -15,7 +15,7 @@ protected trait CurrySyntax {
       reuseR:    Reusability[R]
     ): Reuse[B] = {
       implicit val rB = ra.reusability
-      Reuse.by((ra.reuseBy, r))(ev(ra.value())(r))
+      Reuse.by((ra.reuseBy, r))(ev(ra.value)(r))
     }
   }
 
@@ -31,7 +31,7 @@ protected trait CurrySyntax {
       reuseR:    Reusability[R]
     ): Reuse[S => B] = {
       implicit val rB = ra.reusability
-      Reuse.by((ra.reuseBy, r))(s => ev(ra.value())(r, s))
+      Reuse.by((ra.reuseBy, r))(s => ev(ra.value)(r, s))
     }
   }
 
@@ -64,7 +64,7 @@ protected trait CurrySyntax {
       reuseR:    Reusability[R]
     ): Reuse[(S, T) => B] = {
       implicit val rB = ra.reusability
-      Reuse.by((ra.reuseBy, r))((s, t) => ev(ra.value())(r, s, t))
+      Reuse.by((ra.reuseBy, r))((s, t) => ev(ra.value)(r, s, t))
     }
   }
 
