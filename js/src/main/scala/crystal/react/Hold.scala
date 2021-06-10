@@ -26,16 +26,16 @@ class Hold[F[_]: Async, A](
   private val restart: Option[F[Unit]] =
     duration.map { d =>
       for {
-        _ <- (cancelToken.getAndSet(None).flatMap(_.orUnit)).uncancelable
         _ <- Temporal[F].sleep(d)
-        _ <- cancelToken.set(None)
-        b <- buffer.getAndSet(None)
-        _ <- b.map(set).orUnit
+        _ <- cancelToken.set(none)
+        b <- buffer.getAndSet(none)
+        _ <- b.map(setter).orUnit
       } yield ()
     }
 
   val enable: F[Unit] =
-    restart.map(_.start.flatMap(fiber => cancelToken.set(fiber.cancel.some))).orUnit
+    (cancelToken.getAndSet(none).flatMap(_.orUnit)).uncancelable >>
+      restart.map(_.start.flatMap(fiber => cancelToken.set(fiber.cancel.some))).orUnit
 }
 
 object Hold {
@@ -44,7 +44,7 @@ object Hold {
     duration: Option[FiniteDuration]
   ): SyncIO[Hold[F, A]] =
     for {
-      cancelToken <- Ref.in[SyncIO, F, Option[F[Unit]]](None)
-      buffer      <- Ref.in[SyncIO, F, Option[A]](None)
+      cancelToken <- Ref.in[SyncIO, F, Option[F[Unit]]](none)
+      buffer      <- Ref.in[SyncIO, F, Option[A]](none)
     } yield new Hold(setter, duration, cancelToken, buffer)
 }

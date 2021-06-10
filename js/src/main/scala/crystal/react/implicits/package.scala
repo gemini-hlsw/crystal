@@ -243,7 +243,7 @@ package object implicits {
       new FromStateViewF[F]()
   }
 
-  implicit class ViewFOps[F[_], G[_], A](private val viewF: ViewOps[F, G, A]) extends AnyVal {
+  implicit class ViewFReuseOps[F[_], G[_], A](private val viewF: ViewOps[F, G, A]) extends AnyVal {
     def reuseSet: Reuse[A => F[Unit]] = Reuse.always(viewF.set)
 
     def reuseMod: Reuse[(A => A) => F[Unit]] = Reuse.always(viewF.mod)
