@@ -28,17 +28,19 @@ final class ViewF[F[_]: Async, A](val get: A, val mod: (A => A) => F[Unit])
 
   val set: A => F[Unit] = a => mod(_ => a)
 
-  // In a ViewF, we can derive modAndGet. In ViewOptF and ViewListF we have to pass it, since their
-  // mod functions have no idea of the enclosing structure.
-  val modAndGet: (A => A) => F[A] = f =>
+  def modAndExtract[B]: (A => (A, B)) => F[B] = f =>
     Async[F].async { cb =>
       mod { a: A =>
-        val fa = f(a)
-        cb(fa.asRight)
+        val (fa, b) = f(a)
+        cb(b.asRight)
         fa
       // No need to run cb on errors, it will fail the async installation effect.
       }.as(none)
     }
+
+  // In a ViewF, we can derive modAndGet. In ViewOptF and ViewListF we have to pass it, since their
+  // mod functions have no idea of the enclosing structure.
+  val modAndGet: (A => A) => F[A] = f => modAndExtract(f.andThen(a => (a, a)))
 
   def zoom[B](getB: A => B)(modB: (B => B) => A => A): ViewF[F, B] =
     new ViewF(
