@@ -6,7 +6,7 @@ import scala.reflect.ClassTag
 package object reuse {
   type ==>[A, B] = Reuse[A => B]
 
-  implicit class AnyReuseOps[A](val a: A) extends AnyVal {
+  implicit class AnyReuseOps[A](private val a: A) extends AnyVal {
     def reuseAlways: Reuse[A] = Reuse.always(a)
 
     def reuseNever: Reuse[A] = Reuse.never(a)
@@ -21,7 +21,7 @@ package object reuse {
     def curryReusing: Reuse.Curried1[A] = Reuse.currying(a)
   }
 
-  implicit class Tuple2ReuseOps[R, S](val t: (R, S)) extends AnyVal {
+  implicit class Tuple2ReuseOps[R, S](private val t: (R, S)) extends AnyVal {
     /*
      * Implements the idiom:
      *   `(a, b).curryReusing( (A, B, C) => D )`
@@ -32,7 +32,7 @@ package object reuse {
     def curryReusing: Reuse.Curried2[R, S] = Reuse.currying(t._1, t._2)
   }
 
-  implicit class Tuple3ReuseOps[R, S, T](val t: (R, S, T)) extends AnyVal {
+  implicit class Tuple3ReuseOps[R, S, T](private val t: (R, S, T)) extends AnyVal {
     /*
      * Implements the idiom:
      *   `(a, b, c).curryReusing( (A, B, C, D) => E )`
@@ -43,7 +43,7 @@ package object reuse {
     def curryReusing: Reuse.Curried3[R, S, T] = Reuse.currying(t._1, t._2, t._3)
   }
 
-  implicit class Fn1ReuseOps[R, B](val fn: R => B) extends AnyVal {
+  implicit class Fn1ReuseOps[R, B](private val fn: R => B) extends AnyVal {
     /*
      * Implements the idiom:
      *   `(R => B).reuseCurrying(r)`
@@ -57,7 +57,7 @@ package object reuse {
     ): Reuse[B] = Reuse.currying(r).in(fn)
   }
 
-  implicit class Fn2ReuseOps[R, S, B](val fn: (R, S) => B) extends AnyVal {
+  implicit class Fn2ReuseOps[R, S, B](private val fn: (R, S) => B) extends AnyVal {
     /*
      * Implements the idiom:
      *   `((R, S) => B).reuseCurrying(r)`
@@ -84,7 +84,7 @@ package object reuse {
     ): Reuse[B] = Reuse.currying(r, s).in(fn)
   }
 
-  implicit class Fn3ReuseOps[R, S, T, B](val fn: (R, S, T) => B) extends AnyVal {
+  implicit class Fn3ReuseOps[R, S, T, B](private val fn: (R, S, T) => B) extends AnyVal {
     /*
      * Implements the idiom:
      *   `((R, S, T) => B).reuseCurrying(r)`
