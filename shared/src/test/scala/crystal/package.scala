@@ -1,9 +1,17 @@
-import cats.kernel.Eq
+import cats.Eq
+import cats.FlatMap
+import cats.syntax.all._
+import cats.effect.Ref
 import monocle.macros.Lenses
 import monocle.Optional
 import monocle.Traversal
 import monocle.function.Possible.possible
 import monocle.Iso
+
+package object crystal {
+  def modCB[F[_]: FlatMap, A](ref: Ref[F, A]): ((A => A), A => F[Unit]) => F[Unit] =
+    (f, cb) => ref.modify(f >>> (a => (a, a))) >>= cb
+}
 
 package crystal {
   @Lenses

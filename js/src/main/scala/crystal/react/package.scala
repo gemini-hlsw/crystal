@@ -6,21 +6,28 @@ import cats.effect.std.Dispatcher
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomNode
 import org.typelevel.log4cats.Logger
+import crystal.react.reuse.Reuse
+import cats.effect.SyncIO
 
 package object react {
   type SetState[F[_], A] = A => F[Unit]
   type ModState[F[_], A] = (A => A) => F[Unit]
 
-  type StateComponent[S] =
+  type ContextComponent[S] =
     ScalaComponent[
-      Unit,
+      Reuse[VdomNode],
       S,
-      Unit,
-      CtorType.Nullary
+      _,
+      CtorType.Props
     ]
 
-  implicit def renderComponent[S](component: crystal.react.StateComponent[S]): VdomNode =
-    component()
+  type StateComponent[S] =
+    ScalaComponent[
+      Reuse[ViewF[SyncIO, S] => VdomNode],
+      S,
+      _,
+      CtorType.Props
+    ]
 
   implicit class StreamOps[F[_], A](private val s: fs2.Stream[F, A]) {
     def render(implicit
@@ -34,13 +41,10 @@ package object react {
 }
 
 package react {
-  import japgolly.scalajs.react.component.builder.Lifecycle.StateRW
+  import cats.effect.SyncIO
 
-  class FromStateViewF[F[_]]() {
-    def apply[S]($ : StateAccess[CallbackTo, S])(implicit F: Async[F]): ViewF[F, S] =
-      ViewF($.state.runNow(), $.modStateIn[F])
-
-    def apply[S]($ : StateRW[_, S, _])(implicit F: Async[F]): ViewF[F, S] =
-      ViewF($.state, $.modStateIn[F])
+  class FromStateViewSyncIO {
+    def apply[S]($ : StateAccess[CallbackTo, S]): ViewF[SyncIO, S] =
+      ViewF($.state.runNow(), (f, cb) => $.modStateInSyncIO(f, cb))
   }
 }
