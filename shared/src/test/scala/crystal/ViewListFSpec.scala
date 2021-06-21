@@ -13,7 +13,7 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[WrapList[Int]].zoom(Traversal).mod") {
     (for {
       ref <- Ref[IO].of(value)
-      view = ViewF(value, modCB(ref)).zoom(traversal)
+      view = ViewF(value, refModCB(ref)).zoom(traversal)
       _   <- view.mod(_ + 1)
       get <- ref.get
     } yield assert(get === WrapList(List(1, 2, 3))))
@@ -22,7 +22,7 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[WrapList[Int]].zoom(Traversal).set") {
     (for {
       ref <- Ref[IO].of(value)
-      view = ViewF(value, modCB(ref)).zoom(traversal)
+      view = ViewF(value, refModCB(ref)).zoom(traversal)
       _   <- view.set(1)
       get <- ref.get
     } yield assert(get === WrapList(List(1, 1, 1))))
@@ -31,7 +31,7 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[WrapList[Int]].zoom(Traversal).modAndGet") {
     (for {
       ref <- Ref[IO].of(value)
-      view = ViewF(value, modCB(ref)).zoom(traversal)
+      view = ViewF(value, refModCB(ref)).zoom(traversal)
       get <- view.modAndGet(_ + 1)
     } yield assert(get === List(1, 2, 3)))
   }
@@ -40,7 +40,8 @@ class ViewListFSpec extends munit.CatsEffectSuite {
     (for {
       ref      <- Ref[IO].of(value)
       d        <- Deferred[IO, List[Int]]
-      view      = ViewF(value, modCB(ref)).zoom(traversal).withOnMod(a => d.complete(a.map(_ * 2)).void)
+      view      =
+        ViewF(value, refModCB(ref)).zoom(traversal).withOnMod(a => d.complete(a.map(_ * 2)).void)
       _        <- view.mod(_ + 1)
       get      <- ref.get
       captured <- d.get
@@ -55,7 +56,8 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[List[Wrap[Int]]].zoom(Traversal).as(Wrap.iso).mod") {
     (for {
       ref <- Ref[IO].of(valueList)
-      view = ViewF(valueList, modCB(ref)).zoom(Traversal.fromTraverse[List, Wrap[Int]]).as(Wrap.iso)
+      view =
+        ViewF(valueList, refModCB(ref)).zoom(Traversal.fromTraverse[List, Wrap[Int]]).as(Wrap.iso)
       _   <- view.mod(_ + 1)
       get <- ref.get
     } yield assert(get === List(Wrap(1))))
@@ -64,7 +66,8 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[Option[Wrap[Int]]].zoom(Traversal).as(Wrap.iso).set") {
     (for {
       ref <- Ref[IO].of(valueList)
-      view = ViewF(valueList, modCB(ref)).zoom(Traversal.fromTraverse[List, Wrap[Int]]).as(Wrap.iso)
+      view =
+        ViewF(valueList, refModCB(ref)).zoom(Traversal.fromTraverse[List, Wrap[Int]]).as(Wrap.iso)
       _   <- view.set(1)
       get <- ref.get
     } yield assert(get === List(Wrap(1))))
@@ -73,7 +76,8 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[Option[Wrap[Int]]].zoom(Traversal).as(Wrap.iso).modAndGet") {
     (for {
       ref <- Ref[IO].of(valueList)
-      view = ViewF(valueList, modCB(ref)).zoom(Traversal.fromTraverse[List, Wrap[Int]]).as(Wrap.iso)
+      view =
+        ViewF(valueList, refModCB(ref)).zoom(Traversal.fromTraverse[List, Wrap[Int]]).as(Wrap.iso)
       get <- view.modAndGet(_ + 1)
     } yield assert(get === List(1)))
   }
@@ -88,7 +92,7 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[Wrap[WrapOpt[WrapList[Int]]]].zoom(Traversal).mod") {
     (for {
       ref <- Ref[IO].of(complexValue1)
-      view = ViewF(complexValue1, modCB(ref)).zoom(complexTraversal1)
+      view = ViewF(complexValue1, refModCB(ref)).zoom(complexTraversal1)
       _   <- view.mod(_ + 1)
       get <- ref.get
     } yield assert(get === Wrap(WrapOpt(WrapList(List(1, 2, 3)).some))))
@@ -97,7 +101,7 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[Wrap[WrapOpt[WrapList[Int]]]].zoom(Traversal).set") {
     (for {
       ref <- Ref[IO].of(complexValue1)
-      view = ViewF(complexValue1, modCB(ref)).zoom(complexTraversal1)
+      view = ViewF(complexValue1, refModCB(ref)).zoom(complexTraversal1)
       _   <- view.set(1)
       get <- ref.get
     } yield assert(get === Wrap(WrapOpt(WrapList(List(1, 1, 1)).some))))
@@ -106,7 +110,7 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[Wrap[WrapOpt[WrapList[Int]]]].zoom(Traversal).modAndGet") {
     (for {
       ref <- Ref[IO].of(complexValue1)
-      view = ViewF(complexValue1, modCB(ref)).zoom(complexTraversal1)
+      view = ViewF(complexValue1, refModCB(ref)).zoom(complexTraversal1)
       get <- view.modAndGet(_ + 1)
     } yield assert(get === List(1, 2, 3)))
   }
@@ -130,7 +134,7 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[Wrap[WrapList[WrapOpt[Int]]]].zoom(Traversal).mod") {
     (for {
       ref <- Ref[IO].of(complexValue2)
-      view = ViewF(complexValue2, modCB(ref)).zoom(complexTraversal2)
+      view = ViewF(complexValue2, refModCB(ref)).zoom(complexTraversal2)
       _   <- view.mod(_ + 1)
       get <- ref.get
     } yield assert(
@@ -150,7 +154,7 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[Wrap[WrapList[WrapOpt[Int]]]].zoom(Traversal).set") {
     (for {
       ref <- Ref[IO].of(complexValue2)
-      view = ViewF(complexValue2, modCB(ref)).zoom(complexTraversal2)
+      view = ViewF(complexValue2, refModCB(ref)).zoom(complexTraversal2)
       _   <- view.set(1)
       get <- ref.get
     } yield assert(
@@ -170,7 +174,7 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   test("ViewF[Wrap[WrapList[WrapOpt[Int]]]].zoom(Traversal).modAndGet") {
     (for {
       ref <- Ref[IO].of(complexValue2)
-      view = ViewF(complexValue2, modCB(ref)).zoom(complexTraversal2)
+      view = ViewF(complexValue2, refModCB(ref)).zoom(complexTraversal2)
       get <- view.modAndGet(_ + 1)
     } yield assert(get === List(1, 2, 3)))
   }
