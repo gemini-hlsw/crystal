@@ -8,7 +8,7 @@ object Settings {
     val scalajsReact    = "1.7.7"
     val cats            = "2.6.1"
     val catsEffect      = "3.1.1"
-    val fs2             = "3.0.4"
+    val fs2             = "3.0.5"
     val monocle         = "2.1.0"
     val log4Cats        = "2.1.1"
     val mUnit           = "0.7.26"
