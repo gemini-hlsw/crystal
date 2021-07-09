@@ -9,7 +9,7 @@ object Settings {
     val cats            = "2.6.1"
     val catsEffect      = "3.1.1"
     val fs2             = "3.0.6"
-    val monocle         = "2.1.0"
+    val monocle         = "3.0.0"
     val log4Cats        = "2.1.1"
     val mUnit           = "0.7.27"
     val mUnitCatsEffect = "1.0.5"
@@ -49,13 +49,13 @@ object Settings {
 
     val Monocle = Def.setting(
       Seq[ModuleID](
-        "com.github.julien-truffaut" %%% "monocle-core" % monocle
+        "dev.optics" %%% "monocle-core" % monocle
       )
     )
 
     val MonocleMacro = Def.setting(
       Seq[ModuleID](
-        "com.github.julien-truffaut" %%% "monocle-macro" % monocle
+        "dev.optics" %%% "monocle-macro" % monocle
       )
     )
 
