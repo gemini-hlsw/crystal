@@ -44,7 +44,7 @@ package react {
   import cats.effect.SyncIO
 
   class FromStateViewSyncIO {
-    def apply[S]($ : StateAccess[CallbackTo, S]): ViewF[SyncIO, S] =
+    def apply[F[_], A[_], S]($ : StateAccess[F, A, S]): ViewF[SyncIO, S] =
       ViewF($.state.runNow(), (f, cb) => $.modStateInSyncIO(f, cb))
   }
 }

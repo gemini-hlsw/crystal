@@ -23,7 +23,7 @@ object StreamRenderer {
     class Backend($ : BackendScope[Props[A], State[A]])
         extends StreamRendererBackend[F, A](stream) {
 
-      override protected val directSetState: Pot[A] => F[Unit] = $.setStateIn[F]
+      override protected val directSetState: Pot[A] => F[Unit] = $.setStateIn
 
       def render(props: Props[A], state: Pot[A]): VdomNode =
         props(state)

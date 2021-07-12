@@ -5,7 +5,7 @@ import sbt.librarymanagement._
 object Settings {
 
   object LibraryVersions {
-    val scalajsReact    = "1.7.7"
+    val scalajsReact    = "2.0.0-RC1"
     val cats            = "2.6.1"
     val catsEffect      = "3.1.1"
     val fs2             = "3.0.6"
@@ -22,10 +22,10 @@ object Settings {
 
     val ReactScalaJS = Def.setting(
       Seq(
-        "com.github.japgolly.scalajs-react" %%% "core"             % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "extra"            % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "ext-monocle-cats" % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "ext-cats"         % scalajsReact
+        "com.github.japgolly.scalajs-react" %%% "core"    % scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra"   % scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra-ext-monocle3" % scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "core-ext-cats"    % scalajsReact
       )
     )
 
