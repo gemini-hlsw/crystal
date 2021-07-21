@@ -1,13 +1,14 @@
 package crystal
 
+import cats.effect.SyncIO
 import crystal.react.implicits._
+import crystal.react.reuse.Reuse
 import cats.effect.Async
 import cats.effect.std.Dispatcher
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomNode
+import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA, Sync => DefaultS }
 import org.typelevel.log4cats.Logger
-import crystal.react.reuse.Reuse
-import cats.effect.SyncIO
 
 package object react {
   type SetState[F[_], A] = A => F[Unit]
@@ -44,7 +45,7 @@ package react {
   import cats.effect.SyncIO
 
   class FromStateViewSyncIO {
-    def apply[F[_], A[_], S]($ : StateAccess[F, A, S]): ViewF[SyncIO, S] =
+    def apply[F[_], A[_], S]($ : StateAccess[DefaultS, DefaultA, S]): ViewF[SyncIO, S] =
       ViewF($.state.runNow(), (f, cb) => $.modStateInSyncIO(f, cb))
   }
 }
