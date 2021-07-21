@@ -86,8 +86,8 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   val complexTraversal1 =
     Wrap
       .a[WrapOpt[WrapList[Int]]]
-      .composeOptional(WrapOpt.aOpt)
-      .composeTraversal(WrapList.aList)
+      .andThen(WrapOpt.aOpt[WrapList[Int]])
+      .andThen(WrapList.aList[Int])
 
   test("ViewF[Wrap[WrapOpt[WrapList[Int]]]].zoom(Traversal).mod") {
     (for {
@@ -128,8 +128,8 @@ class ViewListFSpec extends munit.CatsEffectSuite {
   val complexTraversal2 =
     Wrap
       .a[WrapList[WrapOpt[Int]]]
-      .composeTraversal(WrapList.aList)
-      .composeOptional(WrapOpt.aOpt[Int])
+      .andThen(WrapList.aList[WrapOpt[Int]])
+      .andThen(WrapOpt.aOpt[Int])
 
   test("ViewF[Wrap[WrapList[WrapOpt[Int]]]].zoom(Traversal).mod") {
     (for {

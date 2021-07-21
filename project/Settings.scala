@@ -5,11 +5,11 @@ import sbt.librarymanagement._
 object Settings {
 
   object LibraryVersions {
-    val scalajsReact    = "1.7.7"
+    val scalajsReact    = "2.0.0-RC2"
     val cats            = "2.6.1"
     val catsEffect      = "3.1.1"
     val fs2             = "3.0.6"
-    val monocle         = "2.1.0"
+    val monocle         = "3.0.0"
     val log4Cats        = "2.1.1"
     val mUnit           = "0.7.27"
     val mUnitCatsEffect = "1.0.5"
@@ -22,10 +22,10 @@ object Settings {
 
     val ReactScalaJS = Def.setting(
       Seq(
-        "com.github.japgolly.scalajs-react" %%% "core"             % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "extra"            % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "ext-monocle-cats" % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "ext-cats"         % scalajsReact
+        "com.github.japgolly.scalajs-react" %%% "core"               % scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra"              % scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra-ext-monocle3" % scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "core-ext-cats"      % scalajsReact
       )
     )
 
@@ -49,13 +49,13 @@ object Settings {
 
     val Monocle = Def.setting(
       Seq[ModuleID](
-        "com.github.julien-truffaut" %%% "monocle-core" % monocle
+        "dev.optics" %%% "monocle-core" % monocle
       )
     )
 
     val MonocleMacro = Def.setting(
       Seq[ModuleID](
-        "com.github.julien-truffaut" %%% "monocle-macro" % monocle
+        "dev.optics" %%% "monocle-macro" % monocle
       )
     )
 
