@@ -32,7 +32,7 @@ package crystal {
   object WrapList {
     def a[A]: Lens[WrapList[A], List[A]] = GenLens[WrapList[A]](_.a)
 
-    def aList[A]: Traversal[WrapList[A], A]         =
+    def aList[A]: Traversal[WrapList[A], A] =
       WrapList.a.andThen(Traversal.fromTraverse[List, A])
 
     implicit def eqWrapList[A: Eq]: Eq[WrapList[A]] = Eq.by(_.a)
