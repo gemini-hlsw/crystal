@@ -4,13 +4,13 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 inThisBuild(
   List(
-    scalaVersion := "2.13.6",
-    organization := "com.rpiaggio",
-    homepage := Some(url("https://github.com/rpiaggio/crystal")),
+    scalaVersion      := "2.13.6",
+    organization      := "com.rpiaggio",
+    homepage          := Some(url("https://github.com/rpiaggio/crystal")),
     licenses += ("BSD 3-Clause", url(
       "http://opensource.org/licenses/BSD-3-Clause"
     )),
-    developers := List(
+    developers        := List(
       Developer(
         "rpiaggio",
         "Raúl Piaggio",
@@ -28,8 +28,8 @@ lazy val root = project
   .in(file("."))
   .aggregate(crystalJVM, crystalJS)
   .settings(
-    name := "crystal",
-    publish := {},
+    name         := "crystal",
+    publish      := {},
     publishLocal := {}
   )
 
@@ -57,7 +57,7 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
             Settings.Libraries.CatsLaws.value ++
             Settings.Libraries.MonocleMacro.value
         ).map(_ % Test),
-    scmInfo := Some(
+    scmInfo              := Some(
       ScmInfo(
         url("https://https://github.com/rpiaggio/crystal"),
         "scm:git:git@github.com:rpiaggio/crystal.git",

@@ -59,8 +59,8 @@ package object implicits {
     def setStateIn[F[_]: Sync](s: S): F[Unit]      = self.setState(s).to[F]
     def modStateIn[F[_]: Sync](f: S => S): F[Unit] = self.modState(f).to[F]
 
-    /** Like `setState` but completes with a `Unit` value *after* the state modification has
-      * been completed. In contrast, `setState(mod).to[F]` completes with a unit once the state
+    /** Like `setState` but completes with a `Unit` value *after* the state modification has been
+      * completed. In contrast, `setState(mod).to[F]` completes with a unit once the state
       * modification has been enqueued.
       *
       * Provides access only to state.
@@ -75,8 +75,8 @@ package object implicits {
           .runNow()
       }
 
-    /** Like `modState` but completes with a `Unit` value *after* the state modification has
-      * been completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
+    /** Like `modState` but completes with a `Unit` value *after* the state modification has been
+      * completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
       * modification has been enqueued.
       *
       * Provides access only to state.
@@ -102,8 +102,8 @@ package object implicits {
     private val self: StateAccess.WriteWithProps[DefaultS, DefaultA, P, S]
   ) extends AnyVal {
 
-    /** Like `modState` but completes with a `Unit` value *after* the state modification has
-      * been completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
+    /** Like `modState` but completes with a `Unit` value *after* the state modification has been
+      * completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
       * modification has been enqueued.
       *
       * Provides access to both state and props.
@@ -125,7 +125,8 @@ package object implicits {
 
     /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously.
       *
-      * @param cb Result handler returning a `F[Unit]`.
+      * @param cb
+      *   Result handler returning a `F[Unit]`.
       */
     def runAsyncCB(
       cb:         Either[Throwable, A] => F[Unit]
@@ -134,14 +135,17 @@ package object implicits {
 
     /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously.
       *
-      * @param cb Result handler returning a `DefaultS[Unit]`.
+      * @param cb
+      *   Result handler returning a `DefaultS[Unit]`.
       */
     def runAsyncAndThenCB(
       cb:         Either[Throwable, A] => DefaultS[Unit]
     )(implicit F: Sync[F], dispatcher: Dispatcher[F]): DefaultS[Unit] =
       runAsyncCB(cb.andThen(c => F.delay(c.runNow())))
 
-    /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously and discard the result or errors. */
+    /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously and discard the
+      * result or errors.
+      */
     def runAsyncAndForgetCB(implicit
       F:          MonadError[F, Throwable],
       dispatcher: Dispatcher[F]
@@ -167,9 +171,11 @@ package object implicits {
 
   implicit class EffectUnitOps[F[_]](private val self: F[Unit]) extends AnyVal {
 
-    /** Return a `DefaultS[Unit]` that will run the effect `F[Unit]` asynchronously and log possible errors.
+    /** Return a `DefaultS[Unit]` that will run the effect `F[Unit]` asynchronously and log possible
+      * errors.
       *
-      * @param cb `F[Unit]` to run in case of success.
+      * @param cb
+      *   `F[Unit]` to run in case of success.
       */
     def runAsyncAndThenFCB(
       cb:         F[Unit],
@@ -184,9 +190,11 @@ package object implicits {
         case Left(t)   => logger.error(t)(errorMsg)
       }
 
-    /** Return a `DefaultS[Unit]` that will run the effect `F[Unit]` asynchronously and log possible errors.
+    /** Return a `DefaultS[Unit]` that will run the effect `F[Unit]` asynchronously and log possible
+      * errors.
       *
-      * @param cb `DefaultS[Unit]` to run in case of success.
+      * @param cb
+      *   `DefaultS[Unit]` to run in case of success.
       */
     def runAsyncAndThenCB(
       cb:         DefaultS[Unit],
@@ -194,7 +202,9 @@ package object implicits {
     )(implicit F: Sync[F], dispatcher: Dispatcher[F], logger: Logger[F]): DefaultS[Unit] =
       runAsyncAndThenFCB(F.delay(cb.runNow()), errorMsg)
 
-    /** Return a `DefaultS[Unit]` that will run the effect F[Unit] asynchronously and log possible errors. */
+    /** Return a `DefaultS[Unit]` that will run the effect F[Unit] asynchronously and log possible
+      * errors.
+      */
     def runAsyncCB(
       errorMsg:   String = "Error in F[Unit].runAsyncCB"
     )(implicit
