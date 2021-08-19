@@ -7,10 +7,9 @@ import cats.effect.implicits._
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.{ Ref, Temporal }
 
-/** Encapsulates an effectful `setter`. When `enable` is called, calls to
-  * `setter` will be delayed for `duration`. Each call to `enable` resets
-  * the internal timer, i.e: `duration` is guaranteed to have elapsed
-  * since last call to `enable` before calling `setter`.
+/** Encapsulates an effectful `setter`. When `enable` is called, calls to `setter` will be delayed
+  * for `duration`. Each call to `enable` resets the internal timer, i.e: `duration` is guaranteed
+  * to have elapsed since last call to `enable` before calling `setter`.
   */
 class Hold[F[_]: Async, A](
   setter:      A => F[Unit],
