@@ -1,11 +1,17 @@
 package crystal.react.reuse
 
-/*
- * Convert (A[, B, ...]) ==> Z into A ~=> (B [~=> ...] ~=> Z).
- */
-protected trait ReusableInterop {
-  import japgolly.scalajs.react._
+import japgolly.scalajs.react._
 
+protected trait ReusableInteropLowPriority {
+  implicit def reusabilityAny[A](r: Reuse[A]): Reusable[A] = {
+    import r._
+    Reusable.implicitly(r.reuseBy).withLazyValue(r.get())
+  }
+}
+
+/* Convert (A[, B, ...]) ==> Z into A ~=> (B [~=> ...] ~=> Z).
+ */
+protected trait ReusableInterop extends ReusableInteropLowPriority {
   // Fn1
   implicit def toReusableFn1[A, R, B](ra: Reuse[A])(implicit ev: A =:= (R => B)): R ~=> B =
     Reusable.implicitly(new Fn1(ra.map(ev)))
