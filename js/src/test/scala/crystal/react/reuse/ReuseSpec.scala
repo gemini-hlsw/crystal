@@ -154,7 +154,7 @@ final class ReuseSpec extends ScalaCheckSuite {
     }
   }
 
-  implicit val reuseDouble = Reusability.double(0.1)
+  implicit val reuseDouble: Reusability[Double] = Reusability.double(0.1)
 
   test("(parameter1, paramter2).curryReusing.in(function2).curry(parameter3) syntax") {
     forAll { (u1: String, p1: String, d1: Double, u2: String, p2: String, d2: Double) =>

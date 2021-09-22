@@ -39,12 +39,12 @@ class PotSpec extends DisciplineSuite {
   )
 
   property("Pot[Int].toOption: Pending(_) is None") {
-    forAll((l: Long) => Pending[Int](l).toOption === none)
+    forAll((l: Long) => Pending(l).toOption.isEmpty)
 
   }
 
   property("Pot[Int].toOption: Error(_) is None") {
-    forAll((t: Throwable) => Error[Int](t).toOption === none)
+    forAll((t: Throwable) => Error(t).toOption.isEmpty)
   }
 
   property("Pot[Int].toOption: Ready(a) is Some(a)") {
@@ -52,13 +52,12 @@ class PotSpec extends DisciplineSuite {
   }
 
   property("Pot[Int].toTryOption: Pending(_) is None") {
-    forAll((l: Long) => Pending[Int](l).toTryOption === none)
+    forAll((l: Long) => Pending(l).toTryOption.isEmpty)
 
   }
 
   property("Pot[Int].toTryOption: Error(t) is Some(Failure(t))") {
-    forAll((t: Throwable) => Error[Int](t).toTryOption === Failure(t).some)
-
+    forAll((t: Throwable) => Pot.error[Int](t).toTryOption.contains_(Failure(t)))
   }
 
   property("Pot[Int].toTryOption: Ready(a) is Some(Success(a))") {

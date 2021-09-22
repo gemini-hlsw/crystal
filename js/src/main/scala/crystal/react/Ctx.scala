@@ -12,8 +12,8 @@ class Ctx[F[_], C] {
   def provide(c: ViewF[F, C]): Context.Provided[Option[ViewF[F, C]]] = ctx.provide(c.some)
 
   def using[A](f: C => A)(implicit ev: A => VdomNode): VdomElement =
-    ctx.consume(_.fold[VdomNode](<.div)(c => f(c.get)))
+    ctx.consume(_.fold[VdomNode](<.div)(c => ev(f(c.get))))
 
   def usingView[A](f: ViewF[F, C] => A)(implicit ev: A => VdomNode): VdomElement =
-    ctx.consume(_.fold[VdomNode](<.div)(c => f(c)))
+    ctx.consume(_.fold[VdomNode](<.div)(c => ev(f(c))))
 }

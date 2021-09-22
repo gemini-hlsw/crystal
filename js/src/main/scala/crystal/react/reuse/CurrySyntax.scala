@@ -7,7 +7,7 @@ protected trait CurrySyntax {
   /*
    * Support instantiating the parameter of a R ==> B via the `.curry(...)` method.
    */
-  implicit class ReuseFn1Ops[A, R, B](ra: Reuse[A])(implicit ev: A =:= (R => B)) {
+  implicit class ReuseFn1Ops[A, R, B](val ra: Reuse[A])(implicit ev: A =:= (R => B)) {
     def curry(
       r:         R
     )(implicit
@@ -23,7 +23,7 @@ protected trait CurrySyntax {
    * Support instantiating some or all of the parameters of a (R, S) ==> B via
    * the `.curry(...)` method.
    */
-  implicit class ReuseFn2Ops[A, R, S, B](ra: Reuse[A])(implicit ev: A =:= ((R, S) => B)) {
+  implicit class ReuseFn2Ops[A, R, S, B](val ra: Reuse[A])(implicit ev: A =:= ((R, S) => B)) {
     def curry(
       r:         R
     )(implicit
@@ -47,7 +47,9 @@ protected trait CurrySyntax {
   ): Reuse[(R, S) => B] =
     ra.map(f => (r, s) => ev(f)((r, s)))
 
-  implicit class ReuseFn2TupledOps[A, R, S, B](ra: Reuse[A])(implicit ev: A =:= (((R, S)) => B)) {
+  implicit class ReuseFn2TupledOps[A, R, S, B](val ra: Reuse[A])(implicit
+    ev:                                                A =:= (((R, S)) => B)
+  ) {
     def curry(r: R)(implicit reuseR: Reusability[R]): Reuse[S => B] =
       (ra: Reuse[(R, S) => B]).curry(r)
   }
@@ -56,7 +58,7 @@ protected trait CurrySyntax {
    * Support instantiating some or all of the parameters of a (R, S, T) ==> B via
    * the `.curry(...)` method.
    */
-  implicit class ReuseFn3Ops[A, R, S, T, B](ra: Reuse[A])(implicit ev: A =:= ((R, S, T) => B)) {
+  implicit class ReuseFn3Ops[A, R, S, T, B](val ra: Reuse[A])(implicit ev: A =:= ((R, S, T) => B)) {
     def curry(
       r:         R
     )(implicit
@@ -80,8 +82,8 @@ protected trait CurrySyntax {
   ): Reuse[(R, S, T) => B] =
     ra.map(f => (r, s, t) => ev(f)((r, s, t)))
 
-  implicit class ReuseFn3TupledOps[A, R, S, T, B](ra: Reuse[A])(implicit
-    ev:                                               A =:= (((R, S, T)) => B)
+  implicit class ReuseFn3TupledOps[A, R, S, T, B](val ra: Reuse[A])(implicit
+    ev:                                                   A =:= (((R, S, T)) => B)
   ) {
     def curry(r: R)(implicit reuseR: Reusability[R]): Reuse[(S, T) => B] =
       (ra: Reuse[(R, S, T) => B]).curry(r)

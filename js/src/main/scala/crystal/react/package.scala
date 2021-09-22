@@ -14,19 +14,19 @@ package object react {
   type SetState[F[_], A] = A => F[Unit]
   type ModState[F[_], A] = (A => A) => F[Unit]
 
-  type ContextComponent[S] =
+  type ContextComponent[S, B] =
     ScalaComponent[
       Reuse[VdomNode],
       S,
-      _,
+      B,
       CtorType.Props
     ]
 
-  type StateComponent[S] =
+  type StateComponent[S, B] =
     ScalaComponent[
       Reuse[ViewF[SyncIO, S] => VdomNode],
       S,
-      _,
+      B,
       CtorType.Props
     ]
 
