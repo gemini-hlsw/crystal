@@ -14,7 +14,7 @@ object StateProviderSyncIO {
       props(ViewF.fromStateSyncIO($))
   }
 
-  def apply[M](model: M)(implicit reusabilityM: Reusability[M]): StateComponent[M] =
+  def apply[M](model: M)(implicit reusabilityM: Reusability[M]): StateComponent[M, Backend[M]] =
     ScalaComponent
       .builder[Reuse[ViewF[SyncIO, M] => VdomNode]]
       .initialState(model)

@@ -16,7 +16,7 @@ object ContextProviderSyncIO {
 
   def apply[C](ctx: Ctx[SyncIO, C], initCtx: C)(implicit
     reusabilityC:   Reusability[C]
-  ): ContextComponent[C] =
+  ): ContextComponent[C, Backend[C]] =
     ScalaComponent
       .builder[Reuse[VdomNode]]
       .initialState(initCtx)

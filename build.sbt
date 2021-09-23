@@ -4,22 +4,20 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 inThisBuild(
   List(
-    scalaVersion      := "2.13.6",
-    organization      := "com.rpiaggio",
-    homepage          := Some(url("https://github.com/rpiaggio/crystal")),
+    scalaVersion       := "3.0.2",
+    crossScalaVersions := Seq("2.13.6", "3.0.2"),
+    organization       := "com.rpiaggio",
+    homepage           := Some(url("https://github.com/rpiaggio/crystal")),
     licenses += ("BSD 3-Clause", url(
       "http://opensource.org/licenses/BSD-3-Clause"
     )),
-    developers        := List(
+    developers         := List(
       Developer(
         "rpiaggio",
         "Raúl Piaggio",
         "rpiaggio@gmail.com",
         url("http://rpiaggio.com")
       )
-    ),
-    addCompilerPlugin(
-      ("org.typelevel" % "kind-projector" % "0.13.2").cross(CrossVersion.full)
     )
   )
 )
@@ -36,14 +34,6 @@ lazy val root = project
 lazy val crystal = crossProject(JVMPlatform, JSPlatform)
   .in(file("."))
   .settings(
-    scalacOptions ++= Seq(
-      "-deprecation",
-      "-feature",
-      "-Xfatal-warnings",
-      "-encoding",
-      "UTF-8"
-    ),
-    Test / scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++=
       Settings.Libraries.CatsJS.value ++
         Settings.Libraries.CatsEffectJS.value ++

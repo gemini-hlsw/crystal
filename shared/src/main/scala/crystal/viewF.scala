@@ -31,7 +31,7 @@ final class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]
     extends ViewOps[F, Id, A] { self =>
   def modAndExtract[B](f: (A => (A, B)))(implicit F: Async[F]): F[B] =
     Async[F].async { cb =>
-      mod { a: A =>
+      mod { (a: A) =>
         val (fa, b) = f(a)
         cb(b.asRight)
         fa

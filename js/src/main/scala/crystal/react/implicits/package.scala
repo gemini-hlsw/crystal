@@ -349,7 +349,7 @@ package implicits {
     private val self: StateAccess.Write[DefaultS, DefaultA, S]
   ) extends AnyVal {
     @inline def apply[A, B](lens: Lens[S, B])(a: A)(implicit conv: A => B, F: Sync[F]): F[Unit] =
-      self.modStateIn(lens.replace(a))
+      self.modStateIn(lens.replace(conv(a)))
   }
 
   protected class ModStateLApplied[F[_], S](

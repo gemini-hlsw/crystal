@@ -8,8 +8,8 @@ object arbitraries {
   implicit def arbPot[A: Arbitrary]: Arbitrary[Pot[A]] =
     Arbitrary(
       oneOf(
-        arbitrary[Long].map(Pending.apply[A]),
-        arbitrary[Throwable].map(Error.apply[A]),
+        arbitrary[Long].map(Pending.apply),
+        arbitrary[Throwable].map(Error.apply),
         arbitrary[A].map(Ready.apply)
       )
     )
