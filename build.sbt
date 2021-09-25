@@ -22,7 +22,7 @@ inThisBuild(
   )
 )
 
-lazy val root = project
+lazy val root      = project
   .in(file("."))
   .aggregate(crystalJVM, crystalJS)
   .settings(
@@ -31,7 +31,7 @@ lazy val root = project
     publishLocal := {}
   )
 
-lazy val crystal = crossProject(JVMPlatform, JSPlatform)
+lazy val crystal   = crossProject(JVMPlatform, JSPlatform)
   .in(file("."))
   .settings(
     libraryDependencies ++=

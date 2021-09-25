@@ -17,7 +17,7 @@ class Hold[F[_]: Async, A](
   cancelToken: Ref[F, Option[F[Unit]]],
   buffer:      Ref[F, Option[A]]
 ) {
-  def set(a: A): F[Unit] =
+  def set(a: A): F[Unit]               =
     cancelToken.get.flatMap(
       _.fold(setter(a))(_ => buffer.set(a.some))
     )
