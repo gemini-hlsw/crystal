@@ -267,7 +267,7 @@ package object implicits {
   @inline implicit def syncIOToCB[A](s: SyncIO[A]): DefaultS[A] =
     s.toCB
 
-  @inline implicit def syncIOToUndefOrCB[A](s: SyncIO[A]): js.UndefOr[DefaultS[A]]     =
+  @inline implicit def syncIOToUndefOrCB[A](s: SyncIO[A]): js.UndefOr[DefaultS[A]] =
     syncIOToCB(s)
 
   @inline implicit def syncIOFnToUndefOrCBFn[A, B](
@@ -295,7 +295,7 @@ package object implicits {
       }
   }
 
-  implicit def throwableReusability: Reusability[Throwable]                            =
+  implicit def throwableReusability: Reusability[Throwable] =
     Reusability.byRef[Throwable]
 
   implicit def potReusability[A: Reusability](implicit
@@ -321,16 +321,16 @@ package object implicits {
       }
     )
 
-  implicit def viewReusability[F[_], A: Reusability]: Reusability[ViewF[F, A]]         =
+  implicit def viewReusability[F[_], A: Reusability]: Reusability[ViewF[F, A]] =
     Reusability.by(_.get)
 
-  implicit def viewOptReusability[F[_], A: Reusability]: Reusability[ViewOptF[F, A]]   =
+  implicit def viewOptReusability[F[_], A: Reusability]: Reusability[ViewOptF[F, A]] =
     Reusability.by(_.get)
 
   implicit def viewListReusability[F[_], A: Reusability]: Reusability[ViewListF[F, A]] =
     Reusability.by(_.get)
 
-  implicit class ViewFModuleOps(private val viewFModule: ViewF.type)               extends AnyVal {
+  implicit class ViewFModuleOps(private val viewFModule: ViewF.type) extends AnyVal {
     def fromStateSyncIO: FromStateViewSyncIO = new FromStateViewSyncIO
   }
 
