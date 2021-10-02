@@ -47,10 +47,10 @@ sealed trait Pot[+A] {
 final case class Pending(start: Long = System.currentTimeMillis()) extends Pot[Nothing] {
   def valueCast[B]: Pot[B] = asInstanceOf[Pot[B]]
 }
-final case class Error(t: Throwable) extends Pot[Nothing] {
+final case class Error(t: Throwable)                               extends Pot[Nothing] {
   def valueCast[B]: Pot[B] = asInstanceOf[Pot[B]]
 }
-final case class Ready[+A](value: A) extends Pot[A]
+final case class Ready[+A](value: A)                               extends Pot[A]
 
 object Pot {
   def apply[A](a: A): Pot[A] = Ready(a)

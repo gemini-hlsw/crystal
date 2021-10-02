@@ -5,7 +5,7 @@ import Arbitrary._
 import Gen._
 
 object arbitraries {
-  implicit def arbPot[A: Arbitrary]: Arbitrary[Pot[A]]                                   =
+  implicit def arbPot[A: Arbitrary]: Arbitrary[Pot[A]] =
     Arbitrary(
       oneOf(
         arbitrary[Long].map(Pending.apply),

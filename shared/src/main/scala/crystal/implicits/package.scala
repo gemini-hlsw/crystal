@@ -17,7 +17,7 @@ package object implicits {
     def orUnit: F[Unit] = opt.getOrElse(Applicative[F].unit)
   }
 
-  object throwable                                                                {
+  object throwable {
     // Copied from cats-effect-laws utils.
     implicit val eqThrowable: Eq[Throwable] =
       new Eq[Throwable] {
@@ -85,9 +85,9 @@ package object implicits {
     override def flatMap[A, B](fa: Pot[A])(f: A => Pot[B]): Pot[B] =
       fa.flatMap(f)
 
-    override def raiseError[A](t: Throwable): Pot[A]               = Error(t)
+    override def raiseError[A](t: Throwable): Pot[A] = Error(t)
 
-    override def handleErrorWith[A](fa: Pot[A])(f: Throwable => Pot[A]): Pot[A]                =
+    override def handleErrorWith[A](fa: Pot[A])(f: Throwable => Pot[A]): Pot[A] =
       fa match {
         case Error(t) => f(t)
         case _        => fa
@@ -102,7 +102,7 @@ package object implicits {
         case Ready(a)          => F.map(f(a))(Ready(_))
       }
 
-    override def foldLeft[A, B](fa: Pot[A], b: B)(f: (B, A) => B): B                           =
+    override def foldLeft[A, B](fa: Pot[A], b: B)(f: (B, A) => B): B =
       fa match {
         case Pending(_) => b
         case Error(_)   => b
@@ -116,9 +116,9 @@ package object implicits {
         case Ready(a)   => f(a, lb)
       }
 
-    override def functor: Functor[Pot]                                                         = this
+    override def functor: Functor[Pot] = this
 
-    override def align[A, B](fa: Pot[A], fb: Pot[B]): Pot[Ior[A, B]]                   =
+    override def align[A, B](fa: Pot[A], fb: Pot[B]): Pot[Ior[A, B]] =
       alignWith(fa, fb)(identity)
 
     override def alignWith[A, B, C](fa: Pot[A], fb: Pot[B])(f: Ior[A, B] => C): Pot[C] =

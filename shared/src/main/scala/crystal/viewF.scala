@@ -94,7 +94,7 @@ final class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]
       (modF, cb) => modCB(modF, a => f(a) >> cb(a))
     )
 
-  override def toString(): String             = s"ViewF($get, <modFn>)"
+  override def toString(): String = s"ViewF($get, <modFn>)"
 }
 
 object ViewF {
@@ -164,7 +164,7 @@ abstract class ViewOptF[F[_]: Monad, A](
         self.modAndGet(f)
     }
 
-  override def toString(): String                        = s"ViewOptF($get, <modFn>)"
+  override def toString(): String = s"ViewOptF($get, <modFn>)"
 }
 
 abstract class ViewListF[F[_]: Monad, A](
@@ -225,5 +225,5 @@ abstract class ViewListF[F[_]: Monad, A](
         self.modAndGet(f)
     }
 
-  override def toString(): String                       = s"ViewListF($get, <modFn>)"
+  override def toString(): String = s"ViewListF($get, <modFn>)"
 }

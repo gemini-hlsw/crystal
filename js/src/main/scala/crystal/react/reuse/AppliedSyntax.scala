@@ -8,7 +8,7 @@ protected trait AppliedSyntax {
   /*
    * Supports construction via the pattern `Reuse(reusedValue).by(valueWithReusability)`
    */
-  class Applied[A](valueA: => A)                                                                   {
+  class Applied[A](valueA: => A) {
     val value: () => A = () => valueA
 
     def by[R](reuseByR: R)(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): Reuse[A] =
@@ -17,7 +17,7 @@ protected trait AppliedSyntax {
     def always: Reuse[A] = Reuse.by(())(valueA)
   }
 
-  implicit class AppliedFn2Ops[A, R, S, B](aa: Applied[A])(implicit ev: A =:= ((R, S) => B))       {
+  implicit class AppliedFn2Ops[A, R, S, B](aa: Applied[A])(implicit ev: A =:= ((R, S) => B)) {
     /*
      * Given a (R, S) => B, instantiate R and build a S ==> B.
      */
