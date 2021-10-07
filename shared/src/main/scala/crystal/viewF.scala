@@ -94,6 +94,8 @@ final class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]
       (modF, cb) => modCB(modF, a => f(a) >> cb(a))
     )
 
+  def widen[B >: A]: ViewF[F, B] = self.asInstanceOf[ViewF[F, B]]
+
   override def toString(): String = s"ViewF($get, <modFn>)"
 }
 
@@ -164,6 +166,8 @@ abstract class ViewOptF[F[_]: Monad, A](
         self.modAndGet(f)
     }
 
+  def widen[B >: A]: ViewOptF[F, B] = self.asInstanceOf[ViewOptF[F, B]]
+
   override def toString(): String = s"ViewOptF($get, <modFn>)"
 }
 
@@ -224,6 +228,8 @@ abstract class ViewListF[F[_]: Monad, A](
       def modAndGet(f: A => A)(implicit F: Async[F]): F[List[A]] =
         self.modAndGet(f)
     }
+
+  def widen[B >: A]: ViewListF[F, B] = self.asInstanceOf[ViewListF[F, B]]
 
   override def toString(): String = s"ViewListF($get, <modFn>)"
 }
