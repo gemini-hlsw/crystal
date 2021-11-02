@@ -5,7 +5,6 @@ import crystal.react.reuse.Reuse
 import cats.MonadError
 import cats.effect.Sync
 import cats.effect.Async
-import cats.effect.SyncIO
 import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import japgolly.scalajs.react._
@@ -16,11 +15,13 @@ import monocle.Lens
 import org.typelevel.log4cats.Logger
 
 import scala.util.control.NonFatal
-import scalajs.js
+import japgolly.scalajs.react.util.Effect.UnsafeSync
 
 package object implicits {
-  implicit class DefaultSToOps[A](private val self: DefaultS[A]) {
-    @inline def to[F[_]: Sync]: F[A] = Sync[F].delay(self.runNow())
+  implicit class DefaultSToOps[A](private val self: DefaultS[A])(implicit
+    dispatch:                                       UnsafeSync[DefaultS]
+  ) {
+    @inline def to[F[_]: Sync]: F[A] = Sync[F].delay(dispatch.runSync(self))
 
     @inline def toStream[F[_]: Sync]: fs2.Stream[F, A] =
       fs2.Stream.eval(self.to[F])
@@ -40,18 +41,6 @@ package object implicits {
     def stateIn[F[_]: Sync]: F[S] = self.state.to[F]
   }
 
-  implicit class ModStateSyncIOOps[S](
-    private val self: StateAccess[DefaultS, DefaultA, S]
-  ) extends AnyVal {
-    // I can't find a generic way to run a `Sync`, which is needed to execute the callback,
-    // so these are only available for SyncIO.
-    def setStateInSyncIO(s: S, cb: S => SyncIO[Unit]): SyncIO[Unit] =
-      self.setState(s, self.state >>= (r => DefaultS.delay(cb(r).unsafeRunSync()))).to[SyncIO]
-
-    def modStateInSyncIO(f: S => S, cb: S => SyncIO[Unit]): SyncIO[Unit] =
-      self.modState(f, self.state >>= (r => DefaultS.delay(cb(r).unsafeRunSync()))).to[SyncIO]
-  }
-
   implicit class ModStateFOps[S](
     private val self: StateAccess.Write[DefaultS, DefaultA, S]
   ) extends AnyVal {
@@ -65,14 +54,15 @@ package object implicits {
       *
       * Provides access only to state.
       */
-    def setStateAsyncIn[F[_]: Async](s: S): F[Unit] =
+    def setStateAsyncIn[F[_]: Async](s: S)(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
       Async[F].async_[Unit] { cb =>
         val doMod = self.setState(s, DefaultS.delay(cb(Right(()))))
-        doMod
-          .maybeHandleError { case NonFatal(t) =>
-            DefaultS.delay(cb(Left(t)))
-          }
-          .runNow()
+        dispatch.runSync(
+          doMod
+            .maybeHandleError { case NonFatal(t) =>
+              DefaultS.delay(cb(Left(t)))
+            }
+        )
       }
 
     /** Like `modState` but completes with a `Unit` value *after* the state modification has been
@@ -81,14 +71,17 @@ package object implicits {
       *
       * Provides access only to state.
       */
-    def modStateAsyncIn[F[_]: Async](mod: S => S): F[Unit] =
+    def modStateAsyncIn[F[_]: Async](
+      mod:               S => S
+    )(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
       Async[F].async_[Unit] { asyncCB =>
         val doMod = self.modState(mod, DefaultS.delay(asyncCB(Right(()))))
-        doMod
-          .maybeHandleError { case NonFatal(t) =>
-            DefaultS.delay(asyncCB(Left(t)))
-          }
-          .runNow()
+        dispatch.runSync(
+          doMod
+            .maybeHandleError { case NonFatal(t) =>
+              DefaultS.delay(asyncCB(Left(t)))
+            }
+        )
       }
 
     def setStateLIn[F[_]]: SetStateLApplied[F, S] =
@@ -109,15 +102,16 @@ package object implicits {
       * Provides access to both state and props.
       */
     def modStateWithPropsIn[F[_]: Async](
-      mod: (S, P) => S
-    ): F[Unit] =
+      mod:               (S, P) => S
+    )(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
       Async[F].async_[Unit] { cb =>
         val doMod = self.modState(mod, DefaultS.delay(cb(Right(()))))
-        doMod
-          .maybeHandleError { case NonFatal(t) =>
-            DefaultS.delay(cb(Left(t)))
-          }
-          .runNow()
+        dispatch.runSync(
+          doMod
+            .maybeHandleError { case NonFatal(t) =>
+              DefaultS.delay(cb(Left(t)))
+            }
+        )
       }
   }
 
@@ -128,7 +122,7 @@ package object implicits {
       * @param cb
       *   Result handler returning a `F[Unit]`.
       */
-    def runAsyncCB(
+    def runAsync(
       cb:         Either[Throwable, A] => F[Unit]
     )(implicit F: MonadError[F, Throwable], dispatcher: Dispatcher[F]): DefaultS[Unit] =
       DefaultS.delay(dispatcher.unsafeRunAndForget(self.attempt.flatMap(cb)))
@@ -138,33 +132,21 @@ package object implicits {
       * @param cb
       *   Result handler returning a `DefaultS[Unit]`.
       */
-    def runAsyncAndThenCB(
-      cb:         Either[Throwable, A] => DefaultS[Unit]
-    )(implicit F: Sync[F], dispatcher: Dispatcher[F]): DefaultS[Unit] =
-      runAsyncCB(cb.andThen(c => F.delay(c.runNow())))
+    def runAsyncAndThen(
+      cb:          Either[Throwable, A] => DefaultS[Unit]
+    )(implicit
+      F:           Sync[F],
+      dispatcherF: Dispatcher[F],
+      dispatchS:   UnsafeSync[DefaultS]
+    ): DefaultS[Unit] =
+      runAsync(cb.andThen(c => F.delay(dispatchS.runSync(c))))
 
     /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously and discard the
       * result or errors.
       */
-    def runAsyncAndForgetCB(implicit
-      F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F]
-    ): DefaultS[Unit] =
-      self.runAsyncCB(_ => F.unit)
-
-    def runAsync(
-      cb:         Either[Throwable, A] => F[Unit]
-    )(implicit F: MonadError[F, Throwable], dispatcher: Dispatcher[F]): SyncIO[Unit] =
-      SyncIO(dispatcher.unsafeRunAndForget(self.attempt.flatMap(cb)))
-
-    def runAsyncAndThen(
-      cb:         Either[Throwable, A] => DefaultS[Unit]
-    )(implicit F: Sync[F], dispatcher: Dispatcher[F]): DefaultS[Unit] =
-      runAsync(cb.andThen(c => F.delay(c.runNow())))
-
     def runAsyncAndForget(implicit
-      F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F]
+      F:           MonadError[F, Throwable],
+      dispatcherF: Dispatcher[F]
     ): DefaultS[Unit] =
       self.runAsync(_ => F.unit)
   }
@@ -177,15 +159,15 @@ package object implicits {
       * @param cb
       *   `F[Unit]` to run in case of success.
       */
-    def runAsyncAndThenFCB(
+    def runAsyncAndThenF(
       cb:         F[Unit],
-      errorMsg:   String = "Error in F[Unit].runAsyncAndThen"
+      errorMsg:   String = "Error in F[Unit].runAsyncAndThenF"
     )(implicit
       F:          MonadError[F, Throwable],
       dispatcher: Dispatcher[F],
       logger:     Logger[F]
     ): DefaultS[Unit] =
-      new EffectAOps(self).runAsyncCB {
+      new EffectAOps(self).runAsync {
         case Right(()) => cb
         case Left(t)   => logger.error(t)(errorMsg)
       }
@@ -196,84 +178,36 @@ package object implicits {
       * @param cb
       *   `DefaultS[Unit]` to run in case of success.
       */
-    def runAsyncAndThenCB(
-      cb:         DefaultS[Unit],
-      errorMsg:   String = "Error in F[Unit].runAsyncAndThenCB"
-    )(implicit F: Sync[F], dispatcher: Dispatcher[F], logger: Logger[F]): DefaultS[Unit] =
-      runAsyncAndThenFCB(F.delay(cb.runNow()), errorMsg)
+    def runAsyncAndThen(
+      cb:          DefaultS[Unit],
+      errorMsg:    String = "Error in F[Unit].runAsyncAndThen"
+    )(implicit
+      F:           Sync[F],
+      dispatcherF: Dispatcher[F],
+      logger:      Logger[F],
+      dispatchS:   UnsafeSync[DefaultS]
+    ): DefaultS[Unit] =
+      runAsyncAndThenF(F.delay(dispatchS.runSync(cb)), errorMsg)
 
     /** Return a `DefaultS[Unit]` that will run the effect F[Unit] asynchronously and log possible
       * errors.
       */
-    def runAsyncCB(
-      errorMsg:   String = "Error in F[Unit].runAsyncCB"
-    )(implicit
-      F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F],
-      logger:     Logger[F]
-    ): DefaultS[Unit] =
-      runAsyncAndThenFCB(F.unit, errorMsg)
-
-    def runAsyncCB(implicit
-      F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F],
-      logger:     Logger[F]
-    ): DefaultS[Unit] =
-      runAsyncCB()
-
-    def runAsyncAndThenF(
-      cb:         F[Unit],
-      errorMsg:   String = "Error in F[Unit].runAsyncAndThen"
-    )(implicit
-      F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F],
-      logger:     Logger[F]
-    ): SyncIO[Unit] =
-      new EffectAOps(self).runAsync {
-        case Right(()) => cb
-        case Left(t)   => logger.error(t)(errorMsg)
-      }
-
-    def runAsyncAndThen(
-      cb:         SyncIO[Unit],
-      errorMsg:   String = "Error in F[Unit].runAsyncAndThenCB"
-    )(implicit F: Sync[F], dispatcher: Dispatcher[F], logger: Logger[F]): SyncIO[Unit] =
-      runAsyncAndThenF(F.delay(cb.unsafeRunSync()), errorMsg)
-
     def runAsync(
-      errorMsg:   String = "Error in F[Unit].runAsyncCB"
+      errorMsg:   String = "Error in F[Unit].runAsync"
     )(implicit
       F:          MonadError[F, Throwable],
       dispatcher: Dispatcher[F],
       logger:     Logger[F]
-    ): SyncIO[Unit] =
+    ): DefaultS[Unit] =
       runAsyncAndThenF(F.unit, errorMsg)
 
     def runAsync(implicit
       F:          MonadError[F, Throwable],
       dispatcher: Dispatcher[F],
       logger:     Logger[F]
-    ): SyncIO[Unit] =
+    ): DefaultS[Unit] =
       runAsync()
   }
-
-  // I can't find a generic way to run a `Sync`, so these are only available for SyncIO.
-  implicit class SyncIO2DefaultS[A](private val s: SyncIO[A]) extends AnyVal {
-    @inline def toCB: DefaultS[A] = DefaultS.delay(s.unsafeRunSync())
-
-    @inline def to[F[_]: Async]: F[A] = Async[F].delay(s.unsafeRunSync())
-  }
-
-  @inline implicit def syncIOToCB[A](s: SyncIO[A]): DefaultS[A] =
-    s.toCB
-
-  @inline implicit def syncIOToUndefOrCB[A](s: SyncIO[A]): js.UndefOr[DefaultS[A]] =
-    syncIOToCB(s)
-
-  @inline implicit def syncIOFnToUndefOrCBFn[A, B](
-    f: A => SyncIO[B]
-  ): js.UndefOr[A => DefaultS[B]] =
-    (a: A) => syncIOToCB(f(a))
 
   implicit class PotRender[A](val pot: Pot[A]) extends AnyVal {
     def renderPending(f: Long => VdomNode): VdomNode =
@@ -331,7 +265,7 @@ package object implicits {
     Reusability.by(_.get)
 
   implicit class ViewFModuleOps(private val viewFModule: ViewF.type) extends AnyVal {
-    def fromStateSyncIO: FromStateViewSyncIO = new FromStateViewSyncIO
+    def fromState: FromStateView = new FromStateView
   }
 
   implicit class ViewFReuseOps[F[_], G[_], A](private val viewF: ViewOps[F, G, A]) extends AnyVal {

@@ -1,7 +1,5 @@
 package crystal
 
-import cats.effect.SyncIO
-import crystal.react.implicits._
 import crystal.react.reuse.Reuse
 import cats.effect.Async
 import cats.effect.std.Dispatcher
@@ -9,8 +7,10 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA, Sync => DefaultS }
 import org.typelevel.log4cats.Logger
+import cats.Monad
+import japgolly.scalajs.react.util.Effect.UnsafeSync
 
-package object react {
+package object react  {
   type SetState[F[_], A] = A => F[Unit]
   type ModState[F[_], A] = (A => A) => F[Unit]
 
@@ -24,7 +24,7 @@ package object react {
 
   type StateComponent[S, B] =
     ScalaComponent[
-      Reuse[ViewF[SyncIO, S] => VdomNode],
+      Reuse[ViewF[DefaultS, S] => VdomNode],
       S,
       B,
       CtorType.Props
@@ -42,10 +42,14 @@ package object react {
 }
 
 package react {
-  import cats.effect.SyncIO
-
-  class FromStateViewSyncIO {
-    def apply[F[_], A[_], S]($ : StateAccess[DefaultS, DefaultA, S]): ViewF[SyncIO, S] =
-      ViewF($.state.runNow(), (f, cb) => $.modStateInSyncIO(f, cb))
+  class FromStateView {
+    def apply[S]($ : StateAccess[DefaultS, DefaultA, S])(implicit
+      DefaultS:      Monad[DefaultS],
+      dispatch:      UnsafeSync[DefaultS]
+    ): ViewF[DefaultS, S] =
+      ViewF[DefaultS, S](
+        dispatch.runSync($.state),
+        (f, cb) => $.modState(f, $.state.flatMap(cb))
+      )
   }
 }

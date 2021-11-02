@@ -3,7 +3,8 @@ package crystal.react
 import crystal._
 import crystal.react.implicits._
 import cats.syntax.all._
-import cats.effect._
+import cats.effect.{ Async, Sync }
+import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
 import cats.effect.std.Dispatcher
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react.{ Ref => _, _ }
@@ -12,10 +13,11 @@ import org.typelevel.log4cats.Logger
 import crystal.react.reuse._
 
 import scala.concurrent.duration.FiniteDuration
+import japgolly.scalajs.react.util.Effect.UnsafeSync
 
 object StreamRendererMod {
 
-  type Props[A] = Pot[ViewF[SyncIO, A]] ==> VdomNode
+  type Props[A] = Pot[ViewF[DefaultS, A]] ==> VdomNode
 
   type State[A]     = Pot[A]
   type Component[A] =
@@ -30,14 +32,16 @@ object StreamRendererMod {
     stream:       fs2.Stream[F, A],
     holdAfterMod: Option[FiniteDuration] = None
   )(implicit
+    DefaultS:     Sync[DefaultS],
+    dispatch:     UnsafeSync[DefaultS],
     reuse:        Reusability[A] /* Used to derive Reusability[State[A]] */
   ): Component[A] = {
     class Backend($ : BackendScope[Props[A], State[A]])
         extends StreamRendererBackend[F, A](stream) {
 
       val hold: Hold[F, Pot[A]] =
-        Hold($.setStateIn[F], holdAfterMod)
-          .unsafeRunSync() // We cannot initialize the Backend effectfully, so we do this.
+        // We cannot initialize the Backend effectfully, so we do this.
+        dispatch.runSync(Hold($.setStateIn[F], holdAfterMod))
 
       override protected val directSetState: Pot[A] => F[Unit] = $.setStateIn[F]
 
@@ -51,13 +55,13 @@ object StreamRendererMod {
       ): VdomNode =
         props(
           state.map(a =>
-            ViewF[SyncIO, A](
+            ViewF[DefaultS, A](
               a,
-              (f: A => A, cb: A => SyncIO[Unit]) =>
+              (f: A => A, cb: A => DefaultS[Unit]) =>
                 hold.enable.runAsync.flatMap(_ =>
                   // I'm not very happy about the cast.
                   // However, this is only executed when the pot is ready, so the cast should be safe.
-                  $.modStateInSyncIO(_.map(f), pot => cb(pot.asInstanceOf[Ready[A]].value))
+                  $.modState(_.map(f), $.state.flatMap(pot => cb(pot.asInstanceOf[Ready[A]].value)))
                 )
             )
           )
