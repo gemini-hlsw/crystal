@@ -29,8 +29,8 @@ abstract class StreamRendererBackend[F[_]: Async: Dispatcher: Logger, A](stream:
       }
       .start
       .map(fiber => cancelToken = fiber.cancel.some)
-      .runAsyncCB
+      .runAsync
 
   def stopUpdates: Callback =
-    cancelToken.map(_.runAsyncCB).getOrEmpty
+    cancelToken.map(_.runAsync).getOrEmpty
 }

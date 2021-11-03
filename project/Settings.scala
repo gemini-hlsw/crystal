@@ -22,10 +22,9 @@ object Settings {
 
     val ReactScalaJS = Def.setting(
       Seq(
-        "com.github.japgolly.scalajs-react" %%% "core"               % scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "core-bundle-cb_io"  % scalajsReact,
         "com.github.japgolly.scalajs-react" %%% "extra"              % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "extra-ext-monocle3" % scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "core-ext-cats"      % scalajsReact
+        "com.github.japgolly.scalajs-react" %%% "extra-ext-monocle3" % scalajsReact
       )
     )
 

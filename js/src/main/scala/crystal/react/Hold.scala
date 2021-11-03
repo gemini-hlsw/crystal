@@ -1,11 +1,12 @@
 package crystal.react
 
 import crystal.implicits._
-import cats.effect._
+import cats.effect.{ Async, Sync }
 import cats.syntax.all._
 import cats.effect.implicits._
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.{ Ref, Temporal }
+import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
 
 /** Encapsulates an effectful `setter`. When `enable` is called, calls to `setter` will be delayed
   * for `duration`. Each call to `enable` resets the internal timer, i.e: `duration` is guaranteed
@@ -39,11 +40,11 @@ class Hold[F[_]: Async, A](
 
 object Hold {
   def apply[F[_]: Async, A](
-    setter:   A => F[Unit],
-    duration: Option[FiniteDuration]
-  ): SyncIO[Hold[F, A]] =
+    setter:            A => F[Unit],
+    duration:          Option[FiniteDuration]
+  )(implicit DefaultS: Sync[DefaultS]): DefaultS[Hold[F, A]] =
     for {
-      cancelToken <- Ref.in[SyncIO, F, Option[F[Unit]]](none)
-      buffer      <- Ref.in[SyncIO, F, Option[A]](none)
+      cancelToken <- Ref.in[DefaultS, F, Option[F[Unit]]](none)
+      buffer      <- Ref.in[DefaultS, F, Option[A]](none)
     } yield new Hold(setter, duration, cancelToken, buffer)
 }
