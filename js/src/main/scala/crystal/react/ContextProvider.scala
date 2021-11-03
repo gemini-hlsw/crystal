@@ -6,19 +6,15 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import crystal.react.reuse.Reuse
 import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
-import cats.Monad
 
 object ContextProvider {
 
-  class Backend[C](ctx: Ctx[DefaultS, C])($ : BackendScope[Reuse[VdomNode], C])(implicit
-    DefaultS:           Monad[DefaultS]
-  ) {
+  class Backend[C](ctx: Ctx[DefaultS, C])($ : BackendScope[Reuse[VdomNode], C]) {
     def render(props: Reuse[VdomNode]) =
       ctx.provide(ViewF.fromState($))(props)
   }
 
   def apply[C](ctx: Ctx[DefaultS, C], initCtx: C)(implicit
-    DefaultS:       Monad[DefaultS],
     reusabilityC:   Reusability[C]
   ): ContextComponent[C, Backend[C]] =
     ScalaComponent
