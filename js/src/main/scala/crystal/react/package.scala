@@ -7,7 +7,6 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA, Sync => DefaultS }
 import org.typelevel.log4cats.Logger
-import cats.Monad
 import japgolly.scalajs.react.util.Effect.UnsafeSync
 
 package object react  {
@@ -44,7 +43,6 @@ package object react  {
 package react {
   class FromStateView {
     def apply[S]($ : StateAccess[DefaultS, DefaultA, S])(implicit
-      DefaultS:      Monad[DefaultS],
       dispatch:      UnsafeSync[DefaultS]
     ): ViewF[DefaultS, S] =
       ViewF[DefaultS, S](
