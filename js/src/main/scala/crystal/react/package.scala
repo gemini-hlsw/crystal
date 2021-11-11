@@ -1,14 +1,14 @@
 package crystal
 
-import crystal.react.reuse.Reuse
 import cats.effect.Async
-import cats.effect.std.Dispatcher
+import crystal.react.reuse.Reuse
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.VdomNode
-import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA, Sync => DefaultS }
-import org.typelevel.log4cats.Logger
-import japgolly.scalajs.react.util.Effect.UnsafeSync
+import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
+import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
 import japgolly.scalajs.react.util.Effect
+import japgolly.scalajs.react.util.Effect.UnsafeSync
+import japgolly.scalajs.react.vdom.VdomNode
+import org.typelevel.log4cats.Logger
 
 package object react  {
   type SetState[F[_], A] = A => F[Unit]

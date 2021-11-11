@@ -1,22 +1,22 @@
 package crystal.react
 
+import cats.MonadError
+import cats.effect.Async
+import cats.effect.Sync
+import cats.syntax.all._
 import crystal._
 import crystal.react.reuse.Reuse
-import cats.MonadError
-import cats.effect.Sync
-import cats.effect.Async
-import cats.effect.std.Dispatcher
-import cats.syntax.all._
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.component.Generic.MountedSimple
-import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA, Sync => DefaultS }
+import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
+import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
+import japgolly.scalajs.react.util.Effect
+import japgolly.scalajs.react.util.Effect.UnsafeSync
+import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
 import org.typelevel.log4cats.Logger
 
 import scala.util.control.NonFatal
-import japgolly.scalajs.react.util.Effect.UnsafeSync
-import japgolly.scalajs.react.util.Effect
 
 package object implicits {
   implicit class DefaultSToOps[A](private val self: DefaultS[A])(implicit

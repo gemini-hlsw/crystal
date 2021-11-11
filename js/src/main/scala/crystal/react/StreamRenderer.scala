@@ -1,7 +1,6 @@
 package crystal.react
 
 import cats.effect._
-import cats.effect.std.Dispatcher
 import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._

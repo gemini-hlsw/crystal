@@ -5,7 +5,6 @@ import crystal.implicits._
 import crystal.react.implicits._
 import cats.effect._
 import cats.effect.syntax.all._
-import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import japgolly.scalajs.react._
 import org.typelevel.log4cats.Logger

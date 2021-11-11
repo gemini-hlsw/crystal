@@ -1,10 +1,10 @@
 package crystal.react
 
 import cats.syntax.all._
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
-import japgolly.scalajs.react.feature.Context
 import crystal.ViewF
+import japgolly.scalajs.react._
+import japgolly.scalajs.react.feature.Context
+import japgolly.scalajs.react.vdom.html_<^._
 
 class Ctx[F[_], C] {
   private val ctx: Context[Option[ViewF[F, C]]] = React.createContext(none)

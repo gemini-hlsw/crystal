@@ -1,11 +1,12 @@
 package crystal.react
 
 import crystal.ViewF
-import implicits._
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
 import crystal.react.reuse.Reuse
+import japgolly.scalajs.react._
 import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
+import japgolly.scalajs.react.vdom.html_<^._
+
+import implicits._
 
 object ContextProvider {
 
