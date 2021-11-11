@@ -9,8 +9,11 @@ import cats.effect.std.Dispatcher
 import cats.syntax.all._
 import japgolly.scalajs.react._
 import org.typelevel.log4cats.Logger
+import japgolly.scalajs.react.util.Effect
 
-abstract class StreamRendererBackend[F[_]: Async: Dispatcher: Logger, A](stream: fs2.Stream[F, A]) {
+abstract class StreamRendererBackend[F[_]: Async: Effect.Dispatch: Logger, A](
+  stream: fs2.Stream[F, A]
+) {
   type CancelToken = F[Unit]
   private var cancelToken: Option[CancelToken] = None
 

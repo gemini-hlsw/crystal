@@ -4,21 +4,22 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 inThisBuild(
   List(
-    scalaVersion       := "3.1.0",
-    crossScalaVersions := Seq("2.13.7", "3.1.0"),
-    organization       := "com.rpiaggio",
-    homepage           := Some(url("https://github.com/rpiaggio/crystal")),
+    scalaVersion                                   := "3.1.0",
+    crossScalaVersions                             := Seq("2.13.7", "3.1.0"),
+    organization                                   := "com.rpiaggio",
+    homepage                                       := Some(url("https://github.com/rpiaggio/crystal")),
     licenses += ("BSD 3-Clause", url(
       "http://opensource.org/licenses/BSD-3-Clause"
     )),
-    developers         := List(
+    developers                                     := List(
       Developer(
         "rpiaggio",
         "Raúl Piaggio",
         "rpiaggio@gmail.com",
         url("http://rpiaggio.com")
       )
-    )
+    ),
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
   )
 )
 

@@ -14,6 +14,7 @@ import crystal.react.reuse._
 
 import scala.concurrent.duration.FiniteDuration
 import japgolly.scalajs.react.util.Effect.UnsafeSync
+import japgolly.scalajs.react.util.Effect
 
 object StreamRendererMod {
 
@@ -28,7 +29,7 @@ object StreamRendererMod {
       _
     ]]
 
-  def build[F[_]: Async: Dispatcher: Logger, A](
+  def build[F[_]: Async: Effect.Dispatch: Logger, A](
     stream:       fs2.Stream[F, A],
     holdAfterMod: Option[FiniteDuration] = None
   )(implicit

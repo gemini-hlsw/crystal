@@ -16,6 +16,7 @@ import org.typelevel.log4cats.Logger
 
 import scala.util.control.NonFatal
 import japgolly.scalajs.react.util.Effect.UnsafeSync
+import japgolly.scalajs.react.util.Effect
 
 package object implicits {
   implicit class DefaultSToOps[A](private val self: DefaultS[A])(implicit
@@ -124,8 +125,8 @@ package object implicits {
       */
     def runAsync(
       cb:         Either[Throwable, A] => F[Unit]
-    )(implicit F: MonadError[F, Throwable], dispatcher: Dispatcher[F]): DefaultS[Unit] =
-      DefaultS.delay(dispatcher.unsafeRunAndForget(self.attempt.flatMap(cb)))
+    )(implicit F: MonadError[F, Throwable], dispatcher: Effect.Dispatch[F]): DefaultS[Unit] =
+      DefaultS.delay(dispatcher.dispatch(self.attempt.flatMap(cb)))
 
     /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously.
       *
@@ -136,7 +137,7 @@ package object implicits {
       cb:          Either[Throwable, A] => DefaultS[Unit]
     )(implicit
       F:           Sync[F],
-      dispatcherF: Dispatcher[F],
+      dispatcherF: Effect.Dispatch[F],
       dispatchS:   UnsafeSync[DefaultS]
     ): DefaultS[Unit] =
       runAsync(cb.andThen(c => F.delay(dispatchS.runSync(c))))
@@ -146,7 +147,7 @@ package object implicits {
       */
     def runAsyncAndForget(implicit
       F:           MonadError[F, Throwable],
-      dispatcherF: Dispatcher[F]
+      dispatcherF: Effect.Dispatch[F]
     ): DefaultS[Unit] =
       self.runAsync(_ => F.unit)
   }
@@ -164,7 +165,7 @@ package object implicits {
       errorMsg:   String = "Error in F[Unit].runAsyncAndThenF"
     )(implicit
       F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F],
+      dispatcher: Effect.Dispatch[F],
       logger:     Logger[F]
     ): DefaultS[Unit] =
       new EffectAOps(self).runAsync {
@@ -183,7 +184,7 @@ package object implicits {
       errorMsg:    String = "Error in F[Unit].runAsyncAndThen"
     )(implicit
       F:           Sync[F],
-      dispatcherF: Dispatcher[F],
+      dispatcherF: Effect.Dispatch[F],
       logger:      Logger[F],
       dispatchS:   UnsafeSync[DefaultS]
     ): DefaultS[Unit] =
@@ -196,14 +197,14 @@ package object implicits {
       errorMsg:   String = "Error in F[Unit].runAsync"
     )(implicit
       F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F],
+      dispatcher: Effect.Dispatch[F],
       logger:     Logger[F]
     ): DefaultS[Unit] =
       runAsyncAndThenF(F.unit, errorMsg)
 
     def runAsync(implicit
       F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F],
+      dispatcher: Effect.Dispatch[F],
       logger:     Logger[F]
     ): DefaultS[Unit] =
       runAsync()
