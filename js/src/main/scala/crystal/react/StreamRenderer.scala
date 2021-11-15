@@ -1,14 +1,14 @@
 package crystal.react
 
 import cats.effect._
-import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
-import org.typelevel.log4cats.Logger
 import crystal._
 import crystal.react.implicits._
 import crystal.react.reuse._
+import japgolly.scalajs.react._
+import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
 import japgolly.scalajs.react.util.Effect
+import japgolly.scalajs.react.vdom.html_<^._
+import org.typelevel.log4cats.Logger
 
 object StreamRenderer {
   type Props[A]     = Pot[A] ==> VdomNode

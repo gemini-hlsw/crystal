@@ -1,14 +1,14 @@
 package crystal.react
 
-import crystal._
-import crystal.implicits._
-import crystal.react.implicits._
 import cats.effect._
 import cats.effect.syntax.all._
 import cats.syntax.all._
+import crystal._
+import crystal.implicits._
+import crystal.react.implicits._
 import japgolly.scalajs.react._
-import org.typelevel.log4cats.Logger
 import japgolly.scalajs.react.util.Effect
+import org.typelevel.log4cats.Logger
 
 abstract class StreamRendererBackend[F[_]: Async: Effect.Dispatch: Logger, A](
   stream: fs2.Stream[F, A]
