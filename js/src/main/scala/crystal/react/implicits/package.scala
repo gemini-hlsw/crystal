@@ -8,8 +8,8 @@ import crystal._
 import crystal.react.reuse.Reuse
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.component.Generic.MountedSimple
-import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
-import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
+import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
+import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
 import japgolly.scalajs.react.util.Effect
 import japgolly.scalajs.react.util.Effect.UnsafeSync
 import japgolly.scalajs.react.vdom.html_<^._
@@ -114,6 +114,26 @@ package object implicits {
             }
         )
       }
+  }
+
+  implicit class UseStateFOps[S](private val self: Hooks.UseStateF[DefaultS, S]) extends AnyVal {
+    @inline def setStateAsync: Reusable[S => DefaultA[Unit]] =
+      self.setState.map(f => s => f(s).to[DefaultA])
+
+    @inline def modStateAsync: Reusable[(S => S) => DefaultA[Unit]] =
+      self.modState.map(f => g => f(g).to[DefaultA])
+
+    @inline def withReusableInputsAsync: WithReusableInputsAsync[S] =
+      new WithReusableInputsAsync[S](self)
+  }
+
+  implicit class UseStateWithReuseFOps[S](private val self: Hooks.UseStateWithReuseF[DefaultS, S])
+      extends AnyVal {
+    @inline def setStateAsync: Reusable[S => Reusable[DefaultA[Unit]]] =
+      self.setState.map(f => s => f(s).map(_.to[DefaultA]))
+
+    @inline def modStateAsync(f: S => S): Reusable[DefaultA[Unit]] =
+      self.modState(f).map(_.to[DefaultA])
   }
 
   implicit class EffectAOps[F[_], A](private val self: F[A]) extends AnyVal {
@@ -280,17 +300,26 @@ package object implicits {
 }
 
 package implicits {
-  protected class SetStateLApplied[F[_], S](
+  protected final class SetStateLApplied[F[_], S](
     private val self: StateAccess.Write[DefaultS, DefaultA, S]
   ) extends AnyVal {
     @inline def apply[A, B](lens: Lens[S, B])(a: A)(implicit conv: A => B, F: Sync[F]): F[Unit] =
       self.modStateIn(lens.replace(conv(a)))
   }
 
-  protected class ModStateLApplied[F[_], S](
+  protected final class ModStateLApplied[F[_], S](
     private val self: StateAccess.Write[DefaultS, DefaultA, S]
   ) extends AnyVal {
     @inline def apply[A](lens: Lens[S, A])(f: A => A)(implicit F: Sync[F]): F[Unit] =
       self.modStateIn(lens.modify(f))
   }
+
+  protected final class WithReusableInputsAsync[S](self: Hooks.UseStateF[DefaultS, S]) {
+    @inline def setState: Reusable[Reusable[S] => Reusable[DefaultA[Unit]]] =
+      self.withReusableInputs.setState.map(f => s => f(s).map(_.to[DefaultA]))
+
+    @inline def modState: Reusable[Reusable[S => S] => Reusable[DefaultA[Unit]]] =
+      self.withReusableInputs.modState.map(f => g => f(g).map(_.to[DefaultA]))
+  }
+
 }
