@@ -1,9 +1,9 @@
 package crystal
 
-import cats.syntax.all._
 import cats.Id
 import cats.Monad
 import cats.effect._
+import cats.syntax.all._
 import monocle.Iso
 import monocle.Lens
 import monocle.Optional

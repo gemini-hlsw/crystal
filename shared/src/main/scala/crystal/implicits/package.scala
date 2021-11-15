@@ -1,7 +1,5 @@
 package crystal
 
-import cats.syntax.all._
-import cats.kernel.Eq
 import cats.Align
 import cats.Applicative
 import cats.Eval
@@ -9,8 +7,11 @@ import cats.Functor
 import cats.MonadError
 import cats.Traverse
 import cats.data.Ior
-import scala.util.Try
+import cats.kernel.Eq
+import cats.syntax.all._
+
 import scala.annotation.tailrec
+import scala.util.Try
 
 package object implicits {
   implicit class OptionApplicativeUnitOps[F[_]: Applicative](opt: Option[F[Unit]]) {

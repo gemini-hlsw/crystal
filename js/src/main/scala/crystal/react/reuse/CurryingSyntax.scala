@@ -1,6 +1,7 @@
 package crystal.react.reuse
 
 import japgolly.scalajs.react.Reusability
+
 import scala.reflect.ClassTag
 
 /*

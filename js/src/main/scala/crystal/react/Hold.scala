@@ -1,12 +1,15 @@
 package crystal.react
 
-import crystal.implicits._
-import cats.effect.{ Async, Sync }
-import cats.syntax.all._
+import cats.effect.Async
+import cats.effect.Ref
+import cats.effect.Sync
+import cats.effect.Temporal
 import cats.effect.implicits._
-import scala.concurrent.duration.FiniteDuration
-import cats.effect.{ Ref, Temporal }
+import cats.syntax.all._
+import crystal.implicits._
 import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
+
+import scala.concurrent.duration.FiniteDuration
 
 /** Encapsulates an effectful `setter`. When `enable` is called, calls to `setter` will be delayed
   * for `duration`. Each call to `enable` resets the internal timer, i.e: `duration` is guaranteed

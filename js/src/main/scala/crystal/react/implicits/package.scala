@@ -1,21 +1,22 @@
 package crystal.react
 
+import cats.MonadError
+import cats.effect.Async
+import cats.effect.Sync
+import cats.syntax.all._
 import crystal._
 import crystal.react.reuse.Reuse
-import cats.MonadError
-import cats.effect.Sync
-import cats.effect.Async
-import cats.effect.std.Dispatcher
-import cats.syntax.all._
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.component.Generic.MountedSimple
-import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA, Sync => DefaultS }
+import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
+import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
+import japgolly.scalajs.react.util.Effect
+import japgolly.scalajs.react.util.Effect.UnsafeSync
+import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
 import org.typelevel.log4cats.Logger
 
 import scala.util.control.NonFatal
-import japgolly.scalajs.react.util.Effect.UnsafeSync
 
 package object implicits {
   implicit class DefaultSToOps[A](private val self: DefaultS[A])(implicit
@@ -115,6 +116,26 @@ package object implicits {
       }
   }
 
+  implicit class UseStateFOps[S](private val self: Hooks.UseStateF[DefaultS, S]) extends AnyVal {
+    @inline def setStateAsync: Reusable[S => DefaultA[Unit]] =
+      self.setState.map(f => s => f(s).to[DefaultA])
+
+    @inline def modStateAsync: Reusable[(S => S) => DefaultA[Unit]] =
+      self.modState.map(f => g => f(g).to[DefaultA])
+
+    @inline def withReusableInputsAsync: WithReusableInputsAsync[S] =
+      new WithReusableInputsAsync[S](self)
+  }
+
+  implicit class UseStateWithReuseFOps[S](private val self: Hooks.UseStateWithReuseF[DefaultS, S])
+      extends AnyVal {
+    @inline def setStateAsync: Reusable[S => Reusable[DefaultA[Unit]]] =
+      self.setState.map(f => s => f(s).map(_.to[DefaultA]))
+
+    @inline def modStateAsync(f: S => S): Reusable[DefaultA[Unit]] =
+      self.modState(f).map(_.to[DefaultA])
+  }
+
   implicit class EffectAOps[F[_], A](private val self: F[A]) extends AnyVal {
 
     /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously.
@@ -124,8 +145,8 @@ package object implicits {
       */
     def runAsync(
       cb:         Either[Throwable, A] => F[Unit]
-    )(implicit F: MonadError[F, Throwable], dispatcher: Dispatcher[F]): DefaultS[Unit] =
-      DefaultS.delay(dispatcher.unsafeRunAndForget(self.attempt.flatMap(cb)))
+    )(implicit F: MonadError[F, Throwable], dispatcher: Effect.Dispatch[F]): DefaultS[Unit] =
+      DefaultS.delay(dispatcher.dispatch(self.attempt.flatMap(cb)))
 
     /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously.
       *
@@ -136,7 +157,7 @@ package object implicits {
       cb:          Either[Throwable, A] => DefaultS[Unit]
     )(implicit
       F:           Sync[F],
-      dispatcherF: Dispatcher[F],
+      dispatcherF: Effect.Dispatch[F],
       dispatchS:   UnsafeSync[DefaultS]
     ): DefaultS[Unit] =
       runAsync(cb.andThen(c => F.delay(dispatchS.runSync(c))))
@@ -146,7 +167,7 @@ package object implicits {
       */
     def runAsyncAndForget(implicit
       F:           MonadError[F, Throwable],
-      dispatcherF: Dispatcher[F]
+      dispatcherF: Effect.Dispatch[F]
     ): DefaultS[Unit] =
       self.runAsync(_ => F.unit)
   }
@@ -164,7 +185,7 @@ package object implicits {
       errorMsg:   String = "Error in F[Unit].runAsyncAndThenF"
     )(implicit
       F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F],
+      dispatcher: Effect.Dispatch[F],
       logger:     Logger[F]
     ): DefaultS[Unit] =
       new EffectAOps(self).runAsync {
@@ -183,7 +204,7 @@ package object implicits {
       errorMsg:    String = "Error in F[Unit].runAsyncAndThen"
     )(implicit
       F:           Sync[F],
-      dispatcherF: Dispatcher[F],
+      dispatcherF: Effect.Dispatch[F],
       logger:      Logger[F],
       dispatchS:   UnsafeSync[DefaultS]
     ): DefaultS[Unit] =
@@ -196,14 +217,14 @@ package object implicits {
       errorMsg:   String = "Error in F[Unit].runAsync"
     )(implicit
       F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F],
+      dispatcher: Effect.Dispatch[F],
       logger:     Logger[F]
     ): DefaultS[Unit] =
       runAsyncAndThenF(F.unit, errorMsg)
 
     def runAsync(implicit
       F:          MonadError[F, Throwable],
-      dispatcher: Dispatcher[F],
+      dispatcher: Effect.Dispatch[F],
       logger:     Logger[F]
     ): DefaultS[Unit] =
       runAsync()
@@ -279,17 +300,26 @@ package object implicits {
 }
 
 package implicits {
-  protected class SetStateLApplied[F[_], S](
+  protected final class SetStateLApplied[F[_], S](
     private val self: StateAccess.Write[DefaultS, DefaultA, S]
   ) extends AnyVal {
     @inline def apply[A, B](lens: Lens[S, B])(a: A)(implicit conv: A => B, F: Sync[F]): F[Unit] =
       self.modStateIn(lens.replace(conv(a)))
   }
 
-  protected class ModStateLApplied[F[_], S](
+  protected final class ModStateLApplied[F[_], S](
     private val self: StateAccess.Write[DefaultS, DefaultA, S]
   ) extends AnyVal {
     @inline def apply[A](lens: Lens[S, A])(f: A => A)(implicit F: Sync[F]): F[Unit] =
       self.modStateIn(lens.modify(f))
   }
+
+  protected final class WithReusableInputsAsync[S](self: Hooks.UseStateF[DefaultS, S]) {
+    @inline def setState: Reusable[Reusable[S] => Reusable[DefaultA[Unit]]] =
+      self.withReusableInputs.setState.map(f => s => f(s).map(_.to[DefaultA]))
+
+    @inline def modState: Reusable[Reusable[S => S] => Reusable[DefaultA[Unit]]] =
+      self.withReusableInputs.modState.map(f => g => f(g).map(_.to[DefaultA]))
+  }
+
 }

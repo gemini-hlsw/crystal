@@ -1,16 +1,18 @@
 package crystal.react
 
+import cats.effect._
+import cats.effect.syntax.all._
+import cats.syntax.all._
 import crystal._
 import crystal.implicits._
 import crystal.react.implicits._
-import cats.effect._
-import cats.effect.syntax.all._
-import cats.effect.std.Dispatcher
-import cats.syntax.all._
 import japgolly.scalajs.react._
+import japgolly.scalajs.react.util.Effect
 import org.typelevel.log4cats.Logger
 
-abstract class StreamRendererBackend[F[_]: Async: Dispatcher: Logger, A](stream: fs2.Stream[F, A]) {
+abstract class StreamRendererBackend[F[_]: Async: Effect.Dispatch: Logger, A](
+  stream: fs2.Stream[F, A]
+) {
   type CancelToken = F[Unit]
   private var cancelToken: Option[CancelToken] = None
 

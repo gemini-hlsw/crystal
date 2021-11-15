@@ -1,19 +1,20 @@
 package crystal.react
 
+import cats.effect.Async
+import cats.effect.Sync
+import cats.syntax.all._
 import crystal._
 import crystal.react.implicits._
-import cats.syntax.all._
-import cats.effect.{ Async, Sync }
-import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
-import cats.effect.std.Dispatcher
-import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
-import japgolly.scalajs.react.{ Ref => _, _ }
-import japgolly.scalajs.react.vdom.html_<^._
-import org.typelevel.log4cats.Logger
 import crystal.react.reuse._
+import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
+import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
+import japgolly.scalajs.react.util.Effect
+import japgolly.scalajs.react.util.Effect.UnsafeSync
+import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.{ Ref => _, _ }
+import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration
-import japgolly.scalajs.react.util.Effect.UnsafeSync
 
 object StreamRendererMod {
 
@@ -28,7 +29,7 @@ object StreamRendererMod {
       _
     ]]
 
-  def build[F[_]: Async: Dispatcher: Logger, A](
+  def build[F[_]: Async: Effect.Dispatch: Logger, A](
     stream:       fs2.Stream[F, A],
     holdAfterMod: Option[FiniteDuration] = None
   )(implicit

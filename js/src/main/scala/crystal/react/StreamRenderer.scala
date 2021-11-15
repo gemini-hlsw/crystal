@@ -1,14 +1,14 @@
 package crystal.react
 
 import cats.effect._
-import cats.effect.std.Dispatcher
-import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
-import org.typelevel.log4cats.Logger
 import crystal._
 import crystal.react.implicits._
 import crystal.react.reuse._
+import japgolly.scalajs.react._
+import japgolly.scalajs.react.component.Generic.UnmountedWithRoot
+import japgolly.scalajs.react.util.Effect
+import japgolly.scalajs.react.vdom.html_<^._
+import org.typelevel.log4cats.Logger
 
 object StreamRenderer {
   type Props[A]     = Pot[A] ==> VdomNode
@@ -17,7 +17,7 @@ object StreamRenderer {
 
   type State[A] = Pot[A]
 
-  def build[F[_]: Async: Dispatcher: Logger, A](
+  def build[F[_]: Async: Effect.Dispatch: Logger, A](
     stream:         fs2.Stream[F, A]
   )(implicit reuse: Reusability[A] /* Used to derive Reusability[State[A]] */ ): Component[A] = {
     class Backend($ : BackendScope[Props[A], State[A]])
