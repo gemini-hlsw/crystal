@@ -3,8 +3,8 @@ package crystal
 import cats.effect.Async
 import crystal.react.reuse.Reuse
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
-import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
+import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
+import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
 import japgolly.scalajs.react.util.Effect
 import japgolly.scalajs.react.util.Effect.UnsafeSync
 import japgolly.scalajs.react.vdom.VdomNode
