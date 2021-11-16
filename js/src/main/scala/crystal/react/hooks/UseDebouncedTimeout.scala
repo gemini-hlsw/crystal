@@ -1,6 +1,7 @@
 package crystal.react.hooks
 
-import cats.effect.Fiber
+import cats.effect.Deferred
+import cats.effect.Ref
 import cats.syntax.all._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
@@ -18,21 +19,27 @@ object UseDebouncedTimeout {
 
   // Changing duration while component is mounted is not supported.
   val hook = CustomHook[FiniteDuration]
-    .useRef(none[Fiber[DefaultA, Throwable, Unit]])
-    .useMemoBy((_, _) => ())((duration, timerRef) => _ => new TimeoutHandle(duration, timerRef))
-    .buildReturning((_, _, timeoutHandle) => timeoutHandle)
+    .useMemoBy(_ => ())(duration =>
+      _ =>
+        new TimeoutHandle(
+          duration,
+          Ref.unsafe[DefaultA, Option[Deferred[DefaultA, TimeoutHandleLatch[DefaultA]]]](none)
+        )
+    )
+    .useEffectBy((_, timeoutHandle) => Callback(timeoutHandle.cancel)) // Cleanup on unmount
+    .buildReturning((_, timeoutHandle) => timeoutHandle)
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
       final def useDebouncedTimeout(timeout: FiniteDuration)(implicit
         step:                                Step
-      ): step.Next[Reusable[TimeoutHandle]] =
+      ): step.Next[Reusable[TimeoutHandle[DefaultA]]] =
         useDebouncedTimeoutBy(_ => timeout)
 
       final def useDebouncedTimeoutBy(timeout: Ctx => FiniteDuration)(implicit
         step:                                  Step
-      ): step.Next[Reusable[TimeoutHandle]] =
+      ): step.Next[Reusable[TimeoutHandle[DefaultA]]] =
         api.customBy(ctx => hook(timeout(ctx)))
     }
 
@@ -42,7 +49,7 @@ object UseDebouncedTimeout {
 
       def useDebouncedTimeoutBy(timeout: CtxFn[FiniteDuration])(implicit
         step:                            Step
-      ): step.Next[Reusable[TimeoutHandle]] =
+      ): step.Next[Reusable[TimeoutHandle[DefaultA]]] =
         useDebouncedTimeoutBy(step.squash(timeout)(_))
     }
   }
