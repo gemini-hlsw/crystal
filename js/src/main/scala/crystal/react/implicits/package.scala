@@ -276,6 +276,12 @@ package object implicits {
       }
     )
 
+  // The implicit conversion dance is mainly to deal with Reusable[View]
+  implicit class ViewDefaultSOps[A, V](private val view: V)(implicit conv: V => View[A]) {
+    def async: ViewF[DefaultA, A] =
+      conv(view).to[DefaultA](syncToAsync.apply[Unit] _, _.runAsyncAndForget)
+  }
+
   implicit def viewReusability[F[_], A: Reusability]: Reusability[ViewF[F, A]] =
     Reusability.by(_.get)
 
