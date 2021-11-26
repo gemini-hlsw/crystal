@@ -1,18 +1,16 @@
 package crystal.react.hooks
 
-import cats.syntax.all._
 import crystal.react.View
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
 
 import scala.collection.immutable.Queue
-import scala.reflect.ClassTag
 
 object UseStateView {
-  def hook[A: Reusability: ClassTag]: CustomHook[A, View[A]] =
+  def hook[A]: CustomHook[A, View[A]] =
     CustomHook[A]
-      .useStateWithReuseBy(initialValue => initialValue)
+      .useStateBy(initialValue => initialValue)
       .useRef(Queue.empty[A => DefaultS[Unit]])
       // Credit to japgolly for this implementation; this is copied from StateSnapshot.
       .useEffectBy { (_, state, delayedCallbacks) =>
@@ -34,14 +32,14 @@ object UseStateView {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
       /** Creates component state as a View */
-      final def useStateView[A: Reusability: ClassTag](initialValue: => A)(implicit
-        step:                                                        Step
+      final def useStateView[A](initialValue: => A)(implicit
+        step:                                 Step
       ): step.Next[View[A]] =
         useStateViewBy(_ => initialValue)
 
       /** Creates component state as a View */
-      final def useStateViewBy[A: Reusability: ClassTag](initialValue: Ctx => A)(implicit
-        step:                                                          Step
+      final def useStateViewBy[A](initialValue: Ctx => A)(implicit
+        step:                                   Step
       ): step.Next[View[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
@@ -54,8 +52,8 @@ object UseStateView {
     ) extends Primary[Ctx, Step](api) {
 
       /** Creates component state as a View */
-      def useStateViewBy[A: Reusability: ClassTag](initialValue: CtxFn[A])(implicit
-        step:                                                    Step
+      def useStateViewBy[A](initialValue: CtxFn[A])(implicit
+        step:                             Step
       ): step.Next[View[A]] =
         useStateViewBy(step.squash(initialValue)(_))
     }
