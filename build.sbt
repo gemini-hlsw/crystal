@@ -56,7 +56,8 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
       )
     ),
     pomIncludeRepository := { _ => false },
-    testFrameworks += new TestFramework("munit.Framework")
+    testFrameworks += new TestFramework("munit.Framework"),
+    scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
   )
   .jsSettings(
     libraryDependencies ++=

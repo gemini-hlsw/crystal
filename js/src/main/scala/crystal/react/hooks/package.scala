@@ -2,6 +2,10 @@ package crystal.react
 
 import cats.effect.Fiber
 
-package object hooks extends UseDebouncedTimeout.HooksApiExt {
-  type TimeoutHandleLatch[F[_]] = Fiber[F, Throwable, Unit]
+package object hooks
+    extends UseSingleEffect.HooksApiExt
+    with UseSerialState.HooksApiExt
+    with UseStateView.HooksApiExt
+    with UseSerialStateView.HooksApiExt {
+  type UseSingleEffectLatch[F[_]] = Fiber[F, Throwable, Unit]
 }

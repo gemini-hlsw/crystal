@@ -2,6 +2,7 @@ package crystal
 
 import cats.Id
 import cats.Monad
+import cats.Monoid
 import cats.effect._
 import cats.syntax.all._
 import monocle.Iso
@@ -96,6 +97,15 @@ final class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]
 
   def widen[B >: A]: ViewF[F, B] = self.asInstanceOf[ViewF[F, B]]
 
+  def unsafeNarrow[B <: A]: ViewF[F, B] =
+    zoom(_.asInstanceOf[B])(modB => a => modB(a.asInstanceOf[B]))
+
+  def to[F1[_]: Monad](toF1: F[Unit] => F1[Unit], fromF1: F1[Unit] => F[Unit]): ViewF[F1, A] =
+    ViewF(get, (mod, cb) => toF1(modCB(mod, a => fromF1(cb(a)))))
+
+  def mapValue[B, C](f: ViewF[F, B] => C)(implicit ev: A =:= Option[B]): Option[C] =
+    get.map(a => f(zoom(_ => a)(f => a1 => ev.flip(a1.map(f)))))
+
   override def toString(): String = s"ViewF($get, <modFn>)"
 }
 
@@ -167,6 +177,12 @@ abstract class ViewOptF[F[_]: Monad, A](
     }
 
   def widen[B >: A]: ViewOptF[F, B] = self.asInstanceOf[ViewOptF[F, B]]
+
+  def unsafeNarrow[B <: A]: ViewOptF[F, B] =
+    zoom(_.asInstanceOf[B])(modB => a => modB(a.asInstanceOf[B]))
+
+  def mapValue[B](f: ViewF[F, A] => B)(implicit ev: Monoid[F[Unit]]): Option[B] =
+    get.map(a => f(ViewF[F, A](a, (mod, cb) => modCB(mod, _.foldMap(cb)))))
 
   override def toString(): String = s"ViewOptF($get, <modFn>)"
 }
