@@ -111,6 +111,24 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
     )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T, U) ==> B =
       apply(fn.tupled)
 
+    /*
+     * Auto-tuple 4-parameter function in order to be able to use (S, T, U, V) ==> B notation
+     * when constructing via the pattern `Reuse.by(value)(function)`.
+     */
+    def apply[A, S, T, U, V, B](
+      fn:                 (S, T, U, V) => B
+    )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T, U, V) ==> B =
+      apply(fn.tupled)
+
+    /*
+     * Auto-tuple 5-parameter function in order to be able to use (S, T, U, V, W) ==> B notation
+     * when constructing via the pattern `Reuse.by(value)(function)`.
+     */
+    def apply[A, S, T, U, V, W, B](
+      fn:                 (S, T, U, V, W) => B
+    )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T, U, V, W) ==> B =
+      apply(fn.tupled)
+
     def apply[A](valueA: => A)(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): Reuse[A] =
       new Reuse[A] {
         type B = R
