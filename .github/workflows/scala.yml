@@ -16,15 +16,5 @@ jobs:
         uses: olafurpg/setup-scala@v13
         with:
           java-version: adoptium@11
-      - name: Cache SBT ivy cache
-        uses: actions/cache@v2.1.7
-        with:
-          path: ~/.ivy2/cache
-          key: ${{ runner.os }}-sbt-ivy-cache-${{ hashFiles('**/project/**') }}-${{ hashFiles('**/build.sbt') }}
-      - name: Cache SBT
-        uses: actions/cache@v2.1.7
-        with:
-          path: ~/.sbt
-          key: ${{ runner.os }}-sbt-${{ hashFiles('**/project/**') }}-${{ hashFiles('**/build.sbt') }}
       - name: Run tests
         run: sbt scalafmtCheckAll +compile +test
