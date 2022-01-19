@@ -10,7 +10,7 @@ object Settings {
     val catsEffect      = "3.3.4"
     val fs2             = "3.2.4"
     val monocle         = "3.1.0"
-    val log4Cats        = "2.1.1"
+    val log4Cats        = "2.2.0"
     val mUnit           = "0.7.29"
     val mUnitCatsEffect = "1.0.7"
     val discipline      = "1.4.0"
