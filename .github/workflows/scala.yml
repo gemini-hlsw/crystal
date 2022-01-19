@@ -2,6 +2,9 @@ name: build
 
 on: [push, pull_request]
 
+env:
+  JABBA_INDEX: 'https://github.com/typelevel/jdk-index/raw/main/index.json'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,7 +15,7 @@ jobs:
       - name: Set up JDK
         uses: olafurpg/setup-scala@v13
         with:
-          java-version: adopt@1.11
+          java-version: adoptium@11
       - name: Cache SBT ivy cache
         uses: actions/cache@v2.1.7
         with:
