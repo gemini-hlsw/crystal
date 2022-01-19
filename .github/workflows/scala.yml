@@ -2,6 +2,9 @@ name: build
 
 on: [push, pull_request]
 
+env:
+  JABBA_INDEX: 'https://github.com/typelevel/jdk-index/raw/main/index.json'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,16 +15,6 @@ jobs:
       - name: Set up JDK
         uses: olafurpg/setup-scala@v13
         with:
-          java-version: adopt@1.11
-      - name: Cache SBT ivy cache
-        uses: actions/cache@v2.1.7
-        with:
-          path: ~/.ivy2/cache
-          key: ${{ runner.os }}-sbt-ivy-cache-${{ hashFiles('**/project/**') }}-${{ hashFiles('**/build.sbt') }}
-      - name: Cache SBT
-        uses: actions/cache@v2.1.7
-        with:
-          path: ~/.sbt
-          key: ${{ runner.os }}-sbt-${{ hashFiles('**/project/**') }}-${{ hashFiles('**/build.sbt') }}
+          java-version: adoptium@11
       - name: Run tests
         run: sbt scalafmtCheckAll +compile +test
