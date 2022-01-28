@@ -392,7 +392,7 @@ protected trait AppliedSyntax {
   }
 
   implicit class AppliedFn8Ops[A, R, S, T, U, V, W, X, Y, B](aa: Applied[A])(implicit
-    ev:                                                       A =:= ((R, S, T, U, V, W, X, Y) => B)
+    ev:                                                          A =:= ((R, S, T, U, V, W, X, Y) => B)
   ) {
     /*
      * Given a (R, S, T, U, V, W, X, Y) => B , instantiate R and build a (S, T, U, V, W, X, Y) ==> B.
@@ -489,8 +489,8 @@ protected trait AppliedSyntax {
     )(implicit
       classTagRS: ClassTag[(R, S, T, U, V, W, X)],
       reuseR:     Reusability[(R, S, T, U, V, W, X)]
-      ): Reuse[Y => B] =
-        Reuse.by((r, s, t, u, v, w, x))(y => ev(aa.value())(r, s, t, u, v, w, x, y))
+    ): Reuse[Y => B] =
+      Reuse.by((r, s, t, u, v, w, x))(y => ev(aa.value())(r, s, t, u, v, w, x, y))
 
     /*
      * Given a (R, S, T, U, V, W, W, X, Y) => B , instantiate R, S, T, U, V, W and X and build a Reuse[B].
@@ -507,7 +507,7 @@ protected trait AppliedSyntax {
     )(implicit
       classTagRS: ClassTag[(R, S, T, U, V, W, X, Y)],
       reuseR:     Reusability[(R, S, T, U, V, W, X, Y)]
-      ): Reuse[B] =
-        Reuse.by((r, s, t, u, v, w, x, y))(ev(aa.value())(r, s, t, u, v, w, x, y))
+    ): Reuse[B] =
+      Reuse.by((r, s, t, u, v, w, x, y))(ev(aa.value())(r, s, t, u, v, w, x, y))
   }
 }
