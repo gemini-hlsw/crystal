@@ -23,9 +23,9 @@ class UseSingleEffect[F[_]](
         .modify(oldLatch =>
           (newLatch.some,
            for {
-             _        <- oldLatch.map(_.get.flatMap(_.cancel >> debounceEffect)).orEmpty
              // Cleanup latch after effect + debounce, so that we don't run debounce again next time.
-             newFiber <- (effect >> debounceEffect >> latch.set(none)).start
+             newFiber <- (oldLatch.map(_.get.flatMap(_.cancel >> debounceEffect)).orEmpty >>
+                           effect >> debounceEffect >> latch.set(none)).start
              _        <- newLatch.complete(newFiber)
            } yield ()
           )
