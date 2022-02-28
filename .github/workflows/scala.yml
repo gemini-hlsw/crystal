@@ -15,6 +15,6 @@ jobs:
       - name: Set up JDK
         uses: olafurpg/setup-scala@v13
         with:
-          java-version: adoptium@11
+          java-version: temurin@11
       - name: Run tests
         run: sbt scalafmtCheckAll +compile +test
