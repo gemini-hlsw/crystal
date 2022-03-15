@@ -4,6 +4,8 @@ import cats.arrow.FunctionK
 import cats.effect.Async
 import cats.~>
 import crystal.react.implicits._
+import crystal.react.reuse.ReuseViewF
+import crystal.react.reuse.ReuseViewOptF
 import crystal.react.reuse.Reuse
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
@@ -43,8 +45,10 @@ package object react {
       StreamRenderer.build(s)
   }
 
-  type View[A]    = ViewF[DefaultS, A]
-  type ViewOpt[A] = ViewOptF[DefaultS, A]
+  type View[A]         = ViewF[DefaultS, A]
+  type ViewOpt[A]      = ViewOptF[DefaultS, A]
+  type ReuseView[A]    = ReuseViewF[DefaultS, A]
+  type ReuseViewOpt[A] = ReuseViewOptF[DefaultS, A]
 
   val syncToAsync: DefaultS ~> DefaultA = new FunctionK[DefaultS, DefaultA] { self =>
     def apply[A](fa: DefaultS[A]): DefaultA[A] = fa.to[DefaultA]

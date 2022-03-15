@@ -11,7 +11,7 @@ import monocle.Optional
 import monocle.Prism
 import monocle.Traversal
 
-sealed abstract class ViewOps[F[_]: Monad, G[_], A] {
+abstract class ViewOps[F[_]: Monad, G[_], A] {
   val get: G[A]
 
   val setCB: (A, G[A] => F[Unit]) => F[Unit] = (a, cb) => modCB(_ => a, cb)
@@ -28,7 +28,7 @@ sealed abstract class ViewOps[F[_]: Monad, G[_], A] {
 // The difference between a View and a StateSnapshot is that the modifier doesn't act on the current value,
 // but passes the modifier function to an external source of truth. Since we are defining no getter
 // from such source of truth, a View is defined in terms of a modifier function instead of a setter.
-final class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]) => F[Unit])
+class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]) => F[Unit])
     extends ViewOps[F, Id, A] { self =>
   def modAndExtract[B](f: (A => (A, B)))(implicit F: Async[F]): F[B] =
     Async[F].async { cb =>
