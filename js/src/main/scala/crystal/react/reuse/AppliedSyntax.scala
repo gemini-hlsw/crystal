@@ -16,6 +16,9 @@ protected trait AppliedSyntax {
       Reuse.by(reuseByR)(valueA)
 
     def always: Reuse[A] = Reuse.by(())(valueA)
+
+    def self(implicit classTag: ClassTag[A], reusability: Reusability[A]): Reuse[A] =
+      Reuse.by(valueA)(valueA)
   }
 
   implicit class AppliedFn2Ops[A, R, S, B](aa: Applied[A])(implicit ev: A =:= ((R, S) => B)) {
