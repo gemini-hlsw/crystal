@@ -39,23 +39,32 @@ trait Reuse[+A] {
 
   protected[reuse] val reuseBy: B // We need to store it to combine into tuples when currying.
 
-  protected[reuse] implicit val ClassTag: ClassTag[B]
+  protected[reuse] implicit val classTag: ClassTag[B]
 
   protected[reuse] implicit val reusability: Reusability[B]
 
   def addReuseBy[R: Reusability](r: R): Reuse[A] = Reuse.by((reuseBy, r))(value)
-  def addReuse[C](r: Reuse[C]): Reuse[A]         = addReuseBy(r.reuseBy)(r.reusability)
+  def addReuseByFrom[C](r: Reuse[C]): Reuse[A]   = addReuseBy(r.reuseBy)(r.reusability)
 
   def replaceReuseBy[R: Reusability: ClassTag](r: R): Reuse[A] = Reuse.by(r)(value)
-  def replaceReuse[C](r: Reuse[C]): Reuse[A]                   = replaceReuseBy(r.reuseBy)(r.reusability, r.ClassTag)
+  def replaceReuseByFrom[C](r: Reuse[C]): Reuse[A]             =
+    replaceReuseBy(r.reuseBy)(r.reusability, r.classTag)
 
   def map[C](f: A => C): Reuse[C] = Reuse.by(reuseBy)(f(value))
+
+  def zip[C](that: Reuse[C]): Reuse[(A, C)] = {
+    implicit val thatReuse: Reusability[that.B] = that.reusability
+    Reuse.by((reuseBy, that.reuseBy))((value, that.value))
+  }
+
+  def zipMap[C, D](that: Reuse[C])(f: (A, C) => D): Reuse[D] =
+    zip(that).map(f.tupled)
 }
 
 object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with ReusableInterop {
   implicit def reusability[A]: Reusability[Reuse[A]] =
     Reusability.apply((reuseA, reuseB) =>
-      if (reuseA.ClassTag == reuseB.ClassTag)
+      if (reuseA.classTag == reuseB.classTag)
         reuseA.reusability.test(reuseA.reuseBy, reuseB.reuseBy.asInstanceOf[reuseA.B]) &&
         reuseB.reusability.test(reuseA.reuseBy.asInstanceOf[reuseB.B], reuseB.reuseBy)
       else false
@@ -141,7 +150,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
 
         protected[reuse] val reuseBy = reuseByR
 
-        protected[reuse] val ClassTag = classTagR
+        protected[reuse] val classTag = classTagR
 
         protected[reuse] val reusability = reuseR
       }
