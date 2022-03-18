@@ -9,6 +9,7 @@ import cats.syntax.all._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
+
 import scala.concurrent.duration.FiniteDuration
 
 class UseSingleEffect[F[_]](

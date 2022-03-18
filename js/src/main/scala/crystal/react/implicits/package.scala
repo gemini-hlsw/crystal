@@ -282,15 +282,6 @@ package object implicits {
       conv(view).to[DefaultA](syncToAsync.apply[Unit] _, _.runAsyncAndForget)
   }
 
-  implicit def viewReusability[F[_], A: Reusability]: Reusability[ViewF[F, A]] =
-    Reusability.by(_.get)
-
-  implicit def viewOptReusability[F[_], A: Reusability]: Reusability[ViewOptF[F, A]] =
-    Reusability.by(_.get)
-
-  implicit def viewListReusability[F[_], A: Reusability]: Reusability[ViewListF[F, A]] =
-    Reusability.by(_.get)
-
   implicit class ViewFModuleOps(private val viewFModule: ViewF.type) extends AnyVal {
     def fromState: FromStateView = new FromStateView
   }
