@@ -186,8 +186,8 @@ package object reuse extends ReuseImplicitsLowPriority {
       fromF1: F1[Unit] => F[Unit]
     ): Reuse[ViewF[F1, A]] = rv.map(_.to[F1](toF1, fromF1))
 
-    def mapValue[B, C](f: ViewF[F, B] => C)(implicit ev: A =:= Option[B]): Reuse[Option[C]] =
-      rv.map(v => get.map(a => f(v.zoom(_ => a)(f => a1 => ev.flip(a1.map(f))))))
+    def mapValue[B, C](f: Reuse[ViewF[F, B]] => C)(implicit ev: A =:= Option[B]): Option[C] =
+      get.map(a => f(zoom(_ => a)(f => a1 => ev.flip(a1.map(f)))))
   }
 
   implicit class ReuseViewOptF[F[_]: Monad, A](val rvo: Reuse[ViewOptF[F, A]]) {
@@ -224,8 +224,8 @@ package object reuse extends ReuseImplicitsLowPriority {
 
     def unsafeNarrow[B <: A]: Reuse[ViewOptF[F, B]] = rvo.map(_.unsafeNarrow[B])
 
-    def mapValue[B](f: ViewF[F, A] => B)(implicit ev: Monoid[F[Unit]]): Reuse[Option[B]] =
-      rvo.map(_ => get.map(a => f(ViewF[F, A](a, (mod, cb) => modCB(mod, _.foldMap(cb))))))
+    def mapValue[B](f: Reuse[ViewF[F, A]] => B)(implicit ev: Monoid[F[Unit]]): Option[B] =
+      get.map(a => f(rvo.map(_ => ViewF[F, A](a, (mod, cb) => modCB(mod, _.foldMap(cb))))))
   }
 
   implicit class ReuseViewListF[F[_]: Monad, A](val rvl: Reuse[ViewListF[F, A]]) {
