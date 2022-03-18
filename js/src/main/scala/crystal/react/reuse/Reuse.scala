@@ -33,9 +33,9 @@ import scala.reflect.ClassTag
 trait Reuse[+A] {
   type B
 
-  val get: () => A
+  lazy val value: A = getValue()
 
-  lazy val value: A = get()
+  protected[reuse] val getValue: () => A
 
   protected[reuse] val reuseBy: B // We need to store it to combine into tuples when currying.
 
@@ -43,12 +43,16 @@ trait Reuse[+A] {
 
   protected[reuse] implicit val reusability: Reusability[B]
 
+  def addReuseBy[R: Reusability](r: R): Reuse[A] = Reuse.by((reuseBy, r))(value)
+  def addReuse[C](r: Reuse[C]): Reuse[A]         = addReuseBy(r.reuseBy)(r.reusability)
+
+  def replaceReuseBy[R: Reusability: ClassTag](r: R): Reuse[A] = Reuse.by(r)(value)
+  def replaceReuse[C](r: Reuse[C]): Reuse[A]                   = replaceReuseBy(r.reuseBy)(r.reusability, r.ClassTag)
+
   def map[C](f: A => C): Reuse[C] = Reuse.by(reuseBy)(f(value))
 }
 
 object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with ReusableInterop {
-  implicit def toA[A](reuseFn: Reuse[A]): A = reuseFn.value
-
   implicit def reusability[A]: Reusability[Reuse[A]] =
     Reusability.apply((reuseA, reuseB) =>
       if (reuseA.ClassTag == reuseB.ClassTag)
@@ -133,7 +137,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
       new Reuse[A] {
         type B = R
 
-        val get = () => valueA
+        protected[reuse] val getValue = () => valueA
 
         protected[reuse] val reuseBy = reuseByR
 
