@@ -186,10 +186,8 @@ package object reuse extends ReuseImplicitsLowPriority {
       fromF1: F1[Unit] => F[Unit]
     ): Reuse[ViewF[F1, A]] = rv.map(_.to[F1](toF1, fromF1))
 
-    def mapValue[B, C](f: ViewF[F, B] => C)(implicit ev: A =:= Option[B]): Option[C] =
+    def mapValue[B, C](f: ViewF[F, B] => C)(implicit ev: A =:= Option[B]): Reuse[Option[C]] =
       rv.map(v => get.map(a => f(v.zoom(_ => a)(f => a1 => ev.flip(a1.map(f))))))
-
-    def xxx: Reuse[ViewF[F, A]] = rv
   }
 
   implicit class ReuseViewOptF[F[_]: Monad, A](val rvo: Reuse[ViewOptF[F, A]]) {
