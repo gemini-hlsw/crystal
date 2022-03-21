@@ -43,10 +43,14 @@ package object react {
       StreamRenderer.build(s)
   }
 
-  type View[A]         = ViewF[DefaultS, A]
-  type ViewOpt[A]      = ViewOptF[DefaultS, A]
-  type ReuseView[A]    = Reuse[ViewF[DefaultS, A]]
-  type ReuseViewOpt[A] = Reuse[ViewOptF[DefaultS, A]]
+  type View[A]    = ViewF[DefaultS, A]
+  type ViewOpt[A] = ViewOptF[DefaultS, A]
+
+  type ReuseViewF[F[_], A]    = Reuse[ViewF[F, A]]
+  type ReuseViewOptF[F[_], A] = Reuse[ViewOptF[F, A]]
+
+  type ReuseView[A]    = Reuse[View[A]]
+  type ReuseViewOpt[A] = Reuse[ViewOpt[A]]
 
   val syncToAsync: DefaultS ~> DefaultA = new FunctionK[DefaultS, DefaultA] { self =>
     def apply[A](fa: DefaultS[A]): DefaultA[A] = fa.to[DefaultA]
