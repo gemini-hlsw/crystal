@@ -13,6 +13,8 @@ import japgolly.scalajs.react.util.Effect.UnsafeSync
 import japgolly.scalajs.react.vdom.VdomNode
 import org.typelevel.log4cats.Logger
 
+import scala.reflect.ClassTag
+
 package object react {
   type SetState[F[_], A] = A => F[Unit]
   type ModState[F[_], A] = (A => A) => F[Unit]
@@ -26,12 +28,7 @@ package object react {
     ]
 
   type StateComponent[S, B] =
-    ScalaComponent[
-      Reuse[ViewF[DefaultS, S] => VdomNode],
-      S,
-      B,
-      CtorType.Props
-    ]
+    ScalaComponent[Reuse[View[S] => VdomNode], S, B, CtorType.Props]
 
   implicit class StreamOps[F[_], A](private val s: fs2.Stream[F, A]) extends AnyVal {
     def render(implicit
@@ -59,20 +56,41 @@ package object react {
 }
 
 package react {
-  object View         {
+  object View {
     @inline
     def apply[A](
       value: A,
       modCB: ((A => A), A => DefaultS[Unit]) => DefaultS[Unit]
     ): View[A] = ViewF[DefaultS, A](value, modCB)
   }
+
   class FromStateView {
     def apply[S]($ : StateAccess[DefaultS, DefaultA, S])(implicit
       dispatch:      UnsafeSync[DefaultS]
-    ): ViewF[DefaultS, S] =
-      ViewF[DefaultS, S](
+    ): View[S] =
+      View[S](
         dispatch.runSync($.state),
         (f, cb) => $.modState(f, $.state.flatMap(cb))
       )
   }
+
+  object ReuseView {
+    @inline
+    def apply[A: ClassTag: Reusability](
+      value: A,
+      modCB: ((A => A), A => DefaultS[Unit]) => DefaultS[Unit]
+    ): ReuseView[A] =
+      Reuse.by(value)(View(value, modCB))
+  }
+
+  class FromStateReuseView {
+    def apply[S: ClassTag: Reusability]($ : StateAccess[DefaultS, DefaultA, S])(implicit
+      dispatch:                             UnsafeSync[DefaultS]
+    ): View[S] =
+      ReuseView[S](
+        dispatch.runSync($.state),
+        (f, cb) => $.modState(f, $.state.flatMap(cb))
+      )
+  }
+
 }

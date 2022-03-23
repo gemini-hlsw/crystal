@@ -1,19 +1,21 @@
 package crystal
 
-import munit.DisciplineSuite
-import arbitraries._
-import cats.syntax.all._
 import cats.kernel.laws.discipline.EqTests
-import org.scalacheck.Prop.forAll
+import cats.laws.discipline.SemigroupalTests.Isomorphisms
 import cats.laws.discipline._
 import cats.laws.discipline.arbitrary._
-import cats.laws.discipline.SemigroupalTests.Isomorphisms
+import cats.syntax.all._
 import crystal.implicits._
 import crystal.implicits.throwable._
+import munit.DisciplineSuite
+import org.scalacheck.Prop
+import org.scalacheck.Prop.forAll
+
 import scala.util.Failure
 import scala.util.Success
-import org.scalacheck.Prop
 import scala.util.Try
+
+import arbitraries._
 
 class PotSpec extends DisciplineSuite {
   implicit def iso: Isomorphisms[Pot] = Isomorphisms.invariant[Pot]

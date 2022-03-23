@@ -1,7 +1,6 @@
 package crystal.react.hooks
 
-import crystal.react.View
-import crystal.react.reuse.Reuse
+import crystal.react.ReuseView
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
@@ -10,7 +9,7 @@ import scala.collection.immutable.Queue
 import scala.reflect.ClassTag
 
 object UseStateViewWithReuse {
-  def hook[A: ClassTag: Reusability]: CustomHook[A, Reuse[View[A]]] =
+  def hook[A: ClassTag: Reusability]: CustomHook[A, ReuseView[A]] =
     CustomHook[A]
       .useStateBy(initialValue => initialValue)
       .useRef(Queue.empty[A => DefaultS[Unit]])
@@ -24,13 +23,10 @@ object UseStateViewWithReuse {
             DefaultS.runAll(cbs.toList.map(_(state.value)): _*)
       }
       .buildReturning { (_, state, delayedCallbacks) =>
-        Reuse
-          .by(state.value)(
-            View[A](
-              state.value,
-              (f, cb) => state.modState(f) >> delayedCallbacks.mod(_.enqueue(cb))
-            )
-          )
+        ReuseView[A](
+          state.value,
+          (f, cb) => state.modState(f) >> delayedCallbacks.mod(_.enqueue(cb))
+        )
       }
 
   object HooksApiExt {
@@ -39,13 +35,13 @@ object UseStateViewWithReuse {
       /** Creates component state as a View */
       final def useStateViewWithReuse[A: ClassTag: Reusability](initialValue: => A)(implicit
         step:                                                                 Step
-      ): step.Next[Reuse[View[A]]] =
+      ): step.Next[ReuseView[A]] =
         useStateViewWithReuseBy(_ => initialValue)
 
       /** Creates component state as a View */
       final def useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: Ctx => A)(implicit
         step:                                                                   Step
-      ): step.Next[Reuse[View[A]]] =
+      ): step.Next[ReuseView[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
           hookInstance(initialValue(ctx))
@@ -59,7 +55,7 @@ object UseStateViewWithReuse {
       /** Creates component state as a View */
       def useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: CtxFn[A])(implicit
         step:                                                             Step
-      ): step.Next[Reuse[View[A]]] =
+      ): step.Next[ReuseView[A]] =
         useStateViewWithReuseBy(step.squash(initialValue)(_))
     }
   }
