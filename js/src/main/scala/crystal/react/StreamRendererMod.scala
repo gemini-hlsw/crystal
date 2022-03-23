@@ -19,7 +19,7 @@ import scala.reflect.ClassTag
 
 object StreamRendererMod {
 
-  type Props[A] = Pot[Reuse[ViewF[DefaultS, A]]] ==> VdomNode
+  type Props[A] = Pot[ReuseView[A]] ==> VdomNode
 
   type State[A]     = Pot[A]
   type Component[A] =
@@ -50,14 +50,11 @@ object StreamRendererMod {
         pot =>
           hold.set(pot) >> hold.enable // This will debounce messages for at least the hold time.
 
-      def render(
-        props: Props[A],
-        state: Pot[A]
-      ): VdomNode =
+      def render(props: Props[A], state: Pot[A]): VdomNode =
         props(
           state.map(a =>
             Reuse.by(a)(
-              ViewF[DefaultS, A](
+              View[A](
                 a,
                 (f: A => A, cb: A => DefaultS[Unit]) =>
                   hold.enable.runAsync.flatMap(_ =>

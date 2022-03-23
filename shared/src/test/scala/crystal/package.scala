@@ -1,10 +1,10 @@
 import cats.Eq
-import monocle.Optional
-import monocle.Traversal
-import monocle.std.option.some
 import monocle.Iso
 import monocle.Lens
+import monocle.Optional
+import monocle.Traversal
 import monocle.macros.GenLens
+import monocle.std.option.some
 
 package crystal {
   case class Wrap[A](a: A) {

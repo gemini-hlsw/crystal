@@ -284,6 +284,8 @@ package object implicits {
 
   implicit class ViewFModuleOps(private val viewFModule: ViewF.type) extends AnyVal {
     def fromState: FromStateView = new FromStateView
+
+    def fromStateWithReuse = new FromStateReuseView
   }
 
   implicit class ViewFReuseOps[F[_], G[_], A](private val viewF: ViewOps[F, G, A]) extends AnyVal {

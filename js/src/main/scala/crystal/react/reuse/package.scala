@@ -8,12 +8,12 @@ import crystal.ViewF
 import crystal.ViewListF
 import crystal.ViewOptF
 import crystal.react.reuse.Reuse
+import japgolly.scalajs.react.Reusability
 import monocle.Iso
 import monocle.Lens
 import monocle.Optional
 import monocle.Prism
 import monocle.Traversal
-import japgolly.scalajs.react.Reusability
 
 import scala.reflect.ClassTag
 
