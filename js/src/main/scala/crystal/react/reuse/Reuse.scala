@@ -103,6 +103,19 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
   def currying[R, S, T](r: R, s: S, t: T): Curried3[R, S, T] = new Curried3(r, s, t)
 
   /*
+   * Constructs a reusable function by using the pattern
+   * `Reuse.currying(value1WithReusability : R, value2: S, value3: T, value4: U).in( (R, S, T, U[, ...]) => B )`.
+   */
+  def currying[R, S, T, U](r: R, s: S, t: T, u: U): Curried4[R, S, T, U] = new Curried4(r, s, t, u)
+
+  /*
+   * Constructs a reusable function by using the pattern
+   * `Reuse.currying(value1WithReusability : R, value2: S, value3: T, value4: U, value5: V).in( (R, S, T, U, V[, ...]) => B )`.
+   */
+  def currying[R, S, T, U, V](r: R, s: S, t: T, u: U, v: V): Curried5[R, S, T, U, V] =
+    new Curried5(r, s, t, u, v)
+
+  /*
    * Supports construction via the pattern `Reuse.by(valueWithReusability)(reusedValue)`
    */
   class AppliedBy[R](reuseByR: R) {
