@@ -86,7 +86,7 @@ package react {
   class FromStateReuseView {
     def apply[S: ClassTag: Reusability]($ : StateAccess[DefaultS, DefaultA, S])(implicit
       dispatch:                             UnsafeSync[DefaultS]
-    ): View[S] =
+    ): ReuseView[S] =
       ReuseView[S](
         dispatch.runSync($.state),
         (f, cb) => $.modState(f, $.state.flatMap(cb))

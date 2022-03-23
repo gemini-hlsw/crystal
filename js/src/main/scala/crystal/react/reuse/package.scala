@@ -60,6 +60,28 @@ package object reuse extends ReuseImplicitsLowPriority {
     def curryReusing: Reuse.Curried3[R, S, T] = Reuse.currying(t._1, t._2, t._3)
   }
 
+  implicit class Tuple4ReuseOps[R, S, T, U](private val t: (R, S, T, U)) extends AnyVal {
+    /*
+     * Implements the idiom:
+     *   `(a, b, c, d).curryReusing( (A, B, C, D, E) => F )`
+     * to create a `Reusable[E => F]` with `Reusability[(A, B, C, D)]`.
+     *
+     * Works for other arities too, as implemented in `Reuse.Curried4`.
+     */
+    def curryReusing: Reuse.Curried4[R, S, T, U] = Reuse.currying(t._1, t._2, t._3, t._4)
+  }
+
+  implicit class Tuple5ReuseOps[R, S, T, U, V](private val t: (R, S, T, U, V)) extends AnyVal {
+    /*
+     * Implements the idiom:
+     *   `(a, b, c, d, e).curryReusing( (A, B, C, D, E, F) => G )`
+     * to create a `Reusable[F => G]` with `Reusability[(A, B, C, D, E)]`.
+     *
+     * Works for other arities too, as implemented in `Reuse.Curried5`.
+     */
+    def curryReusing: Reuse.Curried5[R, S, T, U, V] = Reuse.currying(t._1, t._2, t._3, t._4, t._5)
+  }
+
   implicit class Fn1ReuseOps[R, B](private val fn: R => B) extends AnyVal {
     /*
      * Implements the idiom:
@@ -140,6 +162,135 @@ package object reuse extends ReuseImplicitsLowPriority {
       classTagR: ClassTag[(R, S, T)],
       reuseR:    Reusability[(R, S, T)]
     ): Reuse[B] = Reuse.currying(r, s, t).in(fn)
+  }
+
+  implicit class Fn4ReuseOps[R, S, T, U, B](private val fn: (R, S, T, U) => B) extends AnyVal {
+    /*
+     * Implements the idiom:
+     *   `((R, S, T, U) => B).reuseCurrying(r)`
+     * to create a `Reusable[(S, T, U) => B]` with `Reusability[R]`.
+     */
+    def reuseCurrying(
+      r:         R
+    )(implicit
+      classTagR: ClassTag[R],
+      reuseR:    Reusability[R]
+    ): Reuse[(S, T, U) => B] = Reuse.currying(r).in(fn)
+
+    /*
+     * Implements the idiom:
+     *   `((R, S, T, U) => B).reuseCurrying(r, s)`
+     * to create a `Reusable[(T, U) => B]` with `Reusability[(R, S)]`.
+     */
+    def reuseCurrying(
+      r:         R,
+      s:         S
+    )(implicit
+      classTagR: ClassTag[(R, S)],
+      reuseR:    Reusability[(R, S)]
+    ): Reuse[(T, U) => B] = Reuse.currying(r, s).in(fn)
+
+    /*
+     * Implements the idiom:
+     *   `((R, S, T, U) => B).reuseCurrying(r, s, t)`
+     * to create a `Reusable[U => B]` with `Reusability[(R, S, T)]`.
+     */
+    def reuseCurrying(
+      r:         R,
+      s:         S,
+      t:         T
+    )(implicit
+      classTagR: ClassTag[(R, S, T)],
+      reuseR:    Reusability[(R, S, T)]
+    ): Reuse[U => B] = Reuse.currying(r, s, t).in(fn)
+
+    /*
+     * Implements the idiom:
+     *   `((R, S, T, U) => B).reuseCurrying(r, s, t, u)`
+     * to create a `Reusable[B]` with `Reusability[(R, S, T, U)]`.
+     */
+    def reuseCurrying(
+      r:         R,
+      s:         S,
+      t:         T,
+      u:         U
+    )(implicit
+      classTagR: ClassTag[(R, S, T, U)],
+      reuseR:    Reusability[(R, S, T, U)]
+    ): Reuse[B] = Reuse.currying(r, s, t, u).in(fn)
+  }
+
+  implicit class Fn5ReuseOps[R, S, T, U, V, B](private val fn: (R, S, T, U, V) => B)
+      extends AnyVal {
+    /*
+     * Implements the idiom:
+     *   `((R, S, T, U, V) => B).reuseCurrying(r)`
+     * to create a `Reusable[(S, T, U, V) => B]` with `Reusability[R]`.
+     */
+    def reuseCurrying(
+      r:         R
+    )(implicit
+      classTagR: ClassTag[R],
+      reuseR:    Reusability[R]
+    ): Reuse[(S, T, U, V) => B] = Reuse.currying(r).in(fn)
+
+    /*
+     * Implements the idiom:
+     *   `((R, S, T, U, V) => B).reuseCurrying(r, s)`
+     * to create a `Reusable[(T, U, V) => B]` with `Reusability[(R, S)]`.
+     */
+    def reuseCurrying(
+      r:         R,
+      s:         S
+    )(implicit
+      classTagR: ClassTag[(R, S)],
+      reuseR:    Reusability[(R, S)]
+    ): Reuse[(T, U, V) => B] = Reuse.currying(r, s).in(fn)
+
+    /*
+     * Implements the idiom:
+     *   `((R, S, T, U, V) => B).reuseCurrying(r, s, t)`
+     * to create a `Reusable[(U, V) => B]` with `Reusability[(R, S, T)]`.
+     */
+    def reuseCurrying(
+      r:         R,
+      s:         S,
+      t:         T
+    )(implicit
+      classTagR: ClassTag[(R, S, T)],
+      reuseR:    Reusability[(R, S, T)]
+    ): Reuse[(U, V) => B] = Reuse.currying(r, s, t).in(fn)
+
+    /*
+     * Implements the idiom:
+     *   `((R, S, T, U, V) => B).reuseCurrying(r, s, t, u)`
+     * to create a `Reusable[V => B]` with `Reusability[(R, S, T, U)]`.
+     */
+    def reuseCurrying(
+      r:         R,
+      s:         S,
+      t:         T,
+      u:         U
+    )(implicit
+      classTagR: ClassTag[(R, S, T, U)],
+      reuseR:    Reusability[(R, S, T, U)]
+    ): Reuse[V => B] = Reuse.currying(r, s, t, u).in(fn)
+
+    /*
+     * Implements the idiom:
+     *   `((R, S, T, U, V) => B).reuseCurrying(r, s, t, u, v)`
+     * to create a `Reusable[B]` with `Reusability[(R, S, T, U, V)]`.
+     */
+    def reuseCurrying(
+      r:         R,
+      s:         S,
+      t:         T,
+      u:         U,
+      v:         V
+    )(implicit
+      classTagR: ClassTag[(R, S, T, U, V)],
+      reuseR:    Reusability[(R, S, T, U, V)]
+    ): Reuse[B] = Reuse.currying(r, s, t, u, v).in(fn)
   }
 
   implicit class ReuseViewF[F[_]: Monad, A](val rv: Reuse[ViewF[F, A]]) {
