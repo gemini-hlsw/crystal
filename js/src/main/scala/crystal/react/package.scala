@@ -62,6 +62,8 @@ package react {
       value: A,
       modCB: ((A => A), A => DefaultS[Unit]) => DefaultS[Unit]
     ): View[A] = ViewF[DefaultS, A](value, modCB)
+
+    def fromState = new FromStateView
   }
 
   class FromStateView {
@@ -80,7 +82,9 @@ package react {
       value: A,
       modCB: ((A => A), A => DefaultS[Unit]) => DefaultS[Unit]
     ): ReuseView[A] =
-      Reuse.by(value)(View(value, modCB))
+      View(value, modCB).reuseByValue
+
+    def fromState = new FromStateReuseView
   }
 
   class FromStateReuseView {

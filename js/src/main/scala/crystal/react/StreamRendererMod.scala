@@ -53,19 +53,15 @@ object StreamRendererMod {
       def render(props: Props[A], state: Pot[A]): VdomNode =
         props(
           state.map(a =>
-            Reuse.by(a)(
-              View[A](
-                a,
-                (f: A => A, cb: A => DefaultS[Unit]) =>
-                  hold.enable.runAsync.flatMap(_ =>
-                    // I'm not very happy about the cast.
-                    // However, this is only executed when the pot is ready, so the cast should be safe.
-                    $.modState(_.map(f),
-                               $.state.flatMap(pot => cb(pot.asInstanceOf[Ready[A]].value))
-                    )
-                  )
-              )
-            )
+            View[A](
+              a,
+              (f: A => A, cb: A => DefaultS[Unit]) =>
+                hold.enable.runAsync.flatMap(_ =>
+                  // I'm not very happy about the cast.
+                  // However, this is only executed when the pot is ready, so the cast should be safe.
+                  $.modState(_.map(f), $.state.flatMap(pot => cb(pot.asInstanceOf[Ready[A]].value)))
+                )
+            ).reuseByValue
           )
         )
     }
