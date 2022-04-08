@@ -1,8 +1,9 @@
 package crystal
 
-import cats.syntax.all._
+import cats.effect.Deferred
 import cats.effect.IO
-import cats.effect.{ Deferred, Ref }
+import cats.effect.Ref
+import cats.syntax.all._
 
 class ViewFSpec extends munit.CatsEffectSuite {
 

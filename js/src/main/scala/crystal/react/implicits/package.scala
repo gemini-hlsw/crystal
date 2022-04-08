@@ -16,6 +16,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
 import org.typelevel.log4cats.Logger
 
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 package object implicits {
@@ -276,33 +277,28 @@ package object implicits {
       }
     )
 
-  // The implicit conversion dance is mainly to deal with Reusable[View]
-  implicit class ViewDefaultSOps[A, V](private val view: V)(implicit conv: V => View[A]) {
-    def async: ViewF[DefaultA, A] =
-      conv(view).to[DefaultA](syncToAsync.apply[Unit] _, _.runAsyncAndForget)
+  implicit class ViewDefaultSOps[A](private val view: View[A]) {
+    def async(implicit logger: Logger[DefaultA]): ViewF[DefaultA, A] =
+      view.to[DefaultA](syncToAsync.apply[Unit] _, _.runAsync)
   }
 
-  implicit def viewReusability[F[_], A: Reusability]: Reusability[ViewF[F, A]] =
-    Reusability.by(_.get)
-
-  implicit def viewOptReusability[F[_], A: Reusability]: Reusability[ViewOptF[F, A]] =
-    Reusability.by(_.get)
-
-  implicit def viewListReusability[F[_], A: Reusability]: Reusability[ViewListF[F, A]] =
-    Reusability.by(_.get)
+  implicit class ViewFOps[F[_], A: ClassTag: Reusability](private val view: ViewF[F, A]) {
+    def reuseByValue: Reuse[ViewF[F, A]] = Reuse.by(view.get)(view)
+  }
 
   implicit class ViewFModuleOps(private val viewFModule: ViewF.type) extends AnyVal {
     def fromState: FromStateView = new FromStateView
   }
 
-  implicit class ViewFReuseOps[F[_], G[_], A](private val viewF: ViewOps[F, G, A]) extends AnyVal {
-    def reuseSet: Reuse[A => F[Unit]] = Reuse.always(viewF.set)
-
-    def reuseMod: Reuse[(A => A) => F[Unit]] = Reuse.always(viewF.mod)
-
-    def reuseModAndGet(implicit F: Async[F]): Reuse[(A => A) => F[G[A]]] =
-      Reuse.always(viewF.modAndGet)
+  implicit class ViewOptFOps[F[_], A: ClassTag: Reusability](private val view: ViewOptF[F, A]) {
+    def reuseByValue: Reuse[ViewOptF[F, A]] = Reuse.by(view.get)(view)
   }
+
+  implicit class ReuseViewDefaultSOps[A](private val view: ReuseView[A]) {
+    def async(implicit logger: Logger[DefaultA]): ReuseViewF[DefaultA, A] =
+      view.to[DefaultA](syncToAsync.apply[Unit] _, _.runAsync)
+  }
+
 }
 
 package implicits {

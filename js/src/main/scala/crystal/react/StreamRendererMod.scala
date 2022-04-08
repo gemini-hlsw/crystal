@@ -15,10 +15,11 @@ import japgolly.scalajs.react.{ Ref => _, _ }
 import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration
+import scala.reflect.ClassTag
 
 object StreamRendererMod {
 
-  type Props[A] = Pot[ViewF[DefaultS, A]] ==> VdomNode
+  type Props[A] = Pot[ReuseView[A]] ==> VdomNode
 
   type State[A]     = Pot[A]
   type Component[A] =
@@ -29,13 +30,12 @@ object StreamRendererMod {
       _
     ]]
 
-  def build[F[_]: Async: Effect.Dispatch: Logger, A](
+  def build[F[_]: Async: Effect.Dispatch: Logger, A: ClassTag: Reusability](
     stream:       fs2.Stream[F, A],
     holdAfterMod: Option[FiniteDuration] = None
   )(implicit
     DefaultS:     Sync[DefaultS],
-    dispatch:     UnsafeSync[DefaultS],
-    reuse:        Reusability[A] /* Used to derive Reusability[State[A]] */
+    dispatch:     UnsafeSync[DefaultS]
   ): Component[A] = {
     class Backend($ : BackendScope[Props[A], State[A]])
         extends StreamRendererBackend[F, A](stream) {
@@ -50,13 +50,10 @@ object StreamRendererMod {
         pot =>
           hold.set(pot) >> hold.enable // This will debounce messages for at least the hold time.
 
-      def render(
-        props: Props[A],
-        state: Pot[A]
-      ): VdomNode =
+      def render(props: Props[A], state: Pot[A]): VdomNode =
         props(
           state.map(a =>
-            ViewF[DefaultS, A](
+            View[A](
               a,
               (f: A => A, cb: A => DefaultS[Unit]) =>
                 hold.enable.runAsync.flatMap(_ =>
@@ -64,7 +61,7 @@ object StreamRendererMod {
                   // However, this is only executed when the pot is ready, so the cast should be safe.
                   $.modState(_.map(f), $.state.flatMap(pot => cb(pot.asInstanceOf[Ready[A]].value)))
                 )
-            )
+            ).reuseByValue
           )
         )
     }

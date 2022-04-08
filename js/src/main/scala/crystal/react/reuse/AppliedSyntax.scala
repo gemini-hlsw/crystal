@@ -16,6 +16,9 @@ protected trait AppliedSyntax {
       Reuse.by(reuseByR)(valueA)
 
     def always: Reuse[A] = Reuse.by(())(valueA)
+
+    def self(implicit classTag: ClassTag[A], reusability: Reusability[A]): Reuse[A] =
+      Reuse.by(valueA)(valueA)
   }
 
   implicit class AppliedFn2Ops[A, R, S, B](aa: Applied[A])(implicit ev: A =:= ((R, S) => B)) {
@@ -509,5 +512,143 @@ protected trait AppliedSyntax {
       reuseR:     Reusability[(R, S, T, U, V, W, X, Y)]
     ): Reuse[B] =
       Reuse.by((r, s, t, u, v, w, x, y))(ev(aa.value())(r, s, t, u, v, w, x, y))
+  }
+  implicit class AppliedFn9Ops[A, R, S, T, U, V, W, X, Y, Z, B](aa: Applied[A])(implicit
+    ev:                                                             A =:= ((R, S, T, U, V, W, X, Y, Z) => B)
+  ) {
+    /*
+     * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R and build a (S, T, U, V, W, X, Y, Z) ==> B.
+     */
+    def apply(
+      r:         R
+    )(implicit
+      classTagR: ClassTag[R],
+      reuseR:    Reusability[R]
+    ): Reuse[(S, T, U, V, W, X, Y, Z) => B] =
+      Reuse.by(r)((s, t, u, v, w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+
+    /*
+     * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R and S and build a (T, U, V, W, X, Y, Z) ==> B.
+     */
+    def apply(
+      r:          R,
+      s:          S
+    )(implicit
+      classTagRS: ClassTag[(R, S)],
+      reuseR:     Reusability[(R, S)]
+    ): Reuse[(T, U, V, W, X, Y, Z) => B] =
+      Reuse.by((r, s))((t, u, v, w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+
+    /*
+     * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R, S and T and build a (U, V, W, X, Y, Z) ==> B.
+     */
+    def apply(
+      r:          R,
+      s:          S,
+      t:          T
+    )(implicit
+      classTagRS: ClassTag[(R, S, T)],
+      reuseR:     Reusability[(R, S, T)]
+    ): Reuse[(U, V, W, X, Y, Z) => B] =
+      Reuse.by((r, s, t))((u, v, w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+
+    /*
+     * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R, S, T and U and build a (V, W, X, Y, Z) ==> B.
+     */
+    def apply(
+      r:          R,
+      s:          S,
+      t:          T,
+      u:          U
+    )(implicit
+      classTagRS: ClassTag[(R, S, T, U)],
+      reuseR:     Reusability[(R, S, T, U)]
+    ): Reuse[(V, W, X, Y, Z) => B] =
+      Reuse.by((r, s, t, u))((v, w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+
+    /*
+     * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R, S, T, U and V and build a (W, X, Y, Z) ==> B.
+     */
+    def apply(
+      r:          R,
+      s:          S,
+      t:          T,
+      u:          U,
+      v:          V
+    )(implicit
+      classTagRS: ClassTag[(R, S, T, U, V)],
+      reuseR:     Reusability[(R, S, T, U, V)]
+    ): Reuse[(W, X, Y, Z) => B] =
+      Reuse.by((r, s, t, u, v))((w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+
+    /*
+     * Given a (R, S, T, U, V, W, W, X, Y, Z) => B , instantiate R, S, T, U, V and W and build a (X, Y, Z) ==> B.
+     */
+    def apply(
+      r:          R,
+      s:          S,
+      t:          T,
+      u:          U,
+      v:          V,
+      w:          W
+    )(implicit
+      classTagRS: ClassTag[(R, S, T, U, V, W)],
+      reuseR:     Reusability[(R, S, T, U, V, W)]
+    ): Reuse[(X, Y, Z) => B] =
+      Reuse.by((r, s, t, u, v, w))((x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+
+    /*
+     * Given a (R, S, T, U, V, W, W, X, Y, Z) => B , instantiate R, S, T, U, V, W and X and build a (Y, Z) => Reuse[B].
+     */
+    def apply(
+      r:          R,
+      s:          S,
+      t:          T,
+      u:          U,
+      v:          V,
+      w:          W,
+      x:          X
+    )(implicit
+      classTagRS: ClassTag[(R, S, T, U, V, W, X)],
+      reuseR:     Reusability[(R, S, T, U, V, W, X)]
+    ): Reuse[(Y, Z) => B] =
+      Reuse.by((r, s, t, u, v, w, x))((y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+
+    /*
+     * Given a (R, S, T, U, V, W, W, X, Y, Z) => B , instantiate R, S, T, U, V, W, X and Y and build a Z => Reuse[B].
+     */
+    def apply(
+      r:          R,
+      s:          S,
+      t:          T,
+      u:          U,
+      v:          V,
+      w:          W,
+      x:          X,
+      y:          Y
+    )(implicit
+      classTagRS: ClassTag[(R, S, T, U, V, W, X, Y)],
+      reuseR:     Reusability[(R, S, T, U, V, W, X, Y)]
+    ): Reuse[Z => B] =
+      Reuse.by((r, s, t, u, v, w, x, y))(z => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+
+    /*
+     * Given a (R, S, T, U, V, W, W, X, Y, Z) => B , instantiate R, S, T, U, V, W, X, Y, Z and build a Reuse[B].
+     */
+    def apply(
+      r:          R,
+      s:          S,
+      t:          T,
+      u:          U,
+      v:          V,
+      w:          W,
+      x:          X,
+      y:          Y,
+      z:          Z
+    )(implicit
+      classTagRS: ClassTag[(R, S, T, U, V, W, X, Y, Z)],
+      reuseR:     Reusability[(R, S, T, U, V, W, X, Y, Z)]
+    ): Reuse[B] =
+      Reuse.by((r, s, t, u, v, w, x, y, z))(ev(aa.value())(r, s, t, u, v, w, x, y, z))
   }
 }

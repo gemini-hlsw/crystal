@@ -33,25 +33,38 @@ import scala.reflect.ClassTag
 trait Reuse[+A] {
   type B
 
-  val get: () => A
+  lazy val value: A = getValue()
 
-  lazy val value: A = get()
+  protected[reuse] val getValue: () => A
 
   protected[reuse] val reuseBy: B // We need to store it to combine into tuples when currying.
 
-  protected[reuse] implicit val ClassTag: ClassTag[B]
+  protected[reuse] implicit val classTag: ClassTag[B]
 
   protected[reuse] implicit val reusability: Reusability[B]
 
+  def addReuseBy[R: Reusability](r: R): Reuse[A] = Reuse.by((reuseBy, r))(value)
+  def addReuseByFrom[C](r: Reuse[C]): Reuse[A]   = addReuseBy(r.reuseBy)(r.reusability)
+
+  def replaceReuseBy[R: Reusability: ClassTag](r: R): Reuse[A] = Reuse.by(r)(value)
+  def replaceReuseByFrom[C](r: Reuse[C]): Reuse[A]             =
+    replaceReuseBy(r.reuseBy)(r.reusability, r.classTag)
+
   def map[C](f: A => C): Reuse[C] = Reuse.by(reuseBy)(f(value))
+
+  def zip[C](that: Reuse[C]): Reuse[(A, C)] = {
+    implicit val thatReuse: Reusability[that.B] = that.reusability
+    Reuse.by((reuseBy, that.reuseBy))((value, that.value))
+  }
+
+  def zipMap[C, D](that: Reuse[C])(f: (A, C) => D): Reuse[D] =
+    zip(that).map(f.tupled)
 }
 
 object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with ReusableInterop {
-  implicit def toA[A](reuseFn: Reuse[A]): A = reuseFn.value
-
   implicit def reusability[A]: Reusability[Reuse[A]] =
     Reusability.apply((reuseA, reuseB) =>
-      if (reuseA.ClassTag == reuseB.ClassTag)
+      if (reuseA.classTag == reuseB.classTag)
         reuseA.reusability.test(reuseA.reuseBy, reuseB.reuseBy.asInstanceOf[reuseA.B]) &&
         reuseB.reusability.test(reuseA.reuseBy.asInstanceOf[reuseB.B], reuseB.reuseBy)
       else false
@@ -88,6 +101,19 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
    * `Reuse.currying(value1WithReusability : R, value2: S, value3: T).in( (R, S, T[, ...]) => B )`.
    */
   def currying[R, S, T](r: R, s: S, t: T): Curried3[R, S, T] = new Curried3(r, s, t)
+
+  /*
+   * Constructs a reusable function by using the pattern
+   * `Reuse.currying(value1WithReusability : R, value2: S, value3: T, value4: U).in( (R, S, T, U[, ...]) => B )`.
+   */
+  def currying[R, S, T, U](r: R, s: S, t: T, u: U): Curried4[R, S, T, U] = new Curried4(r, s, t, u)
+
+  /*
+   * Constructs a reusable function by using the pattern
+   * `Reuse.currying(value1WithReusability : R, value2: S, value3: T, value4: U, value5: V).in( (R, S, T, U, V[, ...]) => B )`.
+   */
+  def currying[R, S, T, U, V](r: R, s: S, t: T, u: U, v: V): Curried5[R, S, T, U, V] =
+    new Curried5(r, s, t, u, v)
 
   /*
    * Supports construction via the pattern `Reuse.by(valueWithReusability)(reusedValue)`
@@ -133,11 +159,11 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
       new Reuse[A] {
         type B = R
 
-        val get = () => valueA
+        protected[reuse] val getValue = () => valueA
 
         protected[reuse] val reuseBy = reuseByR
 
-        protected[reuse] val ClassTag = classTagR
+        protected[reuse] val classTag = classTagR
 
         protected[reuse] val reusability = reuseR
       }

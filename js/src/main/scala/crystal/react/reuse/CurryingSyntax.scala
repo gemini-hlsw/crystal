@@ -47,6 +47,28 @@ trait CurryingSyntax {
       reuseR:    Reusability[R]
     ): Reuse[(S, T) => B] =
       Reuse.by(r)((s, t) => fn(r, s, t))
+
+    /*
+     * Given R and a (R, S, T, U) => B, build a (S, T, U) ==> B.
+     */
+    def in[S, T, U, B](
+      fn:        (R, S, T, U) => B
+    )(implicit
+      classTagR: ClassTag[R],
+      reuseR:    Reusability[R]
+    ): Reuse[(S, T, U) => B] =
+      Reuse.by(r)((s, t, u) => fn(r, s, t, u))
+
+    /*
+     * Given R and a (R, S, T, U, V) => B, build a (S, T, U, V) ==> B.
+     */
+    def in[S, T, U, V, B](
+      fn:        (R, S, T, U, V) => B
+    )(implicit
+      classTagR: ClassTag[R],
+      reuseR:    Reusability[R]
+    ): Reuse[(S, T, U, V) => B] =
+      Reuse.by(r)((s, t, u, v) => fn(r, s, t, u, v))
   }
 
   class Curried2[R, S](val r: R, val s: S) {
@@ -76,9 +98,36 @@ trait CurryingSyntax {
       reuseR:    Reusability[(R, S)]
     ): Reuse[T => B] =
       Reuse.by((r, s))(t => fn(r, s, t))
+
+    /*
+     * Given R, S and a (R, S, T, U) => B, build a (T, U) ==> B.
+     */
+    def in[T, U, B](
+      fn:        (R, S, T, U) => B
+    )(implicit
+      classTagR: ClassTag[(R, S)],
+      reuseR:    Reusability[(R, S)]
+    ): Reuse[(T, U) => B] =
+      Reuse.by((r, s))((t, u) => fn(r, s, t, u))
+
+    /*
+     * Given R, S and a (R, S, T, U, V) => B, build a (T, U, V) ==> B.
+     */
+    def in[T, U, V, B](
+      fn:        (R, S, T, U, V) => B
+    )(implicit
+      classTagR: ClassTag[(R, S)],
+      reuseR:    Reusability[(R, S)]
+    ): Reuse[(T, U, V) => B] =
+      Reuse.by((r, s))((t, u, v) => fn(r, s, t, u, v))
   }
 
   class Curried3[R, S, T](val r: R, val s: S, val t: T) {
+    /*
+     * Add another curried value.
+     */
+    def and[U](u: U): Curried4[R, S, T, U] = new Curried4(r, s, t, u)
+
     /*
      * Given R, S, T and a (R, S, T) => B, build a Reuse[B].
      */
@@ -100,5 +149,59 @@ trait CurryingSyntax {
       reuseR:    Reusability[(R, S, T)]
     ): Reuse[U => B] =
       Reuse.by((r, s, t))(u => fn(r, s, t, u))
+
+    /*
+     * Given R, S, T and a (R, S, T, U, V) => B, build a (U, V) ==> B.
+     */
+    def in[U, V, B](
+      fn:        (R, S, T, U, V) => B
+    )(implicit
+      classTagR: ClassTag[(R, S, T)],
+      reuseR:    Reusability[(R, S, T)]
+    ): Reuse[(U, V) => B] =
+      Reuse.by((r, s, t))((u, v) => fn(r, s, t, u, v))
   }
+
+  class Curried4[R, S, T, U](val r: R, val s: S, val t: T, val u: U) {
+    /*
+     * Add another curried value.
+     */
+    def and[V](v: V): Curried5[R, S, T, U, V] = new Curried5(r, s, t, u, v)
+
+    /*
+     * Given R, S, T, U and a (R, S, T, U) => B, build a Reuse[B].
+     */
+    def in[B](
+      fn:        (R, S, T, U) => B
+    )(implicit
+      classTagR: ClassTag[(R, S, T, U)],
+      reuseR:    Reusability[(R, S, T, U)]
+    ): Reuse[B] =
+      Reuse.by((r, s, t, u))(fn(r, s, t, u))
+
+    /*
+     * Given R, S, T, U and a (R, S, T, U, V) => B, build a V ==> B.
+     */
+    def in[V, B](
+      fn:        (R, S, T, U, V) => B
+    )(implicit
+      classTagR: ClassTag[(R, S, T, U)],
+      reuseR:    Reusability[(R, S, T, U)]
+    ): Reuse[V => B] =
+      Reuse.by((r, s, t, u))(v => fn(r, s, t, u, v))
+  }
+
+  class Curried5[R, S, T, U, V](val r: R, val s: S, val t: T, val u: U, val v: V) {
+    /*
+     * Given R, S, T, U, V and a (R, S, T, U, V) => B, build a Reuse[B].
+     */
+    def in[B](
+      fn:        (R, S, T, U, V) => B
+    )(implicit
+      classTagR: ClassTag[(R, S, T, U, V)],
+      reuseR:    Reusability[(R, S, T, U, V)]
+    ): Reuse[B] =
+      Reuse.by((r, s, t, u, v))(fn(r, s, t, u, v))
+  }
+
 }

@@ -5,7 +5,7 @@ import japgolly.scalajs.react._
 protected trait ReusableInteropLowPriority {
   implicit def reusabilityAny[A](r: Reuse[A]): Reusable[A] = {
     import r._
-    Reusable.implicitly(r.reuseBy).withLazyValue(r.get())
+    Reusable.implicitly(r.reuseBy).withLazyValue(r.getValue())
   }
 }
 

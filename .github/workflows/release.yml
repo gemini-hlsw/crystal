@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2      
       - uses: olafurpg/setup-scala@v13
         with:
-          java-version: adoptium@11
+          java-version: temurin@11
       - name: Publish
         run: sbt ci-release
         env:

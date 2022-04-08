@@ -1,6 +1,7 @@
 package crystal
 
 import org.scalacheck._
+
 import Arbitrary._
 import Gen._
 
