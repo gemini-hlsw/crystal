@@ -5,7 +5,7 @@ import sbt.librarymanagement._
 object Settings {
 
   object LibraryVersions {
-    val scalajsReact    = "2.0.1"
+    val scalajsReact    = "2.1.0"
     val cats            = "2.7.0"
     val catsEffect      = "3.3.11"
     val fs2             = "3.2.7"
