@@ -21,6 +21,12 @@ sealed trait Pot[+A] {
       case Ready(a)       => fr(a)
     }
 
+  def isReady: Boolean = fold(_ => false, _ => false, _ => true)
+
+  def isPending: Boolean = fold(_ =>true, _ => false, _ => true)
+
+  def isError: Boolean = fold(_ =>false, _ => true, _ => false)
+
   def flatten[B](implicit ev: A <:< Pot[B]): Pot[B] =
     this match {
       case pend @ Pending(_) => pend.valueCast[B]
@@ -31,11 +37,7 @@ sealed trait Pot[+A] {
   def flatMap[B](f: A => Pot[B]): Pot[B] =
     map(f).flatten
 
-  def toOption: Option[A] =
-    this match {
-      case Ready(a) => a.some
-      case _        => none
-    }
+  def toOption: Option[A] = fold(_ => none, _ => none, _.some)
 
   def toTryOption: Option[Try[A]] =
     this match {
@@ -43,6 +45,8 @@ sealed trait Pot[+A] {
       case Error(t)   => Failure(t).some
       case Ready(a)   => Success(a).some
     }
+
+  def zoom[B](lens: A => B): Pot[B] = map(lens)
 }
 
 final case class Pending(start: Long = System.currentTimeMillis()) extends Pot[Nothing] {
