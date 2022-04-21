@@ -43,7 +43,7 @@ class PotSpec extends DisciplineSuite {
   }
 
   property("Pot[Int].toOption: Pending(_) isPending") {
-    forAll((l: Long) => Pending(l).isPending)
+    forAll((l: Long) => Pending(l).isPending && !Pending(l).isReady && !Pending(l).isError)
   }
 
   property("Pot[Int].toOption: Error(_) is None") {
@@ -51,7 +51,7 @@ class PotSpec extends DisciplineSuite {
   }
 
   property("Pot[Int].toOption: Error(_) isError") {
-    forAll((t: Throwable) => Error(t).isError)
+    forAll((t: Throwable) => Error(t).isError && !Error(t).isReady && !Error(t).isReady)
   }
 
   property("Pot[Int].toOption: Ready(a) is Some(a)") {
@@ -59,8 +59,9 @@ class PotSpec extends DisciplineSuite {
   }
 
   property("Pot[Int].toOption: Ready(a) isReady") {
-    forAll((i: Int) => Ready(i).isReady)
+    forAll((i: Int) => Ready(i).isReady && !Ready(i).isPending && !Ready(i).isError)
   }
+
   property("Pot[Int].toTryOption: Pending(_) is None") {
     forAll((l: Long) => Pending(l).toTryOption.isEmpty)
   }

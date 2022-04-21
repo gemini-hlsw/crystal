@@ -23,9 +23,9 @@ sealed trait Pot[+A] {
 
   def isReady: Boolean = fold(_ => false, _ => false, _ => true)
 
-  def isPending: Boolean = fold(_ =>true, _ => false, _ => true)
+  def isPending: Boolean = fold(_ => true, _ => false, _ => false)
 
-  def isError: Boolean = fold(_ =>false, _ => true, _ => false)
+  def isError: Boolean = fold(_ => false, _ => true, _ => false)
 
   def flatten[B](implicit ev: A <:< Pot[B]): Pot[B] =
     this match {
@@ -46,7 +46,6 @@ sealed trait Pot[+A] {
       case Ready(a)   => Success(a).some
     }
 
-  def zoom[B](lens: A => B): Pot[B] = map(lens)
 }
 
 final case class Pending(start: Long = System.currentTimeMillis()) extends Pot[Nothing] {
