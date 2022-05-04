@@ -63,12 +63,11 @@ trait Reuse[+A] {
 
 object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with ReusableInterop {
   implicit def reusability[A]: Reusability[Reuse[A]] =
-    Reusability.apply((reuseA, reuseB) =>
-      if (reuseA.classTag == reuseB.classTag)
-        reuseA.reusability.test(reuseA.reuseBy, reuseB.reuseBy.asInstanceOf[reuseA.B]) &&
-        reuseB.reusability.test(reuseA.reuseBy.asInstanceOf[reuseB.B], reuseB.reuseBy)
-      else false
-    )
+    Reusability.apply { (reuseA, reuseB) =>
+      reuseA.classTag == reuseB.classTag &&
+      reuseA.reusability.test(reuseA.reuseBy, reuseB.reuseBy.asInstanceOf[reuseA.B]) &&
+      reuseB.reusability.test(reuseA.reuseBy.asInstanceOf[reuseB.B], reuseB.reuseBy)
+    }
 
   /*
    * Constructs a `Reuse[A]` by using the pattern `Reuse.by(valueWithReusability)(reusedValue)`.
