@@ -22,16 +22,16 @@ object UseAsyncEffectOnMount {
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
+      /** Simulates `useEffectOnMount` with cleanup callback for async effect. To declare an async
+        * effect without a cleanup callback, just use the regular `useEffectOnMount` hook.
         */
       final def useAsyncEffectOnMount[A](effect: DefaultA[DefaultA[Unit]])(implicit
         step:                                    Step
       ): step.Self =
         useAsyncEffectOnMountBy(_ => effect)
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
+      /** Simulates `useEffectOnMount` with cleanup callback for async effect. To declare an async
+        * effect without a cleanup callback, just use the regular `useEffectOnMount` hook.
         */
       final def useAsyncEffectOnMountBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(implicit
         step:                                      Step
@@ -46,8 +46,8 @@ object UseAsyncEffectOnMount {
       api: HooksApi.Secondary[Ctx, CtxFn, Step]
     ) extends Primary[Ctx, Step](api) {
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
+      /** Simulates `useEffectOnMount` with cleanup callback for async effect. To declare an async
+        * effect without a cleanup callback, just use the regular `useEffectOnMount` hook.
         */
       def useAsyncEffectOnMountBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(implicit
         step:                                Step
