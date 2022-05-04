@@ -64,7 +64,8 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
   )
   .jsSettings(
     libraryDependencies ++=
-      Settings.Libraries.ReactScalaJS.value,
+      Settings.Libraries.ScalaJSReact.value ++
+        Settings.Libraries.ReactCommon.value,
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
 

@@ -117,7 +117,7 @@ package object implicits {
       }
   }
 
-  implicit class UseStateFOps[S](private val self: Hooks.UseStateF[DefaultS, S]) extends AnyVal {
+  implicit class UseStateOps[S](private val self: Hooks.UseState[S]) extends AnyVal {
     @inline def setStateAsync: Reusable[S => DefaultA[Unit]] =
       self.setState.map(f => s => f(s).to[DefaultA])
 
@@ -128,13 +128,21 @@ package object implicits {
       new WithReusableInputsAsync[S](self)
   }
 
-  implicit class UseStateWithReuseFOps[S](private val self: Hooks.UseStateWithReuseF[DefaultS, S])
+  implicit class UseStateWithReuseOps[S](private val self: Hooks.UseStateWithReuse[S])
       extends AnyVal {
     @inline def setStateAsync: Reusable[S => Reusable[DefaultA[Unit]]] =
       self.setState.map(f => s => f(s).map(_.to[DefaultA]))
 
     @inline def modStateAsync(f: S => S): Reusable[DefaultA[Unit]] =
       self.modState(f).map(_.to[DefaultA])
+  }
+
+  implicit class UseRefOps[A](private val self: Hooks.UseRef[A]) extends AnyVal {
+    @inline def setAsync: A => DefaultA[Unit] = a => self.set(a).to[DefaultA]
+
+    @inline def modAsync: (A => A) => DefaultA[Unit] = f => self.mod(f).to[DefaultA]
+
+    @inline def getAsync: DefaultA[A] = self.get.to[DefaultA]
   }
 
   implicit class EffectAOps[F[_], A](private val self: F[A]) extends AnyVal {
