@@ -37,7 +37,7 @@ class Hold[F[_]: Async, A](
     }
 
   val enable: F[Unit] =
-    (cancelToken.getAndSet(none).flatMap(_.orUnit)).uncancelable >>
+    cancelToken.getAndSet(none).flatMap(_.orUnit).uncancelable >>
       restart.map(_.start.flatMap(fiber => cancelToken.set(fiber.cancel.some))).orUnit
 }
 
