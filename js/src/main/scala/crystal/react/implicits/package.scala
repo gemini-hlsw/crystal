@@ -18,6 +18,7 @@ import org.typelevel.log4cats.Logger
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
+import cats.Monad
 
 package object implicits {
   implicit class DefaultSToOps[A](private val self: DefaultS[A])(implicit
@@ -300,6 +301,13 @@ package object implicits {
 
   implicit class ViewOptFOps[F[_], A: ClassTag: Reusability](private val view: ViewOptF[F, A]) {
     def reuseByValue: Reuse[ViewOptF[F, A]] = Reuse.by(view.get)(view)
+  }
+
+  implicit class OptViewFOps[F[_]: Monad, A](private val optView: Option[ViewF[F, A]]) {
+    def toViewOpt: ViewOptF[F, A] =
+      optView.fold(new ViewOptF[F, A](none, (_, cb) => cb(none)) {
+        override def modAndGet(f: A => A)(implicit F: Async[F]): F[Option[A]] = none.pure[F]
+      })(_.asOpt)
   }
 
   implicit class ReuseViewDefaultSOps[A](private val view: ReuseView[A]) {
