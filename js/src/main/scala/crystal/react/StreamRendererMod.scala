@@ -32,7 +32,7 @@ object StreamRendererMod {
 
   def build[F[_]: Async: Effect.Dispatch: Logger, A: ClassTag: Reusability](
     stream:       fs2.Stream[F, A],
-    holdAfterMod: Option[FiniteDuration] = None
+    holdAfterMod: Option[FiniteDuration] = none
   )(implicit
     DefaultS:     Sync[DefaultS],
     dispatch:     UnsafeSync[DefaultS]
