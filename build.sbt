@@ -49,7 +49,8 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
             Settings.Libraries.Discipline.value ++
             Settings.Libraries.DisciplineMUnit.value ++
             Settings.Libraries.CatsLaws.value ++
-            Settings.Libraries.MonocleMacro.value
+            Settings.Libraries.MonocleMacro.value ++
+            Settings.Libraries.MonocleLaw.value
         ).map(_ % Test),
     scmInfo              := Some(
       ScmInfo(

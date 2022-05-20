@@ -1,6 +1,7 @@
 package crystal
 
 import cats.syntax.all._
+import monocle.Prism
 
 import scala.util.Failure
 import scala.util.Success
@@ -81,4 +82,19 @@ object Pot {
       case Some(Failure(t)) => Error(t)
       case None             => Pending()
     }
+
+  def readyPrism[A]: Prism[Pot[A], A] = Prism[Pot[A], A] {
+    case Ready(a) => a.some
+    case _        => none
+  }(apply)
+
+  def pendingPrism[A]: Prism[Pot[A], Long] = Prism[Pot[A], Long] {
+    case Pending(start) => start.some
+    case _              => none
+  }(Pending(_))
+
+  def errorPrism[A]: Prism[Pot[A], Throwable] = Prism[Pot[A], Throwable] {
+    case Error(t) => t.some
+    case _        => none
+  }(Error(_))
 }

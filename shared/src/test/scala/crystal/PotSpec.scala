@@ -7,6 +7,7 @@ import cats.laws.discipline.arbitrary._
 import cats.syntax.all._
 import crystal.implicits._
 import crystal.implicits.throwable._
+import monocle.law.discipline.PrismTests
 import munit.DisciplineSuite
 import org.scalacheck.Prop
 import org.scalacheck.Prop.forAll
@@ -38,6 +39,21 @@ class PotSpec extends DisciplineSuite {
   checkAll(
     "Pot[Int].TraverseLaws",
     TraverseTests[Pot].traverse[Int, Int, Int, Int, Option, Option]
+  )
+
+  checkAll(
+    "Pot[Int].readyPrism",
+    PrismTests(Pot.readyPrism[Int])
+  )
+
+  checkAll(
+    "Pot[Int].pendingPrism",
+    PrismTests(Pot.pendingPrism[Int])
+  )
+
+  checkAll(
+    "Pot[Int].errorPrism",
+    PrismTests(Pot.errorPrism[Int])
   )
 
   property("Pot[Int].toOption: Pending(_) is None") {

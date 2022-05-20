@@ -69,6 +69,12 @@ object Settings {
       )
     )
 
+    val MonocleLaw = Def.setting(
+      Seq[ModuleID](
+        "dev.optics" %%% "monocle-law" % monocle
+      )
+    )
+
     val MonocleMacro = Def.setting(
       Seq[ModuleID](
         "dev.optics" %%% "monocle-macro" % monocle
