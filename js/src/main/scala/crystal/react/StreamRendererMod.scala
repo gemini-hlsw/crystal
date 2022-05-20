@@ -11,7 +11,7 @@ import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
 import japgolly.scalajs.react.util.Effect
 import japgolly.scalajs.react.util.Effect.UnsafeSync
 import japgolly.scalajs.react.vdom.html_<^._
-import japgolly.scalajs.react.{ Ref => _, _ }
+import japgolly.scalajs.react.{Ref => _, _}
 import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration

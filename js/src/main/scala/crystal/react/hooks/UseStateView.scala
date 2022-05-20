@@ -3,28 +3,16 @@ package crystal.react.hooks
 import crystal.react.View
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
-import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
-
-import scala.collection.immutable.Queue
 
 object UseStateView {
   def hook[A]: CustomHook[A, View[A]] =
     CustomHook[A]
       .useStateBy(initialValue => initialValue)
-      .useRef(Queue.empty[A => DefaultS[Unit]])
-      // Credit to japgolly for this implementation; this is copied from StateSnapshot.
-      .useEffectBy { (_, state, delayedCallbacks) =>
-        val cbs = delayedCallbacks.value
-        if (cbs.isEmpty)
-          DefaultS.empty
-        else
-          delayedCallbacks.set(Queue.empty) >>
-            DefaultS.runAll(cbs.toList.map(_(state.value)): _*)
-      }
-      .buildReturning { (_, state, delayedCallbacks) =>
+      .useStateCallbackBy((_, state) => state)
+      .buildReturning { (_, state, delayedCallback) =>
         View[A](
           state.value,
-          (f, cb) => state.modState(f) >> delayedCallbacks.mod(_.enqueue(cb))
+          (f, cb) => state.modState(f) >> delayedCallback(cb)
         )
       }
 

@@ -1,5 +1,6 @@
 package crystal.react
 
+import react.common.ReactFnProps
 import cats.effect.Sync
 import cats.effect.kernel.Resource
 import cats.syntax.all._
@@ -14,10 +15,9 @@ import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
 import japgolly.scalajs.react.util.Effect.UnsafeSync
 import japgolly.scalajs.react.vdom.html_<^._
 import org.typelevel.log4cats.Logger
-import _root_.react.common.ReactFnProps
 
-import scala.reflect.ClassTag
 import scala.concurrent.duration.FiniteDuration
+import scala.reflect.ClassTag
 
 final case class StreamResourceRendererMod[A](
   resource:     Resource[DefaultA, fs2.Stream[DefaultA, A]],
