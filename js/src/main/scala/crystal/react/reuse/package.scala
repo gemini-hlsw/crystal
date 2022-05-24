@@ -310,7 +310,7 @@ package object reuse extends ReuseImplicitsLowPriority {
 
     def as[B](iso: Iso[A, B]): Reuse[ViewF[F, B]] = zoom(iso.asLens)
 
-    def asOpt: Reuse[ViewOptF[F, A]] = zoom(Iso.id[A].asOptional)
+    def asViewOpt: Reuse[ViewOptF[F, A]] = zoom(Iso.id[A].asOptional)
 
     def asList: Reuse[ViewListF[F, A]] = zoom(Iso.id[A].asTraversal)
 

@@ -104,28 +104,28 @@ class ViewFSpec extends munit.CatsEffectSuite {
     } yield assert(get === 1))
   }
 
-  test("ViewF[Wrap[Int]].asOpt.zoom(Lens).mod") {
+  test("ViewF[Wrap[Int]].asViewOpt.zoom(Lens).mod") {
     (for {
       ref <- Ref[IO].of(wrappedValue)
-      view = ViewF(wrappedValue, refModCB(ref)).asOpt.zoom(lens)
+      view = ViewF(wrappedValue, refModCB(ref)).asViewOpt.zoom(lens)
       _   <- view.mod(_ + 1)
       get <- ref.get
     } yield assert(get === Wrap(1)))
   }
 
-  test("ViewF[Wrap[Int]].asOpt.zoom(Lens).set") {
+  test("ViewF[Wrap[Int]].asViewOpt.zoom(Lens).set") {
     (for {
       ref <- Ref[IO].of(wrappedValue)
-      view = ViewF(wrappedValue, refModCB(ref)).asOpt.zoom(lens)
+      view = ViewF(wrappedValue, refModCB(ref)).asViewOpt.zoom(lens)
       _   <- view.set(1)
       get <- ref.get
     } yield assert(get === Wrap(1)))
   }
 
-  test("ViewF[Wrap[Int]].asOpt.zoom(Lens).modAndGet") {
+  test("ViewF[Wrap[Int]].asViewOpt.zoom(Lens).modAndGet") {
     (for {
       ref <- Ref[IO].of(wrappedValue)
-      view = ViewF(wrappedValue, refModCB(ref)).asOpt.zoom(lens)
+      view = ViewF(wrappedValue, refModCB(ref)).asViewOpt.zoom(lens)
       get <- view.modAndGet(_ + 1)
     } yield assert(get === 1.some))
   }
@@ -133,7 +133,7 @@ class ViewFSpec extends munit.CatsEffectSuite {
   test("ViewF[Wrap[Int]].asList.zoom(Lens).mod") {
     (for {
       ref <- Ref[IO].of(wrappedValue)
-      view = ViewF(wrappedValue, refModCB(ref)).asList.zoom(lens)
+      view = ViewF(wrappedValue, refModCB(ref)).asViewList.zoom(lens)
       _   <- view.mod(_ + 1)
       get <- ref.get
     } yield assert(get === Wrap(1)))
@@ -142,7 +142,7 @@ class ViewFSpec extends munit.CatsEffectSuite {
   test("ViewF[Wrap[Int]].asList.zoom(Lens).set") {
     (for {
       ref <- Ref[IO].of(wrappedValue)
-      view = ViewF(wrappedValue, refModCB(ref)).asList.zoom(lens)
+      view = ViewF(wrappedValue, refModCB(ref)).asViewList.zoom(lens)
       _   <- view.set(1)
       get <- ref.get
     } yield assert(get === Wrap(1)))
@@ -151,7 +151,7 @@ class ViewFSpec extends munit.CatsEffectSuite {
   test("ViewF[Wrap[Int]].asList.zoom(Lens).modAndGet") {
     (for {
       ref <- Ref[IO].of(wrappedValue)
-      view = ViewF(wrappedValue, refModCB(ref)).asList.zoom(lens)
+      view = ViewF(wrappedValue, refModCB(ref)).asViewList.zoom(lens)
       get <- view.modAndGet(_ + 1)
     } yield assert(get === List(1)))
   }
