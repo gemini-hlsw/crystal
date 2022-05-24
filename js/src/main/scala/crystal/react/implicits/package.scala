@@ -1,5 +1,6 @@
 package crystal.react
 
+import cats.Monad
 import cats.MonadError
 import cats.effect.Async
 import cats.effect.Sync
@@ -18,7 +19,6 @@ import org.typelevel.log4cats.Logger
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-import cats.Monad
 
 package object implicits {
   implicit class DefaultSToOps[A](private val self: DefaultS[A])(implicit
@@ -307,7 +307,7 @@ package object implicits {
     def toViewOpt: ViewOptF[F, A] =
       optView.fold(new ViewOptF[F, A](none, (_, cb) => cb(none)) {
         override def modAndGet(f: A => A)(implicit F: Async[F]): F[Option[A]] = none.pure[F]
-      })(_.asOpt)
+      })(_.asViewOpt)
   }
 
   implicit class ReuseViewDefaultSOps[A](private val view: ReuseView[A]) {

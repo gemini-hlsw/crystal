@@ -66,8 +66,8 @@ Provides the following methods:
 - `withOnMod(f: A => F[Unit])` - creates a new `ViewF` that chains the passed effect whenever `mod` (or `set`) is called.
 - `zoom` methods - creates a new `ViewF` focused on a part of `A`. This method can take either raw getter and setter functions or a `monocle` `Lens`, `Optional`, `Prism` or `Traversal`.
 - `as(iso: Iso[A, B])` - creates a new `ViewF[F, B]`.
-- `asOpt` - creates a new `ViewOptF[F, A]`.
-- `asList` - creates a new `ViewListF[F, A]`.
+- `asViewOpt` - creates a new `ViewOptF[F, A]`.
+- `asViewList` - creates a new `ViewListF[F, A]`.
 
 `ViewOptF[F, A]` and `ViewListF[F, A]` are variants that hold a value known to be an `Option[A]` or `List[A]` respectively. They are returned when `zoom`ing using `Optional`, `Prism` or `Traversal`.
 

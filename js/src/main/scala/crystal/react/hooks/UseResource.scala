@@ -8,7 +8,6 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 
-// TODO Functional streamrender* components
 object UseResource {
   def hook[A] = CustomHook[Resource[DefaultA, A]]
     .useState(Pot.pending[A])
@@ -17,8 +16,7 @@ object UseResource {
         .flatMap { case (value, close) =>
           state.setStateAsync(value.ready).as(close)
         }
-        .handleErrorWith(t => state.setStateAsync(Pot.error(t)))
-        .as(DefaultA.delay(()))
+        .handleErrorWith(t => state.setStateAsync(Pot.error(t)).as(DefaultA.delay(())))
     )
     .buildReturning((_, state) => state.value)
 

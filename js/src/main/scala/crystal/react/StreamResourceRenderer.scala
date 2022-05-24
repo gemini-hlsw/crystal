@@ -1,5 +1,6 @@
 package crystal.react
 
+import react.common.ReactFnProps
 import cats.effect.kernel.Resource
 import crystal.Pot
 import crystal._
@@ -10,7 +11,6 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 import japgolly.scalajs.react.vdom.html_<^._
 import org.typelevel.log4cats.Logger
-import _root_.react.common.ReactFnProps
 
 final case class StreamResourceRenderer[A](
   resource:           Resource[DefaultA, fs2.Stream[DefaultA, A]],

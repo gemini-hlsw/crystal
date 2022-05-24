@@ -73,9 +73,9 @@ final class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]
 
   def as[B](iso: Iso[A, B]): ViewF[F, B] = zoom(iso.asLens)
 
-  def asOpt: ViewOptF[F, A] = zoom(Iso.id[A].asOptional)
+  def asViewOpt: ViewOptF[F, A] = zoom(Iso.id[A].asOptional)
 
-  def asList: ViewListF[F, A] = zoom(Iso.id[A].asTraversal)
+  def asViewList: ViewListF[F, A] = zoom(Iso.id[A].asTraversal)
 
   def zoom[B](lens: Lens[A, B]): ViewF[F, B] =
     zoom(lens.get _)(lens.modify)
@@ -120,7 +120,9 @@ abstract class ViewOptF[F[_]: Monad, A](
 ) extends ViewOps[F, Option, A] { self =>
   def as[B](iso: Iso[A, B]): ViewOptF[F, B] = zoom(iso.asLens)
 
-  def asList: ViewListF[F, A] = zoom(Iso.id[A].asTraversal)
+  def asViewList: ViewListF[F, A] = zoom(Iso.id[A].asTraversal)
+
+  def asView(implicit ev: Monoid[F[Unit]]): Option[ViewF[F, A]] = mapValue(identity)
 
   def zoom[B](getB: A => B)(modB: (B => B) => A => A): ViewOptF[F, B] =
     new ViewOptF(
