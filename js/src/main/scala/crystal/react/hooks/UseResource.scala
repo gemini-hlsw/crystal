@@ -9,47 +9,88 @@ import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 
 object UseResource {
-  def hook[A] = CustomHook[Resource[DefaultA, A]]
+  def hook[D: Reusability, A] = CustomHook[(D, D => Resource[DefaultA, A])]
     .useState(Pot.pending[A])
-    .useAsyncEffectOnMountBy((resource, state) =>
-      resource.allocated
-        .flatMap { case (value, close) =>
-          state.setStateAsync(value.ready).as(close)
-        }
-        .handleErrorWith(t => state.setStateAsync(Pot.error(t)).as(DefaultA.delay(())))
+    .useAsyncEffectWithDepsBy((props, _) => props._1)((props, state) =>
+      deps =>
+        state.setStateAsync(Pot.pending) >>
+          props
+            ._2(deps)
+            .allocated
+            .flatMap { case (value, close) =>
+              state.setStateAsync(value.ready).as(close)
+            }
+            .handleErrorWith(t => state.setStateAsync(Pot.error(t)).as(DefaultA.delay(())))
     )
     .buildReturning((_, state) => state.value)
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
-      /** Open a `Resource[Async, A] on mount and close it on unmount. Provided as a `Pot[A]`. Will
+      /** Open a `Resource[Async, A]` on mount or when dependencies change, and close it on unmount
+        * or when dependencies change. Provided as a `Pot[A]`. Will rerender when the `Pot` state
+        * changes.
+        */
+      final def useResource[D: Reusability, A](
+        deps:     => D
+      )(resource: D => Resource[DefaultA, A])(implicit
+        step:     Step
+      ): step.Next[Pot[A]] =
+        useResourceBy(_ => deps)(_ => resource)
+
+      /** Open a `Resource[Async, A]` on mount and close it on unmount. Provided as a `Pot[A]`. Will
         * rerender when the `Pot` state changes.
         */
-      final def useResource[A](resource: Resource[DefaultA, A])(implicit
-        step:                            Step
+      final def useResourceOnMount[A](resource: Resource[DefaultA, A])(implicit
+        step:                                   Step
       ): step.Next[Pot[A]] =
-        useResourceBy(_ => resource)
+        useResourceOnMountBy(_ => resource)
 
-      /** Creates component state that is reused while it's not updated. */
-      final def useResourceBy[A](resource: Ctx => Resource[DefaultA, A])(implicit
-        step:                              Step
+      /** Open a `Resource[Async, A]` on mount or when dependencies change, and close it on unmount
+        * or when dependencies change. Provided as a `Pot[A]`. Will rerender when the `Pot` state
+        * changes.
+        */
+      final def useResourceBy[D: Reusability, A](
+        deps:     Ctx => D
+      )(resource: Ctx => D => Resource[DefaultA, A])(implicit
+        step:     Step
       ): step.Next[Pot[A]] =
         api.customBy { ctx =>
-          val hookInstance = hook[A]
-          hookInstance(resource(ctx))
+          val hookInstance = hook[D, A]
+          hookInstance((deps(ctx), resource(ctx)))
         }
+
+      /** Open a `Resource[Async, A]` on mount and close it on unmount. Provided as a `Pot[A]`. Will
+        * rerender when the `Pot` state changes.
+        */
+      final def useResourceOnMountBy[A](resource: Ctx => Resource[DefaultA, A])(implicit
+        step:                                     Step
+      ): step.Next[Pot[A]] = // () has Reusability = always.
+        useResourceBy(_ => ())(ctx => _ => resource(ctx))
     }
 
     final class Secondary[Ctx, CtxFn[_], Step <: HooksApi.SubsequentStep[Ctx, CtxFn]](
       api: HooksApi.Secondary[Ctx, CtxFn, Step]
     ) extends Primary[Ctx, Step](api) {
 
-      /** Creates component state that is reused while it's not updated. */
-      def useResourceBy[A](resource: CtxFn[Resource[DefaultA, A]])(implicit
-        step:                        Step
+      /** Open a `Resource[Async, A]` on mount or when dependencies change, and close it on unmount
+        * or when dependencies change. Provided as a `Pot[A]`. Will rerender when the `Pot` state
+        * changes.
+        */
+      def useResourceBy[D: Reusability, A](
+        deps:     CtxFn[D]
+      )(resource: CtxFn[D => Resource[DefaultA, A]])(implicit
+        step:     Step
       ): step.Next[Pot[A]] =
-        useResourceBy(step.squash(resource)(_))
+        useResourceBy(step.squash(deps)(_))(step.squash(resource)(_))
+
+      /** Open a `Resource[Async, A]` on mount and close it on unmount. Provided as a `Pot[A]`. Will
+        * rerender when the `Pot` state changes.
+        */
+      final def useResourceOnMountBy[A](resource: CtxFn[Resource[DefaultA, A]])(implicit
+        step:                                     Step
+      ): step.Next[Pot[A]] =
+        useResourceOnMountBy(step.squash(resource)(_))
     }
   }
 

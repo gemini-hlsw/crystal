@@ -8,14 +8,16 @@ import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 
 // TODO PR to scalajs-react changing implicit not found message
 object UseAsyncEffect {
-
-  val hook = CustomHook[DefaultA[DefaultA[Unit]]]
+  def hook[D: Reusability] = CustomHook[(D, D => DefaultA[DefaultA[Unit]])]
     .useRef(none[DefaultA[Unit]])
-    .useEffectBy((effect, cleanupEffect) =>
-      effect
-        .flatMap(f => cleanupEffect.setAsync(f.some))
-        .runAsyncAndForget
-        .as(cleanupEffect.get.flatMap(_.foldMap(_.runAsyncAndForget)))
+    .useEffectWithDepsBy((props, _) => props._1)((props, cleanupEffect) =>
+      deps =>
+        props
+          ._2(deps)
+          .flatMap(f => cleanupEffect.setAsync(f.some))
+          .runAsyncAndForget
+          // React guarantees running the cleanup before the next effect, so we have the right value in the ref here.
+          .as(cleanupEffect.value.foldMap(_.runAsyncAndForget))
     )
     .build
 
@@ -25,10 +27,35 @@ object UseAsyncEffect {
       /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
         * without a cleanup callback, just use the regular `useEffect` hook.
         */
+      final def useAsyncEffectWithDeps[D: Reusability, A](
+        deps:   => D
+      )(effect: D => DefaultA[DefaultA[Unit]])(implicit
+        step:   Step
+      ): step.Self =
+        useAsyncEffectWithDepsBy(_ => deps)(_ => effect)
+
       final def useAsyncEffect[A](effect: DefaultA[DefaultA[Unit]])(implicit
         step:                             Step
       ): step.Self =
-        useAsyncEffectBy(_ => effect)
+        useAsyncEffectWithDeps(NeverReuse)(_ => effect)
+
+      final def useAsyncEffectOnMount[A](effect: DefaultA[DefaultA[Unit]])(implicit
+        step:                                    Step
+      ): step.Self =
+        useAsyncEffectWithDeps(NeverReuse)(_ => effect)
+
+      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+        * without a cleanup callback, just use the regular `useEffect` hook.
+        */
+      final def useAsyncEffectWithDepsBy[D: Reusability, A](
+        deps:   Ctx => D
+      )(effect: Ctx => D => DefaultA[DefaultA[Unit]])(implicit
+        step:   Step
+      ): step.Self =
+        api.customBy { ctx =>
+          val hookInstance = hook[D]
+          hookInstance((deps(ctx), effect(ctx)))
+        }
 
       /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
         * without a cleanup callback, just use the regular `useEffect` hook.
@@ -36,10 +63,12 @@ object UseAsyncEffect {
       final def useAsyncEffectBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(implicit
         step:                               Step
       ): step.Self =
-        api.customBy { ctx =>
-          val hookInstance = hook
-          hookInstance(effect(ctx))
-        }
+        useAsyncEffectWithDepsBy(_ => NeverReuse)(ctx => _ => effect(ctx))
+
+      final def useAsyncEffectOnMountBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(implicit
+        step:                                      Step
+      ): step.Self = // () has Reusability = always.
+        useAsyncEffectWithDepsBy(_ => ())(ctx => _ => effect(ctx))
     }
 
     final class Secondary[Ctx, CtxFn[_], Step <: HooksApi.SubsequentStep[Ctx, CtxFn]](
@@ -49,12 +78,23 @@ object UseAsyncEffect {
       /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
         * without a cleanup callback, just use the regular `useEffect` hook.
         */
+      def useAsyncEffectWithDepsBy[D: Reusability, A](
+        deps:   CtxFn[D]
+      )(effect: CtxFn[D => DefaultA[DefaultA[Unit]]])(implicit
+        step:   Step
+      ): step.Self =
+        useAsyncEffectWithDepsBy(step.squash(deps)(_))(step.squash(effect)(_))
+
       def useAsyncEffectBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(implicit
         step:                         Step
       ): step.Self =
         useAsyncEffectBy(step.squash(effect)(_))
-    }
 
+      def useAsyncEffectOnMountBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(implicit
+        step:                                Step
+      ): step.Self =
+        useAsyncEffectOnMountBy(step.squash(effect)(_))
+    }
   }
 
   trait HooksApiExt {
