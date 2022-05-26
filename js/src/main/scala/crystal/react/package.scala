@@ -1,17 +1,14 @@
 package crystal
 
 import cats.arrow.FunctionK
-import cats.effect.Async
 import cats.~>
 import crystal.react.implicits._
 import crystal.react.reuse.Reuse
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
-import japgolly.scalajs.react.util.Effect
 import japgolly.scalajs.react.util.Effect.UnsafeSync
 import japgolly.scalajs.react.vdom.VdomNode
-import org.typelevel.log4cats.Logger
 
 import scala.reflect.ClassTag
 
@@ -29,16 +26,6 @@ package object react {
 
   type StateComponent[S, B] =
     ScalaComponent[Reuse[View[S] => VdomNode], S, B, CtorType.Props]
-
-  implicit class StreamOps[F[_], A](private val s: fs2.Stream[F, A]) extends AnyVal {
-    def render(implicit
-      async:      Async[F],
-      dispatcher: Effect.Dispatch[F],
-      logger:     Logger[F],
-      reuse:      Reusability[A]
-    ): StreamRenderer.Component[A] =
-      StreamRenderer.build(s)
-  }
 
   type View[A]    = ViewF[DefaultS, A]
   type ViewOpt[A] = ViewOptF[DefaultS, A]
