@@ -10,10 +10,10 @@ import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 object UseEffectResult {
   def hook[D: Reusability, A] = CustomHook[(D, D => DefaultA[A])]
     .useState(Pot.pending[A])
+    .useEffectWithDepsBy((props, _) => props._1)((_, state) => _ => state.setState(Pot.pending))
     .useEffectWithDepsBy((props, _) => props._1)((props, state) =>
       deps =>
         (for {
-          _ <- state.setStateAsync(Pot.pending)
           a <- props._2(deps)
           _ <- state.setStateAsync(a.ready)
         } yield ()).handleErrorWith(t => state.setStateAsync(Pot.error(t)))

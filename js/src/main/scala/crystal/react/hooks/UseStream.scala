@@ -1,18 +1,15 @@
 package crystal.react.hooks
 
+import cats.effect.kernel.Resource
 import crystal.Pot
-import crystal.react.implicits._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 
 object UseStream {
   def hook[D: Reusability, A] = CustomHook[(D, D => fs2.Stream[DefaultA, A])]
-    .useState(Pot.pending[A])
-    .useResourceBy((props, _) => props._1)((props, state) =>
-      deps => streamEvaluationResource(props._2(deps), state.setStateAsync)
-    )
-    .buildReturning((_, state, _) => state.value)
+    .useStreamResourceBy(props => props._1)(props => deps => Resource.pure(props._2(deps)))
+    .buildReturning((_, value) => value)
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
