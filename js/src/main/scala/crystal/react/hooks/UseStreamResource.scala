@@ -10,11 +10,12 @@ import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 object UseStreamResource {
   def hook[D: Reusability, A] = CustomHook[(D, D => Resource[DefaultA, fs2.Stream[DefaultA, A]])]
     .useState(Pot.pending[A])
+    .useEffectWithDepsBy((props, _) => props._1)((_, state) => _ => state.setState(Pot.pending))
     .useResourceBy((props, _) => props._1)((props, state) =>
       deps =>
         props._2(deps).flatMap(stream => streamEvaluationResource(stream, state.setStateAsync))
     )
-    .buildReturning((_, state, _) => state.value)
+    .buildReturning((_, state, resource) => resource.flatMap(_ => state.value))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
