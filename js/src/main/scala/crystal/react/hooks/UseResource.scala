@@ -13,14 +13,13 @@ object UseResource {
     .useState(Pot.pending[A])
     .useAsyncEffectWithDepsBy((props, _) => props._1)((props, state) =>
       deps =>
-        state.setStateAsync(Pot.pending) >>
-          props
-            ._2(deps)
-            .allocated
-            .flatMap { case (value, close) =>
-              state.setStateAsync(value.ready).as(close)
-            }
-            .handleErrorWith(t => state.setStateAsync(Pot.error(t)).as(DefaultA.delay(())))
+        (for {
+          _             <- state.setStateAsync(Pot.pending)
+          resource      <- props._2(deps).allocated
+          (value, close) = resource
+          _             <- state.setStateAsync(value.ready)
+        } yield close)
+          .handleErrorWith(t => state.setStateAsync(Pot.error(t)).as(DefaultA.delay(())))
     )
     .buildReturning((_, state) => state.value)
 

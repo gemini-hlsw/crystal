@@ -17,6 +17,7 @@ package object hooks
     with UseStateViewWithReuse.HooksApiExt
     with UseSerialStateView.HooksApiExt
     with UseAsyncEffect.HooksApiExt
+    with UseEffectResult.HooksApiExt
     with UseResource.HooksApiExt
     with UseStream.HooksApiExt
     with UseStreamResource.HooksApiExt

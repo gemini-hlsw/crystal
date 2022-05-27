@@ -6,7 +6,6 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 
-// TODO PR to scalajs-react changing implicit not found message
 object UseAsyncEffect {
   def hook[D: Reusability] = CustomHook[(D, D => DefaultA[DefaultA[Unit]])]
     .useRef(none[DefaultA[Unit]])
@@ -34,15 +33,21 @@ object UseAsyncEffect {
       ): step.Self =
         useAsyncEffectWithDepsBy(_ => deps)(_ => effect)
 
+      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+        * without a cleanup callback, just use the regular `useEffect` hook.
+        */
       final def useAsyncEffect[A](effect: DefaultA[DefaultA[Unit]])(implicit
         step:                             Step
       ): step.Self =
-        useAsyncEffectWithDeps(NeverReuse)(_ => effect)
+        useAsyncEffectBy(_ => effect)
 
+      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+        * without a cleanup callback, just use the regular `useEffect` hook.
+        */
       final def useAsyncEffectOnMount[A](effect: DefaultA[DefaultA[Unit]])(implicit
         step:                                    Step
       ): step.Self =
-        useAsyncEffectWithDeps(NeverReuse)(_ => effect)
+        useAsyncEffectOnMountBy(_ => effect)
 
       /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
         * without a cleanup callback, just use the regular `useEffect` hook.
@@ -65,6 +70,9 @@ object UseAsyncEffect {
       ): step.Self =
         useAsyncEffectWithDepsBy(_ => NeverReuse)(ctx => _ => effect(ctx))
 
+      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+        * without a cleanup callback, just use the regular `useEffect` hook.
+        */
       final def useAsyncEffectOnMountBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(implicit
         step:                                      Step
       ): step.Self = // () has Reusability = always.
@@ -85,11 +93,17 @@ object UseAsyncEffect {
       ): step.Self =
         useAsyncEffectWithDepsBy(step.squash(deps)(_))(step.squash(effect)(_))
 
+      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+        * without a cleanup callback, just use the regular `useEffect` hook.
+        */
       def useAsyncEffectBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(implicit
         step:                         Step
       ): step.Self =
         useAsyncEffectBy(step.squash(effect)(_))
 
+      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+        * without a cleanup callback, just use the regular `useEffect` hook.
+        */
       def useAsyncEffectOnMountBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(implicit
         step:                                Step
       ): step.Self =
