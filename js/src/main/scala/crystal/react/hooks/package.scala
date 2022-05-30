@@ -1,10 +1,7 @@
 package crystal.react
 
 import cats.effect.Fiber
-import cats.effect.FiberIO
 import cats.effect.Resource
-import crystal.Pot
-import crystal.implicits._
 import crystal.react.reuse._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
@@ -19,27 +16,27 @@ package object hooks
     with UseAsyncEffect.HooksApiExt
     with UseEffectResult.HooksApiExt
     with UseResource.HooksApiExt
-    with UseStream.HooksApiExt
-    with UseStreamResource.HooksApiExt
-    with UseStreamView.HooksApiExt
-    with UseStreamResourceView.HooksApiExt
-    with UseStreamViewWithReuse.HooksApiExt
-    with UseStreamResourceViewWithReuse.HooksApiExt {
-  type UseSingleEffectLatch[F[_]] = Fiber[F, Throwable, Unit]
+    with UseStreamResource.HooksApiExt {
+  type UnitFiber[F[_]] = Fiber[F, Throwable, Unit]
+  type AsyncUnitFiber  = Fiber[DefaultA, Throwable, Unit]
+
+  type StreamResource[A] = Resource[DefaultA, fs2.Stream[DefaultA, A]]
 
   protected[hooks] type NeverReuse = Reuse[Unit]
   protected[hooks] val NeverReuse: NeverReuse = ().reuseNever
+}
 
-  protected[hooks] def streamEvaluationResource[A](
-    stream: fs2.Stream[DefaultA, A],
-    setPot: Pot[A] => DefaultA[Unit]
-  ): Resource[DefaultA, FiberIO[Unit]] =
-    Resource.make(
-      stream
-        .evalMap(setPot.compose(_.ready))
-        .compile
-        .drain
-        .handleErrorWith(setPot.compose(Pot.error))
-        .start
-    )(_.cancel)
+package hooks {
+  protected[hooks] final case class WithDeps[D, A](deps: D, fromDeps: D => A)
+
+  final case class SyncValue[A](value: A, awaitOpt: Reusable[Option[DefaultA[Unit]]]) {
+    def map[B](f: A => B): SyncValue[B] =
+      SyncValue(f(value), awaitOpt)
+  }
+
+  object SyncValue {
+    implicit def reuseSyncValue[A: Reusability]: Reusability[SyncValue[A]] =
+      Reusability.by(x => (x.value, x.awaitOpt))
+  }
+
 }

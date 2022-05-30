@@ -6,6 +6,7 @@ import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all._
 import crystal._
+import crystal.react.hooks.UseSerialState
 import crystal.react.reuse.Reuse
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.component.Generic.MountedSimple
@@ -144,6 +145,14 @@ package object implicits {
     @inline def modAsync: (A => A) => DefaultA[Unit] = f => self.mod(f).to[DefaultA]
 
     @inline def getAsync: DefaultA[A] = self.get.to[DefaultA]
+  }
+
+  implicit class UseSerialStateOps[S](private val self: UseSerialState[S]) extends AnyVal {
+    @inline def setStateAsync: Reusable[S => DefaultA[Unit]] =
+      self.setState.map(f => s => f(s).to[DefaultA])
+
+    @inline def modStateAsync: Reusable[(S => S) => DefaultA[Unit]] =
+      self.modState.map(f => g => f(g).to[DefaultA])
   }
 
   implicit class EffectAOps[F[_], A](private val self: F[A]) extends AnyVal {
