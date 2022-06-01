@@ -13,13 +13,13 @@ import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 import scala.concurrent.duration.FiniteDuration
 
 class UseSingleEffect[F[_]](
-  latch:      Ref[F, Option[Deferred[F, UseSingleEffectLatch[F]]]],
+  latch:      Ref[F, Option[Deferred[F, UnitFiber[F]]]],
   debounce:   Option[FiniteDuration]
 )(implicit F: Async[F], monoid: Monoid[F[Unit]]) {
   private val debounceEffect: F[Unit] = debounce.map(F.sleep).orEmpty
 
   private def switchTo(effect: F[Unit]): F[Unit] =
-    Deferred[F, UseSingleEffectLatch[F]] >>= (newLatch =>
+    Deferred[F, UnitFiber[F]] >>= (newLatch =>
       latch
         .modify(oldLatch =>
           (newLatch.some,
@@ -48,7 +48,7 @@ object UseSingleEffect {
     .useMemoBy(_ => ())(debounce =>
       _ =>
         new UseSingleEffect(
-          Ref.unsafe[DefaultA, Option[Deferred[DefaultA, UseSingleEffectLatch[DefaultA]]]](none),
+          Ref.unsafe[DefaultA, Option[Deferred[DefaultA, UnitFiber[DefaultA]]]](none),
           debounce
         )
     )

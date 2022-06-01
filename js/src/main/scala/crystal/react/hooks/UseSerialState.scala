@@ -8,11 +8,13 @@ import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
 case class UseSerialState[A] protected[hooks] (
   private val state: Hooks.UseState[SerialState[A]]
 ) {
-  lazy val value: A = state.value.value
+  lazy val value: Reusable[A] = Reusable.implicitly(state.value).map(_.value)
 
-  def modState(f: A => A): DefaultS[Unit] = state.modState(_.update(f))
+  val modState: Reusable[(A => A) => DefaultS[Unit]] =
+    state.modState.map(mod => f => mod(_.update(f)))
 
-  def setState(a: A): DefaultS[Unit] = state.modState(_.update(_ => a))
+  val setState: Reusable[A => DefaultS[Unit]] =
+    state.modState.map(mod => a => mod(_.update(_ => a)))
 }
 
 object UseSerialState {
