@@ -128,6 +128,8 @@ abstract class ViewOptF[F[_]: Monad, A](
 
   def forall(cond: A => Boolean): Boolean = get.forall(cond)
 
+  def contains(cond: A): Boolean = get.contains(cond)
+
   def asViewList: ViewListF[F, A] = zoom(Iso.id[A].asTraversal)
 
   def asView(implicit ev: Monoid[F[Unit]]): Option[ViewF[F, A]] = mapValue(identity)
