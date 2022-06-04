@@ -106,6 +106,10 @@ final class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]
   def mapValue[B, C](f: ViewF[F, B] => C)(implicit ev: A =:= Option[B]): Option[C] =
     get.map(a => f(zoom(_ => a)(f => a1 => ev.flip(a1.map(f)))))
 
+  def when(cond: A => Boolean): Boolean = cond(get)
+
+  def unless(cond: A => Boolean): Boolean = !when(cond)
+
   override def toString(): String = s"ViewF($get, <modFn>)"
 }
 
@@ -119,6 +123,10 @@ abstract class ViewOptF[F[_]: Monad, A](
   val modCB: ((A => A), Option[A] => F[Unit]) => F[Unit]
 ) extends ViewOps[F, Option, A] { self =>
   def as[B](iso: Iso[A, B]): ViewOptF[F, B] = zoom(iso.asLens)
+
+  def exists(cond: A => Boolean): Boolean = get.exists(cond)
+
+  def forall(cond: A => Boolean): Boolean = get.forall(cond)
 
   def asViewList: ViewListF[F, A] = zoom(Iso.id[A].asTraversal)
 
@@ -194,6 +202,10 @@ abstract class ViewListF[F[_]: Monad, A](
   val modCB: ((A => A), List[A] => F[Unit]) => F[Unit]
 ) extends ViewOps[F, List, A] { self =>
   def as[B](iso: Iso[A, B]): ViewListF[F, B] = zoom(iso.asLens)
+
+  def exists(cond: A => Boolean): Boolean = get.exists(cond)
+
+  def forall(cond: A => Boolean): Boolean = get.forall(cond)
 
   def zoom[B](getB: A => B)(modB: (B => B) => A => A): ViewListF[F, B] =
     new ViewListF(get.map(getB),
