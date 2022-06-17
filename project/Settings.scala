@@ -5,17 +5,18 @@ import sbt.librarymanagement._
 object Settings {
 
   object LibraryVersions {
-    val cats            = "2.7.0"
-    val catsEffect      = "3.3.12"
-    val discipline      = "1.5.1"
-    val disciplineMUnit = "1.0.9"
-    val fs2             = "3.2.7"
-    val log4Cats        = "2.3.1"
-    val monocle         = "3.1.0"
-    val mUnit           = "0.7.29"
-    val mUnitCatsEffect = "1.0.7"
-    val reactCommon     = "0.17.0"
-    val scalajsReact    = "2.1.1"
+    val cats              = "2.7.0"
+    val catsEffect        = "3.3.12"
+    val discipline        = "1.5.1"
+    val disciplineMUnit   = "1.0.9"
+    val fs2               = "3.2.7"
+    val log4Cats          = "2.3.1"
+    val monocle           = "3.1.0"
+    val mUnit             = "0.7.29"
+    val mUnitCatsEffect   = "1.0.7"
+    val reactCommon       = "0.17.0"
+    val lucumaReactCommon = "1.0-68a9512-SNAPSHOT"
+    val scalajsReact      = "2.1.1"
   }
 
   object Libraries {
@@ -93,6 +94,13 @@ object Settings {
       Seq[ModuleID](
         "io.github.cquiroz.react" %%% "common" % reactCommon,
         "io.github.cquiroz.react" %%% "cats"   % reactCommon
+      )
+    )
+
+    val LucumaReactCommon = Def.setting(
+      Seq[ModuleID](
+        "edu.gemini" %%% "lucuma-react-common" % lucumaReactCommon,
+        "edu.gemini" %%% "lucuma-react-cats"   % lucumaReactCommon
       )
     )
 

@@ -8,7 +8,7 @@ inThisBuild(
     // implicit resolution for Reuse[View] does not work properly in scala 3. When we
     // switch to scala 3, we can use an opaque type ReuseViewF instead of extension
     // methods on Reuse[ViewF], etc.
-    // crossScalaVersions                             := Seq("2.13.8", "3.1.1"),
+    crossScalaVersions                             := Seq("2.13.8", "3.1.2"),
     organization                                   := "com.rpiaggio",
     homepage                                       := Some(url("https://github.com/rpiaggio/crystal")),
     licenses += ("BSD 3-Clause", url(
@@ -22,7 +22,8 @@ inThisBuild(
         url("http://rpiaggio.com")
       )
     ),
-    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
+    scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0",
+    resolvers += "s01".at("https://s01.oss.sonatype.org/content/repositories/snapshots/")
   )
 )
 
@@ -64,9 +65,11 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
   )
   .jsSettings(
-    libraryDependencies ++=
-      Settings.Libraries.ScalaJSReact.value ++
-        Settings.Libraries.ReactCommon.value,
+    libraryDependencies ++= {
+      Settings.Libraries.ScalaJSReact.value ++ (if (scalaBinaryVersion.value == "3")
+                                                  Settings.Libraries.LucumaReactCommon.value
+                                                else Settings.Libraries.ReactCommon.value)
+    },
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
 
