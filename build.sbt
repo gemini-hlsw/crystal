@@ -67,7 +67,7 @@ lazy val crystal = crossProject(JVMPlatform, JSPlatform)
   .jsSettings(
     libraryDependencies ++= {
       Settings.Libraries.ScalaJSReact.value ++ (if (scalaBinaryVersion.value == "3")
-                                                  Settings.Libraries.LucumaReactCommon.value
+                                                  Settings.Libraries.LucumaReact.value
                                                 else Settings.Libraries.ReactCommon.value)
     },
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
