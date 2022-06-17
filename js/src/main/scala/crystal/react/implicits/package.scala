@@ -7,7 +7,7 @@ import cats.effect.Sync
 import cats.syntax.all._
 import crystal._
 import crystal.react.hooks.UseSerialState
-import crystal.react.reuse.Reuse
+import crystal.react.reuse._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.component.Generic.MountedSimple
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
