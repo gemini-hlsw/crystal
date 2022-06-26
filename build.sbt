@@ -8,7 +8,7 @@ inThisBuild(
     // implicit resolution for Reuse[View] does not work properly in scala 3. When we
     // switch to scala 3, we can use an opaque type ReuseViewF instead of extension
     // methods on Reuse[ViewF], etc.
-    crossScalaVersions                             := Seq("2.13.8", "3.1.2"),
+    crossScalaVersions                             := Seq("2.13.8", "3.1.3"),
     organization                                   := "com.rpiaggio",
     homepage                                       := Some(url("https://github.com/rpiaggio/crystal")),
     licenses += ("BSD 3-Clause", url(
