@@ -293,7 +293,7 @@ package object reuse extends ReuseImplicitsLowPriority {
     ): Reuse[B] = Reuse.currying(r, s, t, u, v).in(fn)
   }
 
-  implicit class ReuseViewF[F[_]: Monad, A](val rv: Reuse[ViewF[F, A]]) {
+  implicit class ReuseViewFOps[F[_]: Monad, A](val rv: Reuse[ViewF[F, A]]) {
     val get: A                                           = rv.value.get
     val modCB: ((A => A), A => F[Unit]) => F[Unit]       = rv.value.modCB
     def modAndGet(f: A => A)(implicit F: Async[F]): F[A] = rv.value.modAndGet(f)
@@ -341,7 +341,7 @@ package object reuse extends ReuseImplicitsLowPriority {
       get.map(a => f(zoom(_ => a)(f => a1 => ev.flip(a1.map(f)))))
   }
 
-  implicit class ReuseViewOptF[F[_]: Monad, A](val rvo: Reuse[ViewOptF[F, A]]) {
+  implicit class ReuseViewOptFOps[F[_]: Monad, A](val rvo: Reuse[ViewOptF[F, A]]) {
     val get: Option[A]                                           = rvo.value.get
     val modCB: ((A => A), Option[A] => F[Unit]) => F[Unit]       = rvo.value.modCB
     def modAndGet(f: A => A)(implicit F: Async[F]): F[Option[A]] = rvo.value.modAndGet(f)
@@ -379,7 +379,7 @@ package object reuse extends ReuseImplicitsLowPriority {
       get.map(a => f(rvo.map(_ => ViewF[F, A](a, (mod, cb) => modCB(mod, _.foldMap(cb))))))
   }
 
-  implicit class ReuseViewListF[F[_]: Monad, A](val rvl: Reuse[ViewListF[F, A]]) {
+  implicit class ReuseViewListFOps[F[_]: Monad, A](val rvl: Reuse[ViewListF[F, A]]) {
     val get: List[A]                                           = rvl.value.get
     val modCB: ((A => A), List[A] => F[Unit]) => F[Unit]       = rvl.value.modCB
     def modAndGet(f: A => A)(implicit F: Async[F]): F[List[A]] = rvl.value.modAndGet(f)
