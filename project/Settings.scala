@@ -15,7 +15,7 @@ object Settings {
     val mUnit           = "0.7.29"
     val mUnitCatsEffect = "1.0.7"
     val reactCommon     = "0.17.0"
-    val lucumaReact     = "1.0-2f1c8d8-SNAPSHOT"
+    val lucumaReact     = "1.0-0f7eb8e-SNAPSHOT"
     val scalajsReact    = "2.1.1"
   }
 
