@@ -18,7 +18,7 @@ sealed abstract class ViewOps[F[_]: Monad, G[_], A] {
 
   val set: A => F[Unit] = a => mod(_ => a)
 
-  val modCB: ((A => A), G[A] => F[Unit]) => F[Unit]
+  val modCB: (A => A, G[A] => F[Unit]) => F[Unit]
 
   val mod: (A => A) => F[Unit] = f => modCB(f, _ => Monad[F].unit)
 
@@ -28,7 +28,7 @@ sealed abstract class ViewOps[F[_]: Monad, G[_], A] {
 // The difference between a View and a StateSnapshot is that the modifier doesn't act on the current value,
 // but passes the modifier function to an external source of truth. Since we are defining no getter
 // from such source of truth, a View is defined in terms of a modifier function instead of a setter.
-final class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]) => F[Unit])
+final class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, A => F[Unit]) => F[Unit])
     extends ViewOps[F, Id, A] { self =>
   def modAndExtract[B](f: (A => (A, B)))(implicit F: Async[F]): F[B] =
     Async[F].async { cb =>
@@ -114,13 +114,13 @@ final class ViewF[F[_]: Monad, A](val get: A, val modCB: ((A => A), A => F[Unit]
 }
 
 object ViewF {
-  def apply[F[_]: Monad, A](value: A, modCB: ((A => A), A => F[Unit]) => F[Unit]): ViewF[F, A] =
+  def apply[F[_]: Monad, A](value: A, modCB: (A => A, A => F[Unit]) => F[Unit]): ViewF[F, A] =
     new ViewF(value, modCB)
 }
 
 abstract class ViewOptF[F[_]: Monad, A](
   val get:   Option[A],
-  val modCB: ((A => A), Option[A] => F[Unit]) => F[Unit]
+  val modCB: (A => A, Option[A] => F[Unit]) => F[Unit]
 ) extends ViewOps[F, Option, A] { self =>
   def as[B](iso: Iso[A, B]): ViewOptF[F, B] = zoom(iso.asLens)
 
@@ -201,7 +201,7 @@ abstract class ViewOptF[F[_]: Monad, A](
 
 abstract class ViewListF[F[_]: Monad, A](
   val get:   List[A],
-  val modCB: ((A => A), List[A] => F[Unit]) => F[Unit]
+  val modCB: (A => A, List[A] => F[Unit]) => F[Unit]
 ) extends ViewOps[F, List, A] { self =>
   def as[B](iso: Iso[A, B]): ViewListF[F, B] = zoom(iso.asLens)
 

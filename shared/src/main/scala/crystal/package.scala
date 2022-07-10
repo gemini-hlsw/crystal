@@ -9,6 +9,6 @@ package object crystal {
       cond.flatMap(f.whenA)
   }
 
-  def refModCB[F[_]: FlatMap, A](ref: Ref[F, A]): ((A => A), A => F[Unit]) => F[Unit] =
+  def refModCB[F[_]: FlatMap, A](ref: Ref[F, A]): (A => A, A => F[Unit]) => F[Unit] =
     (f, cb) => ref.modify(f >>> (a => (a, a))) >>= cb
 }
