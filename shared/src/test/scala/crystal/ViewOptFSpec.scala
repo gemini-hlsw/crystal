@@ -12,33 +12,33 @@ class ViewOptFSpec extends munit.CatsEffectSuite {
   val optional = WrapOpt.aOpt[Int]
 
   test("ViewF[WrapOpt[Int]].zoom(Optional).mod") {
-    (for {
+    for {
       ref <- Ref[IO].of(value)
       view = ViewF(value, refModCB(ref)).zoom(optional)
       _   <- view.mod(_ + 1)
       get <- ref.get
-    } yield assert(get === WrapOpt(1.some)))
+    } yield assert(get === WrapOpt(1.some))
   }
 
   test("ViewF[WrapOpt[Int]].zoom(Optional).set") {
-    (for {
+    for {
       ref <- Ref[IO].of(value)
       view = ViewF(value, refModCB(ref)).zoom(optional)
       _   <- view.set(1)
       get <- ref.get
-    } yield assert(get === WrapOpt(1.some)))
+    } yield assert(get === WrapOpt(1.some))
   }
 
   test("ViewF[WrapOpt[Int]].zoom(Optional).modAndGet") {
-    (for {
+    for {
       ref <- Ref[IO].of(value)
       view = ViewF(value, refModCB(ref)).zoom(optional)
       get <- view.modAndGet(_ + 1)
-    } yield assert(get === 1.some))
+    } yield assert(get === 1.some)
   }
 
   test("ViewF[WrapOpt[Int]].zoom(Optional).withOnMod(Option[Int] => IO[Unit]).mod") {
-    (for {
+    for {
       ref      <- Ref[IO].of(value)
       d        <- Deferred[IO, Option[Int]]
       view      =
@@ -49,60 +49,60 @@ class ViewOptFSpec extends munit.CatsEffectSuite {
     } yield {
       assert(get === WrapOpt(1.some))
       assert(captured === 2.some)
-    })
+    }
   }
 
   val valueOpt = Wrap(0).some
 
   test("ViewF[Option[Wrap[Int]]].zoom(some).as(Wrap.iso).mod") {
-    (for {
+    for {
       ref <- Ref[IO].of(valueOpt)
       view = ViewF(valueOpt, refModCB(ref)).zoom(some[Wrap[Int]]).as(Wrap.iso)
       _   <- view.mod(_ + 1)
       get <- ref.get
-    } yield assert(get === Wrap(1).some))
+    } yield assert(get === Wrap(1).some)
   }
 
   test("ViewF[Option[Wrap[Int]]].zoom(some).as(Wrap.iso).set") {
-    (for {
+    for {
       ref <- Ref[IO].of(valueOpt)
       view = ViewF(valueOpt, refModCB(ref)).zoom(some[Wrap[Int]]).as(Wrap.iso)
       _   <- view.set(1)
       get <- ref.get
-    } yield assert(get === Wrap(1).some))
+    } yield assert(get === Wrap(1).some)
   }
 
   test("ViewF[Option[Wrap[Int]]].zoom(some).as(Wrap.iso).modAndGet") {
-    (for {
+    for {
       ref <- Ref[IO].of(valueOpt)
       view = ViewF(valueOpt, refModCB(ref)).zoom(some[Wrap[Int]]).as(Wrap.iso)
       get <- view.modAndGet(_ + 1)
-    } yield assert(get === 1.some))
+    } yield assert(get === 1.some)
   }
 
   test("ViewF[Option[Wrap[Int]]].zoom(some).asList.mod") {
-    (for {
+    for {
       ref <- Ref[IO].of(valueOpt)
       view = ViewF(valueOpt, refModCB(ref)).zoom(some[Wrap[Int]]).asViewList
       _   <- view.mod(_.map(_ + 1))
       get <- ref.get
-    } yield assert(get === Wrap(1).some))
+    } yield assert(get === Wrap(1).some)
   }
 
   test("ViewF[Option[Wrap[Int]]].zoom(some).asList.set") {
-    (for {
+    for {
       ref <- Ref[IO].of(valueOpt)
       view = ViewF(valueOpt, refModCB(ref)).zoom(some[Wrap[Int]]).asViewList
       _   <- view.set(Wrap(1))
       get <- ref.get
-    } yield assert(get === Wrap(1).some))
+    } yield assert(get === Wrap(1).some)
   }
 
   test("ViewF[Option[Wrap[Int]]].zoom(some).asList.modAndGet") {
-    (for {
+    for {
       ref <- Ref[IO].of(valueOpt)
       view = ViewF(valueOpt, refModCB(ref)).zoom(some[Wrap[Int]]).asViewList
       get <- view.modAndGet(_.map(_ + 1))
-    } yield assert(get === List(Wrap(1))))
+    } yield assert(get === List(Wrap(1)))
   }
 }

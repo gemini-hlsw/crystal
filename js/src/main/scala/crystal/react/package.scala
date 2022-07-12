@@ -47,7 +47,7 @@ package react {
     @inline
     def apply[A](
       value: A,
-      modCB: ((A => A), A => DefaultS[Unit]) => DefaultS[Unit]
+      modCB: (A => A, A => DefaultS[Unit]) => DefaultS[Unit]
     ): View[A] = ViewF[DefaultS, A](value, modCB)
 
     def fromState = new FromStateView
@@ -67,7 +67,7 @@ package react {
     @inline
     def apply[A: ClassTag: Reusability](
       value: A,
-      modCB: ((A => A), A => DefaultS[Unit]) => DefaultS[Unit]
+      modCB: (A => A, A => DefaultS[Unit]) => DefaultS[Unit]
     ): ReuseView[A] =
       View(value, modCB).reuseByValue
 
