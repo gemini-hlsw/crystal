@@ -7,12 +7,12 @@ import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 
 object UseAsyncEffect {
-  def hook[D: Reusability] = CustomHook[(D, D => DefaultA[DefaultA[Unit]])]
+  def hook[D: Reusability] = CustomHook[WithDeps[D, DefaultA[DefaultA[Unit]]]]
     .useRef(none[DefaultA[Unit]])
-    .useEffectWithDepsBy((props, _) => props._1)((props, cleanupEffect) =>
+    .useEffectWithDepsBy((props, _) => props.deps)((props, cleanupEffect) =>
       deps =>
         props
-          ._2(deps)
+          .fromDeps(deps)
           .flatMap(f => cleanupEffect.setAsync(f.some))
           .runAsyncAndForget
           // React guarantees running the cleanup before the next effect, so we have the right value in the ref here.
@@ -59,7 +59,7 @@ object UseAsyncEffect {
       ): step.Self =
         api.customBy { ctx =>
           val hookInstance = hook[D]
-          hookInstance((deps(ctx), effect(ctx)))
+          hookInstance(WithDeps(deps(ctx), effect(ctx)))
         }
 
       /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect

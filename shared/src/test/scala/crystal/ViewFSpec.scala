@@ -10,33 +10,33 @@ class ViewFSpec extends munit.CatsEffectSuite {
   val value = 0
 
   test("ViewF[Int].mod") {
-    (for {
+    for {
       ref <- Ref[IO].of(value)
       view = ViewF(value, refModCB(ref))
       _   <- view.mod(_ + 1)
       get <- ref.get
-    } yield assert(get === 1))
+    } yield assert(get === 1)
   }
 
   test("ViewF[Int].set") {
-    (for {
+    for {
       ref <- Ref[IO].of(value)
       view = ViewF(value, refModCB(ref))
       _   <- view.set(1)
       get <- ref.get
-    } yield assert(get === 1))
+    } yield assert(get === 1)
   }
 
   test("ViewF[Int].modAndGet") {
-    (for {
+    for {
       ref <- Ref[IO].of(value)
       view = ViewF(value, refModCB(ref))
       get <- view.modAndGet(_ + 1)
-    } yield assert(get === 1))
+    } yield assert(get === 1)
   }
 
   test("ViewF[Int].withOnMod(Int => IO[Unit]).mod") {
-    (for {
+    for {
       ref      <- Ref[IO].of(value)
       d        <- Deferred[IO, Int]
       view      = ViewF(value, refModCB(ref)).withOnMod(a => d.complete(a * 2).void)
@@ -46,113 +46,113 @@ class ViewFSpec extends munit.CatsEffectSuite {
     } yield {
       assert(get === 1)
       assert(captured === 2)
-    })
+    }
   }
 
   val wrappedValue = Wrap(0)
   val lens         = Wrap.a[Int]
 
   test("ViewF[Wrap[Int]].zoom(Lens).mod") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).zoom(lens)
       _   <- view.mod(_ + 1)
       get <- ref.get
-    } yield assert(get === Wrap(1)))
+    } yield assert(get === Wrap(1))
   }
 
   test("ViewF[Wrap[Int]].zoom(Lens).set") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).zoom(lens)
       _   <- view.set(1)
       get <- ref.get
-    } yield assert(get === Wrap(1)))
+    } yield assert(get === Wrap(1))
   }
 
   test("ViewF[Wrap[Int]].zoom(Lens).modAndGet") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).zoom(lens)
       get <- view.modAndGet(_ + 1)
-    } yield assert(get === 1))
+    } yield assert(get === 1)
   }
 
   test("ViewF[Wrap[Int]].as(Wrap.iso).mod") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).as(Wrap.iso)
       _   <- view.mod(_ + 1)
       get <- ref.get
-    } yield assert(get === Wrap(1)))
+    } yield assert(get === Wrap(1))
   }
 
   test("ViewF[Wrap[Int]].as(Wrap.iso).set") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).as(Wrap.iso)
       _   <- view.set(1)
       get <- ref.get
-    } yield assert(get === Wrap(1)))
+    } yield assert(get === Wrap(1))
   }
 
   test("ViewF[Wrap[Int]].as(Wrap.iso).modAndGet") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).as(Wrap.iso)
       get <- view.modAndGet(_ + 1)
-    } yield assert(get === 1))
+    } yield assert(get === 1)
   }
 
   test("ViewF[Wrap[Int]].asViewOpt.zoom(Lens).mod") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).asViewOpt.zoom(lens)
       _   <- view.mod(_ + 1)
       get <- ref.get
-    } yield assert(get === Wrap(1)))
+    } yield assert(get === Wrap(1))
   }
 
   test("ViewF[Wrap[Int]].asViewOpt.zoom(Lens).set") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).asViewOpt.zoom(lens)
       _   <- view.set(1)
       get <- ref.get
-    } yield assert(get === Wrap(1)))
+    } yield assert(get === Wrap(1))
   }
 
   test("ViewF[Wrap[Int]].asViewOpt.zoom(Lens).modAndGet") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).asViewOpt.zoom(lens)
       get <- view.modAndGet(_ + 1)
-    } yield assert(get === 1.some))
+    } yield assert(get === 1.some)
   }
 
   test("ViewF[Wrap[Int]].asList.zoom(Lens).mod") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).asViewList.zoom(lens)
       _   <- view.mod(_ + 1)
       get <- ref.get
-    } yield assert(get === Wrap(1)))
+    } yield assert(get === Wrap(1))
   }
 
   test("ViewF[Wrap[Int]].asList.zoom(Lens).set") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).asViewList.zoom(lens)
       _   <- view.set(1)
       get <- ref.get
-    } yield assert(get === Wrap(1)))
+    } yield assert(get === Wrap(1))
   }
 
   test("ViewF[Wrap[Int]].asList.zoom(Lens).modAndGet") {
-    (for {
+    for {
       ref <- Ref[IO].of(wrappedValue)
       view = ViewF(wrappedValue, refModCB(ref)).asViewList.zoom(lens)
       get <- view.modAndGet(_ + 1)
-    } yield assert(get === List(1)))
+    } yield assert(get === List(1))
   }
 }

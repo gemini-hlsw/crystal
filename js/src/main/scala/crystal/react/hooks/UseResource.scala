@@ -9,12 +9,12 @@ import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 
 object UseResource {
-  def hook[D: Reusability, A] = CustomHook[(D, D => Resource[DefaultA, A])]
+  def hook[D: Reusability, A] = CustomHook[WithDeps[D, Resource[DefaultA, A]]]
     .useState(Pot.pending[A])
-    .useAsyncEffectWithDepsBy((props, _) => props._1)((props, state) =>
+    .useAsyncEffectWithDepsBy((props, _) => props.deps)((props, state) =>
       deps =>
         (for {
-          resource      <- props._2(deps).allocated
+          resource      <- props.fromDeps(deps).allocated
           (value, close) = resource
           _             <- state.setStateAsync(value.ready)
         } yield close)
@@ -55,7 +55,7 @@ object UseResource {
       ): step.Next[Pot[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[D, A]
-          hookInstance((deps(ctx), resource(ctx)))
+          hookInstance(WithDeps(deps(ctx), resource(ctx)))
         }
 
       /** Open a `Resource[Async, A]` on mount and close it on unmount. Provided as a `Pot[A]`. Will
