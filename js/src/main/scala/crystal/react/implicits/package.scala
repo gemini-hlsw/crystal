@@ -250,47 +250,71 @@ package object implicits {
   }
 
   implicit class PotRender[A](val pot: Pot[A]) extends AnyVal {
-    def renderPending(f: Long => VdomNode): VdomNode =
+    def renderPending(f: => VdomNode): VdomNode =
       pot match {
-        case Pending(start) => f(start)
-        case _              => EmptyVdom
+        case Pot.Pending => f
+        case _           => EmptyVdom
       }
 
     def renderError(f: Throwable => VdomNode): VdomNode =
       pot match {
-        case Error(t) => f(t)
-        case _        => EmptyVdom
+        case Pot.Error(t) => f(t)
+        case _            => EmptyVdom
       }
 
     def renderReady(f: A => VdomNode): VdomNode =
       pot match {
-        case Ready(a) => f(a)
-        case _        => EmptyVdom
+        case Pot.Ready(a) => f(a)
+        case _            => EmptyVdom
       }
   }
 
   implicit def throwableReusability: Reusability[Throwable] =
     Reusability.byRef[Throwable]
 
-  implicit def potReusability[A: Reusability](implicit
-    throwableReusability: Reusability[Throwable]
-  ): Reusability[Pot[A]] =
+  implicit def potReusability[A: Reusability]: Reusability[Pot[A]] =
     Reusability((x, y) =>
       x match {
-        case Pending(startx) =>
+        case Pot.Pending   =>
           y match {
-            case Pending(starty) => startx === starty
-            case _               => false
+            case Pot.Pending => true
+            case _           => false
           }
-        case Error(tx)       =>
+        case Pot.Error(tx) =>
           y match {
-            case Error(ty) => tx ~=~ ty
-            case _         => false
+            case Pot.Error(ty) => tx ~=~ ty
+            case _             => false
           }
-        case Ready(ax)       =>
+        case Pot.Ready(ax) =>
           y match {
-            case Ready(ay) => ax ~=~ ay
-            case _         => false
+            case Pot.Ready(ay) => ax ~=~ ay
+            case _             => false
+          }
+      }
+    )
+
+  implicit def potOptionReusability[A: Reusability]: Reusability[PotOption[A]] =
+    Reusability((x, y) =>
+      x match {
+        case PotOption.Pending       =>
+          y match {
+            case PotOption.Pending => true
+            case _                 => false
+          }
+        case PotOption.Error(tx)     =>
+          y match {
+            case PotOption.Error(ty) => tx ~=~ ty
+            case _                   => false
+          }
+        case PotOption.ReadyNone     =>
+          y match {
+            case PotOption.ReadyNone => true
+            case _                   => false
+          }
+        case PotOption.ReadySome(ax) =>
+          y match {
+            case PotOption.ReadySome(ay) => ax ~=~ ay
+            case _                       => false
           }
       }
     )
