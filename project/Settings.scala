@@ -15,7 +15,7 @@ object Settings {
     val mUnit           = "0.7.29"
     val mUnitCatsEffect = "1.0.7"
     val reactCommon     = "0.17.0"
-    val lucumaReact     = "1.0-30e8e44-SNAPSHOT"
+    val lucumaReact     = "1.0-9b30bcf-SNAPSHOT"
     val scalajsReact    = "2.1.1"
   }
 
@@ -99,8 +99,7 @@ object Settings {
 
     val LucumaReact = Def.setting(
       Seq[ModuleID](
-        "edu.gemini" %%% "lucuma-react-common" % lucumaReact,
-        "edu.gemini" %%% "lucuma-react-cats"   % lucumaReact
+        "edu.gemini" %%% "lucuma-react-common" % lucumaReact
       )
     )
 
