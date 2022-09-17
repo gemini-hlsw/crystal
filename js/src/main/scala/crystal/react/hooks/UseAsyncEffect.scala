@@ -15,8 +15,9 @@ object UseAsyncEffect {
           .fromDeps(deps)
           .flatMap(f => cleanupEffect.setAsync(f.some))
           .runAsyncAndForget
-          // React guarantees running the cleanup before the next effect, so we have the right value in the ref here.
-          .as(cleanupEffect.value.foldMap(_.runAsyncAndForget))
+          .as( // React guarantees running the cleanup before the next effect, so we have the right value in the ref here.
+            cleanupEffect.get.flatMap(_.foldMap(_.runAsyncAndForget))
+          )
     )
     .build
 

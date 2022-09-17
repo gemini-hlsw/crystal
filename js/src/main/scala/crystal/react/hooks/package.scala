@@ -28,15 +28,4 @@ package object hooks
 
 package hooks {
   protected[hooks] final case class WithDeps[D, A](deps: D, fromDeps: D => A)
-
-  final case class SyncValue[A](value: A, awaitOpt: Reusable[Option[DefaultA[Unit]]]) {
-    def map[B](f: A => B): SyncValue[B] =
-      SyncValue(f(value), awaitOpt)
-  }
-
-  object SyncValue {
-    implicit def reuseSyncValue[A: Reusability]: Reusability[SyncValue[A]] =
-      Reusability.by(x => (x.value, x.awaitOpt))
-  }
-
 }

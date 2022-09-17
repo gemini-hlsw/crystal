@@ -5,17 +5,17 @@ import sbt.librarymanagement._
 object Settings {
 
   object LibraryVersions {
-    val cats            = "2.7.0"
-    val catsEffect      = "3.3.13"
+    val cats            = "2.8.0"
+    val catsEffect      = "3.3.14"
     val discipline      = "1.5.1"
     val disciplineMUnit = "1.0.9"
-    val fs2             = "3.2.10"
-    val log4Cats        = "2.3.1"
+    val fs2             = "3.2.14"
+    val log4Cats        = "2.4.0"
     val monocle         = "3.1.0"
     val mUnit           = "0.7.29"
     val mUnitCatsEffect = "1.0.7"
     val reactCommon     = "0.17.0"
-    val lucumaReact     = "1.0-18d05e8-SNAPSHOT"
+    val lucumaReact     = "0.4.0"
     val scalajsReact    = "2.1.1"
   }
 
@@ -99,8 +99,7 @@ object Settings {
 
     val LucumaReact = Def.setting(
       Seq[ModuleID](
-        "edu.gemini" %%% "lucuma-react-common" % lucumaReact,
-        "edu.gemini" %%% "lucuma-react-cats"   % lucumaReact
+        "edu.gemini" %%% "lucuma-react-common" % lucumaReact
       )
     )
 
