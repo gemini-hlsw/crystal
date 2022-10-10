@@ -1,5 +1,6 @@
 package crystal.react.hooks
 
+import cats.effect.kernel.Deferred
 import cats.syntax.all._
 import crystal.react.implicits._
 import japgolly.scalajs.react._
@@ -8,15 +9,29 @@ import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
 
 object UseAsyncEffect {
   def hook[D: Reusability] = CustomHook[WithDeps[D, DefaultA[DefaultA[Unit]]]]
-    .useRef(none[DefaultA[Unit]])
+    .useRef(none[Deferred[DefaultA, DefaultA[Unit]]])
     .useEffectWithDepsBy((props, _) => props.deps)((props, cleanupEffect) =>
       deps =>
-        props
-          .fromDeps(deps)
-          .flatMap(f => cleanupEffect.setAsync(f.some))
-          .runAsyncAndForget
+        (for {
+          // The latch makes sure that the effect is executed before attempting cleanup.
+          // Without the latch mechanism, the cleanup could be called before the effect ran
+          // completely. Then the cleanup effect would still be empty and resources would leak.
+          newLatch <- Deferred[DefaultA, DefaultA[Unit]]
+          _        <- cleanupEffect.setAsync(newLatch.some)
+          cleanup  <- props.fromDeps(deps)
+          _        <- newLatch.complete(cleanup)
+        } yield ()).runAsyncAndForget
           .as( // React guarantees running the cleanup before the next effect, so we have the right value in the ref here.
-            cleanupEffect.get.flatMap(_.foldMap(_.runAsyncAndForget))
+            cleanupEffect.get.flatMap(latchOpt =>
+              latchOpt
+                .map(latch =>
+                  (for {
+                    cleanup <- latch.get
+                    _       <- cleanup
+                  } yield ()).runAsyncAndForget
+                )
+                .orEmpty
+            )
           )
     )
     .build
