@@ -1,123 +1,340 @@
 # Crystal
 
-[![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org) ![Build Status](https://github.com/rpiaggio/crystal/workflows/build/badge.svg) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.rpiaggio/crystal_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.rpiaggio/crystal_2.13)
+[![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org) ![Build Status](https://github.com/rpiaggio/crystal/workflows/build/badge.svg) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.rpiaggio/crystal_3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.rpiaggio/crystal_3)
 
 `crystal` is a toolbelt to help build reactive UI apps in Scala by providing:
 
-- A structure for managing server roundtrips (`Pot`).
-- Wrappers for values derived from state with a callback function to modify them (`ViewF`, `ViewOptF`, `ViewListF`).
+- A structure for managing delayed values (`Pot`, `PotOption`).
+- Wrappers for values derived from state with a callback function to modify them (`View`, `ViewOpt`, `ViewList`).
+- A way to delegate reusability to another type (`Reuse`). Useful for types for which universal reusability cannot be defined (like functions or `VdomNode`).
+- Tight integration between `scalajs-react` and `cats-effect` + `fs2.Stream`s via hooks.
 
-Additionally, for `scalajs-react` apps it provides:
+`crystal` assumes you use a `scalajs-react`'s `core-bundle-cb_io`, where the default sync effect is `CallbackTo` and the default async effect is `IO`. However, the library should compile with another bundle.
 
-- Components to hold global state and context (`StateProvider`, `ContextProvider`).
-- A component that dynamically renders values from `fs2.Stream`s (`StreamRenderer`).
-- A component that dynamically renders values from `fs2.Stream`s, allowing children to modify the value too (`StreamRendererMod`).
-- Conversions between `CallbackTo` and `cats-effect` effect types (`implicits._`).
-- `Reusability` and other utilities for `Pot` and `View*F` (`implicits._`)
+# Core
 
-The library takes a tagless approach based on `cats-effect`. Logging is performed via `log4cats`.
-
-## Core
-
-### Pot[A]
+## Pot[A]
 
 A `Pot[A]` represents a value of type `A` that has been requested somewhere and may or not be available yet, or the request may have failed.
 
 It is a sum type consisting of:
-
-- `Pending(<Long>)`, where the `Long` is meant to store the instant of creation, in millis since epoch. It is initialized to `System.currentTimeMillis()` by default.
+- `Pending`.
 - `Ready(<A>)`.
 - `Error(<Throwable>)`.
 
-`Pot[A]` implements the following methods:
-
-- `map[B](f: A => B): Pot[B]`
-- `fold[B](fp: Long => B, fe: Throwable => B, fr: A => B): B`
-- `flatten[B]: Pot[B]` (if `A <: Pot[B]`)
-- `flatMap[B](f: A => Pot[B]): Pot[B]`
-- `toOption: Option[A]`
-- `toTryOption: Option[Try[A]]`
-
-The `crystal.implicits._` import will provide:
-
+The `crystal.implicits.*` import will provide:
 - Instances for `cats` `MonadError`, `Traverse`, `Align` and `Eq` (as long as there's an `Eq[A]` in scope).
-- Convenience methods: `<Any>.ready`, `<Option[A]>.toPot`, `<Try[A]>.toPot` and `<Option[Try[A]]>.toPot`.
+- Convenience extension methods: `<Any>.ready`, `<Option[A]>.toPot`, `<Try[A]>.toPot` and `<Option[Try[A]]>.toPot`.
 
-The `crystal.react.implicits._` import will provide:
-
+The `crystal.react.implicits.*` import will provide:
 - `Reusability[Pot[A]]` (as long as there's a `Reusability[A]` in scope).
-- Convenience methods:
-  - `renderPending(f: Long => VdomNode): VdomNode`
+- Extesion methods:
+  - `renderPending(f: => VdomNode): VdomNode`
   - `renderError(f: Throwable => VdomNode): VdomNode`
   - `renderReady(f: A => VdomNode): VdomNode`
 
-### ViewF[F, A]
+## PotOption[A]
 
-A `ViewF[F, A]` wraps a value of type `A` and a callback to modify it effectfully: `(A => A) => F[Unit]`.
+Similar to `Pot[A]` but provides one additinal state. Its values can be:
+- `Pending`.
+- `ReadyNone`.
+- `ReadySome(<A>)`.
+- `Error(<Throwable>)`.
 
-It is useful for passing state down the component hierarchy, allowing desdendents to modify it.
+It is useful in some situations (see `Hooks` below).
 
-Provides the following methods:
+# scalajs-react
 
-- `get: A` - returns the wrapped `A`.
-- `mod(f: A => A): F[Unit]` - returns the effect for modifying the state using `f`.
-- `set(a: A): F[Unit]` = `mod(_ => a)`.
-- `modAndGet(f: A => A): F[A]` - same as `mod(f)` but returns the modified `A`.
-- `withOnMod(f: A => F[Unit])` - creates a new `ViewF` that chains the passed effect whenever `mod` (or `set`) is called.
-- `zoom` methods - creates a new `ViewF` focused on a part of `A`. This method can take either raw getter and setter functions or a `monocle` `Lens`, `Optional`, `Prism` or `Traversal`.
-- `as(iso: Iso[A, B])` - creates a new `ViewF[F, B]`.
-- `asViewOpt` - creates a new `ViewOptF[F, A]`.
-- `asViewList` - creates a new `ViewListF[F, A]`.
+## View[A]
 
-`ViewOptF[F, A]` and `ViewListF[F, A]` are variants that hold a value known to be an `Option[A]` or `List[A]` respectively. They are returned when `zoom`ing using `Optional`, `Prism` or `Traversal`.
+A `View[A]` wraps a value of type `A` and a callback to modify it effectfully: `(A => A) => Callback`.
 
-Requires the following implicits in scope:
+It is useful for passing state down the component hierarchy, allowing descendants to modify it.
 
-- `Async[F]`
-- `ContextShift[F]`
+It provides several `zoom` functions for drilling down its properties. It also allows effects to be chained whenever it's modified (`withOnMod`).
 
-The `crystal.react.implicits._` import will provide:
+`ViewOpt[A]` and `ViewList[A]` are variants that hold a value known to be an `Option[A]` or `List[A]` respectively. They are returned when `zoom`ing using `Optional`, `Prism` or `Traversal`.
 
-- `Reusability[ViewF[F, A]]`, `Reusability[ViewOptF[F, A]]` and `Reusability[ViewListF[F, A]]`, based solely on the wrapped value `A` (and as long as there's a `Reusability[A]` in scope).
-- `ViewF.fromState[F]($: BackendScope[_, S])`: create a `ViewF[F, S]` from `scalajs-react`'s `BackendScope`.
+## Reuse[A]
 
-## scalajs-react
+A `Reuse[A]` wraps a value of type `A` and a hidden value of another type `B` such that there is a implicit `Reusability[B]`.
 
-### StreamRenderer
+The instance of `Reuse[A]` will be reused as long as the associated value `B` can be reused.
 
-`StreamRenderer.build(fs2.Stream[F, A])` will create a component that takes a rendering function `Pot[A] => VdomNode` as properties.
+This is useful to define `Reusability` for types where universal reusability can't be defined. For example, we could define reusability for a function `(S, T) => U` can be turned into a `Reuse[T => U]` by specifying a curried value of `S` (and assuming there's a `Reusability[S]` in scope).
 
-The component will keep a `Pot[A]` as state, and will use the rendering function to render such state.
+## Hooks
 
-State initialized to `Pending` upon mounting; and then set to `Ready(<A>)` with each element received in the `Stream`, or `Error(<Throwable>)` if the `Stream` fails.
+### useSingleEffect
 
-You should store the component (in a `Backend` or in `State` for example) and reuse it. Do not `build` it on each `render`.
+Provides a context in which to run a single effect at a time.
 
-Requires the following implicits in scope:
+When a new effect is submitted, the previous one is canceled. Also cancels the effect on unmount.
 
-- `ConcurrentEffect[F]`
-- `Logger[F]`
-- `Reusability[A]`
-- (Optionally) `Reusability[Pot[A] => VdomNode]`. If not provided, the render function will never be reused.
+A submitted effect can be explicitly canceled too.
 
-### StreamRendererMod
+If a `debounce` is passed, the hooks guarantees that effect invocations are spaced at least by the specified duration.
 
-Same as `StreamRenderer` but allows the rendering function to modify the state. Therefore, the rendering function will be a `Pot[ViewF[F, A]] => VdomNode` instead.
+``` scala
+  useSingleEffect(): Reusable[UseSingleEffect]
 
-This is useful, for example, when subscribing to a stream from a server and children can invoke mutations in the server. Children can chain the `ViewF`'s `mod/set` effect to the invocation of the mutation in order to display the change immediately instead of having to wait for the roundtrip to the server.
+  useSingleEffect(debounce: FiniteDuration): Reusable[UseSingleEffect]
 
-When the value is modified by children in such a way, values from the stream will not be propagated during a period of time. Otherwise, this would caulse flicker in the UI if the children modify the value repeatedly in a short period of time, as the intermediate values are received in the stream. By default, the hold period is `2 seconds`, but it can be modified by passing a 2nd parameter `holdAfterMod` to `StreamRendererMod.build`.
+  useSingleEffectBy(debounce: Ctx => FiniteDuration): Reusable[UseSingleEffect]
+```
+
+where
+
+``` scala
+trait UseSingleEffect:
+  def submit(effect: IO[Unit]): IO[Unit]
+  val cancel: IO[Unit]
+```
+
+#### Example:
+``` scala
+ScalaFnComponent
+  .withHooks[Props]
+  ...
+  .useSingleEffect(1.second)
+  .useEffectWithDepsBy( ... => deps)( (..., singleEffect) => deps => singleEffect.submit(longRunningEffect) )
+  // Previous `longRunningEffect` is cancelled immediately and new one is ran after 1 second
+```
+
+### useStateCallback
+
+Class components allow us to specify a callback when we modify state. The callback is executed when state is modified and is passed the new state value.
+
+This is not available in functional components. This hook seeks to emulate such functionality.
+
+Given a state created with `.useState`, the hook allows us to register a callback that will be ran once, the next time the state changes. The callback will be passed the new state value.
+
+``` scala
+  useStateCallbackBy[A](state: Ctx => Hooks.UseState[A]): (A => Callback) => Callback
+```
+
+#### Example:
+``` scala
+ScalaFnComponent
+  .withHooks[Props]
+  ...
+  .useState(SomeValue)
+  .useStateCallbackBy( (..., state) => state)
+  .useEffectBy( (..., state, stateCallback) => 
+    state.modState(...) >> stateCallback(value => effect(value))
+  ) // `effect` is run with new `value`, after `modState` completes.
+```
+
+### useStateView
+
+Provides state as a `View`.
+
+Functionally equivalent to `useState` but the `View` is more practical to pass around to child components, zoom into members and define callbacks upon state change.
+
+``` scala
+  useStateView[A](initialValue: => A): View[A]
+
+  useStateViewBy[A](initialValue: Ctx => A): View[A]
+```
+
+### useStateViewWithReuse
+
+Similar to `useStateView` but returns a `Reuse[View[A]]`. The resulting `View` is reused by its value and thus requires an implicit `Reusability[A]`, as well as a `ClassTag[A]`.
+
+``` scala
+  useStateViewWithReuse[A: ClassTag: Reusability](initialValue: => A): Reuse[View[A]]
+
+  useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: Ctx => A): Reuse[View[A]]
+```
+
+### useSerialState
+
+Creates component state that is reused as long as it's not updated.
+
+``` scala
+  useSerialState[A](initialValue: => A): UseSerialState[A]
+
+  useSerialStateBy[A](initialValue: Ctx => A): UseSerialState[A]
+```
+
+where
+
+``` scala
+trait UseSerialState[A]:
+  val value: Reusable[A]
+  val setState: Reusable[A => Callback]
+  val modState: Reusable[(A => A) => Callback]
+```
+
+Reusability of `UseSerialState[A]` and its members depends on an internal counter which is updated every time the wrapped value changes. This is useful to provide stable reusability to types where we don't have or can't define `Reusability` instances.
+
+Usage is the same as for `.useState`/`.useStateBy`.
+
+### useSerialStateView
+
+Version of `useSerialState` that returns a `Reuse[View[A]]`.
+
+``` scala
+  useSerialStateView[A](initialValue: => A): Reuse[View[A]]
+
+  useSerialStateViewBy[A](initialValue: Ctx => A): Reuse[View[A]]
+```
+
+### useAsyncEffect
+
+Version of `useEffect` that allows defining an async effect with an (also async) cleanup effect.
+
+`useEffect` allows defining a cleanup effect only when used with the default sync effect (usually `CallbackTo`).
+
+This hook should only be used when a cleanup effect is needed. To use a regular async effect, just use regular `useEffect`.
+
+``` scala
+  useAsyncEffect(effect: IO[IO[Unit]])
+
+  useAsyncEffectBy(effect: Ctx => IO[IO[Unit]])
+
+  useAsyncEffectWithDeps[D: Reusability](deps: => D)(effect: D => IO[IO[Unit]])
+
+  useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[IO[Unit]])
+
+  useAsyncEffectOnMount(effect: IO[IO[Unit]])
+
+  useAsyncEffectOnMountBy(effect: Ctx => IO[IO[Unit]])
+```
+
+
+### useEffectResult
+
+Stores the result `A` of an effect in state. The state is provided as `Pot[A]`, with value `Pending` until the effect completes (and `Error` if it fails).
+
+``` scala
+  useEffectResult[A](effect: IO[A]): Pot[A]
+
+  useEffectResultBy[A](effect: Ctx => IO[A]): Pot[A]
+
+  useEffectResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
+
+  useEffectResultWithDepsBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+
+  useEffectResultOnMount[A](effect: IO[A]): Pot[A]
+
+  useEffectResultOnMountBy[A](effect: Ctx => IO[A]): Pot[A]
+```
+
+#### Example:
+``` scala
+ScalaFnComponent
+  .withHooks[Props]
+  ...
+  .useEffectResultOnMount(UUIDGen.randomUUID)
+  .render( (..., uuidPot) => 
+    uuidPot.fold(
+      "Pending...",
+      t => s"Error! ${e.getMessage}",
+      uuid => s"Your fresh UUID: $uuid"
+    )
+  )
+```
+
+### useResource
+
+Opens a `Resource[IO, A]` upon mount or dependency change, and provides its value as a `Pot[A]`.
+
+The resource is gracefully closed upon unmount or dependency change.
+
+Note that there is no version without deps or `onMount` since it doesn't make sense to open a resource in each render, especially taking into account that once the resource is acquired it will force a rerender.
+
+``` scala
+  useResource[D: Reusability, A](deps: => D)(resource: D => Resource[IO, A]): Pot[A]
+
+  useResourceBy[D: Reusability, A](deps: Ctx => D)(resource: Ctx => D => Resource[IO, A]): Pot[A]
+
+  useResourceOnMount[A](resource: Resource[IO, A]): Pot[A]
+
+  useResourceOnMountBy[A](resource: Ctx => Resource[IO, A]): Pot[A]
+```
+
+### useStream
+
+Executes and drains a `fs2.Stream[IO, A]` upon mount or dependency change, and provides the latest value from the stream as a `PotOption[A]`.
+
+The fiber evaluating the stream is canceled upon unmount or dependency change.
+
+Note that there is no version without deps or `onMount` since it doesn't make sense to open a resource in each render, especially taking into account that starting the draining fiber will force a rerender, as well as every new value produced.
+
+``` scala
+  useStream[D: Reusability, A](deps: => D)(stream: D => fs2.Stream[IO, A]): PotOption[A]
+
+  useStreamBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[A]
+
+  useStreamOnMount[A](stream: fs2.Stream[IO, A]): PotOption[A]
+
+  useStreamOnMountBy[A](stream: Ctx => fs2.Stream[IO, A]): PotOption[A]
+```
+
+The resulting `PotOption[A]` takes one of these values:
+- `Pending`: Fiber hasn't started yet
+- `ReadyNone`: Fiber has started but no value has been produced by the stream yet.
+- `ReadySome(a)`: `a` is the last value produced by the stream.
+- `Error(t)`: Fiber raised an exception `t`.
+
+### useStreamView
+
+Like `useStream` but returns a `PotOption[View[A]]`, allowing local modifications to the state once it's `Ready`.
+
+In other words, the state will be modified on every new value produced by the stream, and also on every invocation to `set` or `mod` on the `View`.
+
+``` scala
+  useStreamView[D: Reusability, A](deps: => D)(stream: D => fs2.Stream[IO, A]): PotOption[View[A]]
+
+  useStreamViewBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[View[A]]
+
+  useStreamViewOnMount[A](stream: fs2.Stream[IO, A]): PotOption[View[A]]
+
+  useStreamViewOnMountBy[A](stream: Ctx => fs2.Stream[IO, A]): PotOption[View[A]]
+```
+
+### useStreamResource
+
+Given a `Resource[IO, fs2.Stream[IO, A]]`, combines `useResource` and `useStream` on it.
+
+In other words, when mounting or depdency change, the resource is allocated and the resulting stream starts being evaluated.
+
+Upon unmount or dependency change, the evaluating fiber is cancelled and the resource closed.
+
+``` scala
+  useStreamResource[D: Reusability, A](deps: => D)(streamResource: D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
+
+  useStreamResourceBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
+
+  useStreamResourceOnMount[A](streamResource: Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
+
+  useStreamResourceOnMountBy[A](streamResource: Ctx => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
+```
+
+### useStreamResourceView
+
+Given a `Resource[IO, fs2.Stream[IO, A]]`, combines `useResource` and `useStreamView` on it.
+
+Like `useStreamResource` but returns a `PotOption[View[A]]`, allowing local modifications to the state once it's `Ready`.
+
+``` scala
+  useStreamResourceView[D: Reusability, A](deps: => D)(streamResource: D => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
+
+  useStreamResourceViewBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
+
+  useStreamResourceViewOnMount[A](streamResource: Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
+
+  useStreamResourceViewOnMountBy[A](streamResource: Ctx => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
+```
 
 ### `scalajs-react` <-> `cats-effect` interop
 
-The `crystal.react.implicits._` import will provide the following methods:
+The `crystal.react.implicits.*` import will provide the following methods:
+
+#### Effect conversion
 
 - `<CallbackTo[A]>.to[F]: F[A]` - converts a `CallbackTo` to the effect `F`. `<Callback>.to[F]` returns `F[Unit]`. (Requires implicit `Sync[F]`).
-- `<BackendScope[P, S]>.propsIn[F]: F[P]` - (Requires implicit `Sync[F]`).
-- `<BackendScope[P, S]>.stateIn[F]: F[S]` - (Requires implicit `Sync[F]`),
-- `<BackendScope[P, S]>.setStateIn[F](s: S): F[Unit]` - will complete once the state has been set. Therefore, use this instead of `<BackendScope[P, S]>.setState.to[F]`, which would complete immediately. (Requires implicit `Async[F]`).
-- `<BackendScope[P, S]>.modStateIn[F](f: S => S): F[Unit]` - same as above. (Requires implicit `Async[F]`).
-- `<BackendScope[P, S]>.modStateWithPropsIn[F](f: (S, P) => S): F[Unit]` - (Requires implicit `Async[F]`).
 - `<F[A]>.runAsync(cb: Either[Throwable, A] => F[Unit]): Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its result will be handled by `cb`. (Requires implicit `Dispatcher[F]`).
 - `<F[A]>.runAsyncAndThen(cb: Either[Throwable, A] => Callback): Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its result will be handled by `cb`. The difference with `runAsyncCB` is that the result handler returns a `Callback` instead of `F[A]`. (Requires implicit `Dispatcher[F]`).
 - `<F[A]>.runAsyncAndForget: Callback` - When the resulting `Callback` is run, `F[A]` will be run asynchronously and its result will be ignored, as well as any errors it may raise. (Requires implicit `Dispatcher[F]`).
@@ -125,3 +342,11 @@ The `crystal.react.implicits._` import will provide the following methods:
 - `<F[Unit]>.runAsync(errorMsg: String?): Callback` - When the resulting `Callback` is run, `F[Unit]` will be run asynchronously. If it fails, `errorMsg` will be logged. (Requires implicit `Dispatcher[F]` and `Logger[F]`).
 
 Please note that in all cases the the `Callback` returned by `.runAsync*` will complete immediately.
+
+#### Extensions to `BackendScope`
+
+- `<BackendScope[P, S]>.propsIn[F]: F[P]` - (Requires implicit `Sync[F]`).
+- `<BackendScope[P, S]>.stateIn[F]: F[S]` - (Requires implicit `Sync[F]`),
+- `<BackendScope[P, S]>.setStateIn[F](s: S): F[Unit]` - will complete once the state has been set. Therefore, use this instead of `<BackendScope[P, S]>.setState.to[F]`, which would complete immediately. (Requires implicit `Async[F]`).
+- `<BackendScope[P, S]>.modStateIn[F](f: S => S): F[Unit]` - same as above. (Requires implicit `Async[F]`).
+- `<BackendScope[P, S]>.modStateWithPropsIn[F](f: (S, P) => S): F[Unit]` - (Requires implicit `Async[F]`).
