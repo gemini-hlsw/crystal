@@ -8,7 +8,7 @@ import cats.effect.syntax.all._
 import cats.syntax.all._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
-import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
+import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -58,31 +58,34 @@ object UseSingleEffect {
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
-      /** Provides a context in which to run a single effect at a time. When a new effect is
-        * submitted, the previous one is canceled. Also cancels the effect on unmount.
-        *
-        * A submitted effect can be explicitly canceled too.
-        */
+      /**
+       * Provides a context in which to run a single effect at a time. When a new effect is
+       * submitted, the previous one is canceled. Also cancels the effect on unmount.
+       *
+       * A submitted effect can be explicitly canceled too.
+       */
       final def useSingleEffect(debounce: FiniteDuration)(implicit
         step:                             Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
         useSingleEffectBy(_ => debounce)
 
-      /** Provides a context in which to run a single effect at a time. When a new effect is
-        * submitted, the previous one is canceled. Also cancels the effect on unmount.
-        *
-        * A submitted effect can be explicitly canceled too.
-        */
+      /**
+       * Provides a context in which to run a single effect at a time. When a new effect is
+       * submitted, the previous one is canceled. Also cancels the effect on unmount.
+       *
+       * A submitted effect can be explicitly canceled too.
+       */
       final def useSingleEffect(implicit
         step: Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
         api.customBy(_ => hook(none))
 
-      /** Provides a context in which to run a single effect at a time. When a new effect is
-        * submitted, the previous one is canceled. Also cancels the effect on unmount.
-        *
-        * A submitted effect can be explicitly canceled too.
-        */
+      /**
+       * Provides a context in which to run a single effect at a time. When a new effect is
+       * submitted, the previous one is canceled. Also cancels the effect on unmount.
+       *
+       * A submitted effect can be explicitly canceled too.
+       */
       final def useSingleEffectBy(debounce: Ctx => FiniteDuration)(implicit
         step:                               Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
@@ -93,13 +96,14 @@ object UseSingleEffect {
       api: HooksApi.Secondary[Ctx, CtxFn, Step]
     ) extends Primary[Ctx, Step](api) {
 
-      /** Provides a context in which to run a single effect at a time. When a new effect is
-        * submitted, the previous one is canceled. Also cancels the effect on unmount.
-        *
-        * A submitted effect can be explicitly canceled too.
-        *
-        * `debounce` can specify a minimum `Duration` between invocations.
-        */
+      /**
+       * Provides a context in which to run a single effect at a time. When a new effect is
+       * submitted, the previous one is canceled. Also cancels the effect on unmount.
+       *
+       * A submitted effect can be explicitly canceled too.
+       *
+       * `debounce` can specify a minimum `Duration` between invocations.
+       */
       def useSingleEffectBy(debounce: CtxFn[FiniteDuration])(implicit
         step:                         Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =

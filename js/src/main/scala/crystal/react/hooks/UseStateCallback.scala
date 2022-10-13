@@ -3,7 +3,7 @@ package crystal.react.hooks
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.hooks.Hooks
-import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
+import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
 
 import scala.collection.immutable.Queue
 
@@ -27,15 +27,17 @@ object UseStateCallback {
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
-      /** Given a state, allows registering callbacks which are triggered when the state changes.
-        */
+      /**
+       * Given a state, allows registering callbacks which are triggered when the state changes.
+       */
       final def useStateCallback[A](state: => Hooks.UseState[A])(implicit
         step:                              Step
       ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
         useStateCallbackBy(_ => state)
 
-      /** Given a state, allows registering callbacks which are triggered when the state changes.
-        */
+      /**
+       * Given a state, allows registering callbacks which are triggered when the state changes.
+       */
       final def useStateCallbackBy[A](state: Ctx => Hooks.UseState[A])(implicit
         step:                                Step
       ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
@@ -49,8 +51,9 @@ object UseStateCallback {
       api: HooksApi.Secondary[Ctx, CtxFn, Step]
     ) extends Primary[Ctx, Step](api) {
 
-      /** Given a state, allows registering callbacks which are triggered when the state changes.
-        */
+      /**
+       * Given a state, allows registering callbacks which are triggered when the state changes.
+       */
       def useStateCallbackBy[A](state: CtxFn[Hooks.UseState[A]])(implicit
         step:                          Step
       ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =

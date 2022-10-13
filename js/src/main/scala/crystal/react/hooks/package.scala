@@ -4,7 +4,7 @@ import cats.effect.Fiber
 import cats.effect.Resource
 import crystal.react.reuse._
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
+import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
 
 package object hooks
     extends UseSingleEffect.HooksApiExt

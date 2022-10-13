@@ -5,7 +5,7 @@ import cats.syntax.all._
 import crystal.react.implicits._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.hooks.CustomHook
-import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
+import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
 
 object UseAsyncEffect {
   def hook[D: Reusability] = CustomHook[WithDeps[D, DefaultA[DefaultA[Unit]]]]
@@ -39,9 +39,10 @@ object UseAsyncEffect {
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
-        */
+      /**
+       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+       * without a cleanup callback, just use the regular `useEffect` hook.
+       */
       final def useAsyncEffectWithDeps[D: Reusability, A](
         deps:   => D
       )(effect: D => DefaultA[DefaultA[Unit]])(implicit
@@ -49,25 +50,28 @@ object UseAsyncEffect {
       ): step.Self =
         useAsyncEffectWithDepsBy(_ => deps)(_ => effect)
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
-        */
+      /**
+       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+       * without a cleanup callback, just use the regular `useEffect` hook.
+       */
       final def useAsyncEffect[A](effect: DefaultA[DefaultA[Unit]])(implicit
         step:                             Step
       ): step.Self =
         useAsyncEffectBy(_ => effect)
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
-        */
+      /**
+       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+       * without a cleanup callback, just use the regular `useEffect` hook.
+       */
       final def useAsyncEffectOnMount[A](effect: DefaultA[DefaultA[Unit]])(implicit
         step:                                    Step
       ): step.Self =
         useAsyncEffectOnMountBy(_ => effect)
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
-        */
+      /**
+       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+       * without a cleanup callback, just use the regular `useEffect` hook.
+       */
       final def useAsyncEffectWithDepsBy[D: Reusability, A](
         deps:   Ctx => D
       )(effect: Ctx => D => DefaultA[DefaultA[Unit]])(implicit
@@ -78,17 +82,19 @@ object UseAsyncEffect {
           hookInstance(WithDeps(deps(ctx), effect(ctx)))
         }
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
-        */
+      /**
+       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+       * without a cleanup callback, just use the regular `useEffect` hook.
+       */
       final def useAsyncEffectBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(implicit
         step:                               Step
       ): step.Self =
         useAsyncEffectWithDepsBy(_ => NeverReuse)(ctx => _ => effect(ctx))
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
-        */
+      /**
+       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+       * without a cleanup callback, just use the regular `useEffect` hook.
+       */
       final def useAsyncEffectOnMountBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(implicit
         step:                                      Step
       ): step.Self = // () has Reusability = always.
@@ -99,9 +105,10 @@ object UseAsyncEffect {
       api: HooksApi.Secondary[Ctx, CtxFn, Step]
     ) extends Primary[Ctx, Step](api) {
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
-        */
+      /**
+       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+       * without a cleanup callback, just use the regular `useEffect` hook.
+       */
       def useAsyncEffectWithDepsBy[D: Reusability, A](
         deps:   CtxFn[D]
       )(effect: CtxFn[D => DefaultA[DefaultA[Unit]]])(implicit
@@ -109,17 +116,19 @@ object UseAsyncEffect {
       ): step.Self =
         useAsyncEffectWithDepsBy(step.squash(deps)(_))(step.squash(effect)(_))
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
-        */
+      /**
+       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+       * without a cleanup callback, just use the regular `useEffect` hook.
+       */
       def useAsyncEffectBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(implicit
         step:                         Step
       ): step.Self =
         useAsyncEffectBy(step.squash(effect)(_))
 
-      /** Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-        * without a cleanup callback, just use the regular `useEffect` hook.
-        */
+      /**
+       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
+       * without a cleanup callback, just use the regular `useEffect` hook.
+       */
       def useAsyncEffectOnMountBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(implicit
         step:                                Step
       ): step.Self =
