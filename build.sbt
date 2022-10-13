@@ -1,7 +1,7 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / crossScalaVersions := List("3.2.0")
-ThisBuild / tlBaseVersion := "0.33"
+ThisBuild / tlBaseVersion      := "0.33"
 
 lazy val root = tlCrossRootProject.aggregate(crystal)
 
