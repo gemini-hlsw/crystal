@@ -8,6 +8,7 @@ lazy val root = tlCrossRootProject.aggregate(crystal)
 lazy val crystal = crossProject(JVMPlatform, JSPlatform)
   .in(file("."))
   .settings(
+    scalacOptions += "-language:implicitConversions",
     libraryDependencies ++=
       Settings.Libraries.CatsJS.value ++
         Settings.Libraries.CatsEffectJS.value ++
