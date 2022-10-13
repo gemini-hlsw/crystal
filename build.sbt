@@ -4,11 +4,11 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 inThisBuild(
   List(
-    scalaVersion                                   := "2.13.8",
+    scalaVersion                                   := "2.13.9",
     // implicit resolution for Reuse[View] does not work properly in scala 3. When we
     // switch to scala 3, we can use an opaque type ReuseViewF instead of extension
     // methods on Reuse[ViewF], etc.
-    crossScalaVersions                             := Seq("2.13.8", "3.2.0"),
+    crossScalaVersions                             := Seq("2.13.9", "3.2.0"),
     organization                                   := "com.rpiaggio",
     homepage                                       := Some(url("https://github.com/rpiaggio/crystal")),
     licenses += ("BSD 3-Clause", url(
