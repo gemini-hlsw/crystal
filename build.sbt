@@ -3,6 +3,8 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 ThisBuild / crossScalaVersions := List("3.2.0")
 ThisBuild / tlBaseVersion      := "0.33"
 
+ThisBuild / tlCiReleaseBranches := Seq("master")
+
 lazy val root = tlCrossRootProject.aggregate(crystal)
 
 lazy val crystal = crossProject(JVMPlatform, JSPlatform)
