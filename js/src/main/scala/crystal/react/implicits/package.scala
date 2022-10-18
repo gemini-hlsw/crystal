@@ -1,3 +1,6 @@
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+
 package crystal.react
 
 import cats.Monad
@@ -10,8 +13,8 @@ import crystal.react.hooks.UseSerialState
 import crystal.react.reuse._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.component.Generic.MountedSimple
-import japgolly.scalajs.react.util.DefaultEffects.{ Async => DefaultA }
-import japgolly.scalajs.react.util.DefaultEffects.{ Sync => DefaultS }
+import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
+import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
 import japgolly.scalajs.react.util.Effect
 import japgolly.scalajs.react.util.Effect.UnsafeSync
 import japgolly.scalajs.react.vdom.html_<^._
@@ -52,12 +55,13 @@ package object implicits {
     def setStateIn[F[_]: Sync](s: S): F[Unit]      = self.setState(s).to[F]
     def modStateIn[F[_]: Sync](f: S => S): F[Unit] = self.modState(f).to[F]
 
-    /** Like `setState` but completes with a `Unit` value *after* the state modification has been
-      * completed. In contrast, `setState(mod).to[F]` completes with a unit once the state
-      * modification has been enqueued.
-      *
-      * Provides access only to state.
-      */
+    /**
+     * Like `setState` but completes with a `Unit` value *after* the state modification has been
+     * completed. In contrast, `setState(mod).to[F]` completes with a unit once the state
+     * modification has been enqueued.
+     *
+     * Provides access only to state.
+     */
     def setStateAsyncIn[F[_]: Async](s: S)(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
       Async[F].async_[Unit] { cb =>
         val doMod = self.setState(s, DefaultS.delay(cb(Right(()))))
@@ -69,12 +73,13 @@ package object implicits {
         )
       }
 
-    /** Like `modState` but completes with a `Unit` value *after* the state modification has been
-      * completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
-      * modification has been enqueued.
-      *
-      * Provides access only to state.
-      */
+    /**
+     * Like `modState` but completes with a `Unit` value *after* the state modification has been
+     * completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
+     * modification has been enqueued.
+     *
+     * Provides access only to state.
+     */
     def modStateAsyncIn[F[_]: Async](
       mod:               S => S
     )(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
@@ -99,12 +104,13 @@ package object implicits {
     private val self: StateAccess.WriteWithProps[DefaultS, DefaultA, P, S]
   ) extends AnyVal {
 
-    /** Like `modState` but completes with a `Unit` value *after* the state modification has been
-      * completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
-      * modification has been enqueued.
-      *
-      * Provides access to both state and props.
-      */
+    /**
+     * Like `modState` but completes with a `Unit` value *after* the state modification has been
+     * completed. In contrast, `modState(mod).to[F]` completes with a unit once the state
+     * modification has been enqueued.
+     *
+     * Provides access to both state and props.
+     */
     def modStateWithPropsIn[F[_]: Async](
       mod:               (S, P) => S
     )(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
@@ -157,21 +163,23 @@ package object implicits {
 
   implicit class EffectAOps[F[_], A](private val self: F[A]) extends AnyVal {
 
-    /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously.
-      *
-      * @param cb
-      *   Result handler returning a `F[Unit]`.
-      */
+    /**
+     * Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously.
+     *
+     * @param cb
+     *   Result handler returning a `F[Unit]`.
+     */
     def runAsync(
       cb:         Either[Throwable, A] => F[Unit]
     )(implicit F: MonadError[F, Throwable], dispatcher: Effect.Dispatch[F]): DefaultS[Unit] =
       DefaultS.delay(dispatcher.dispatch(self.attempt.flatMap(cb)))
 
-    /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously.
-      *
-      * @param cb
-      *   Result handler returning a `DefaultS[Unit]`.
-      */
+    /**
+     * Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously.
+     *
+     * @param cb
+     *   Result handler returning a `DefaultS[Unit]`.
+     */
     def runAsyncAndThen(
       cb:          Either[Throwable, A] => DefaultS[Unit]
     )(implicit
@@ -181,9 +189,10 @@ package object implicits {
     ): DefaultS[Unit] =
       runAsync(cb.andThen(c => F.delay(dispatchS.runSync(c))))
 
-    /** Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously and discard the
-      * result or errors.
-      */
+    /**
+     * Return a `DefaultS[Unit]` that will run the effect `F[A]` asynchronously and discard the
+     * result or errors.
+     */
     def runAsyncAndForget(implicit
       F:           MonadError[F, Throwable],
       dispatcherF: Effect.Dispatch[F]
@@ -193,12 +202,13 @@ package object implicits {
 
   implicit class EffectUnitOps[F[_]](private val self: F[Unit]) extends AnyVal {
 
-    /** Return a `DefaultS[Unit]` that will run the effect `F[Unit]` asynchronously and log possible
-      * errors.
-      *
-      * @param cb
-      *   `F[Unit]` to run in case of success.
-      */
+    /**
+     * Return a `DefaultS[Unit]` that will run the effect `F[Unit]` asynchronously and log possible
+     * errors.
+     *
+     * @param cb
+     *   `F[Unit]` to run in case of success.
+     */
     def runAsyncAndThenF(
       cb:         F[Unit],
       errorMsg:   String = "Error in F[Unit].runAsyncAndThenF"
@@ -212,12 +222,13 @@ package object implicits {
         case Left(t)   => logger.error(t)(errorMsg)
       }
 
-    /** Return a `DefaultS[Unit]` that will run the effect `F[Unit]` asynchronously and log possible
-      * errors.
-      *
-      * @param cb
-      *   `DefaultS[Unit]` to run in case of success.
-      */
+    /**
+     * Return a `DefaultS[Unit]` that will run the effect `F[Unit]` asynchronously and log possible
+     * errors.
+     *
+     * @param cb
+     *   `DefaultS[Unit]` to run in case of success.
+     */
     def runAsyncAndThen(
       cb:          DefaultS[Unit],
       errorMsg:    String = "Error in F[Unit].runAsyncAndThen"
@@ -229,9 +240,10 @@ package object implicits {
     ): DefaultS[Unit] =
       runAsyncAndThenF(F.delay(dispatchS.runSync(cb)), errorMsg)
 
-    /** Return a `DefaultS[Unit]` that will run the effect F[Unit] asynchronously and log possible
-      * errors.
-      */
+    /**
+     * Return a `DefaultS[Unit]` that will run the effect F[Unit] asynchronously and log possible
+     * errors.
+     */
     def runAsync(
       errorMsg:   String = "Error in F[Unit].runAsync"
     )(implicit
