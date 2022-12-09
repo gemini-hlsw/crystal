@@ -14,8 +14,8 @@ object Settings {
     val monocle         = "3.1.0"
     val mUnit           = "0.7.29"
     val mUnitCatsEffect = "1.0.7"
-    val reactCommon     = "0.24.0"
-    val lucumaReact     = "0.24.0"
+    val reactCommon     = "0.25.0"
+    val lucumaReact     = "0.25.0"
     val scalajsReact    = "2.1.1"
   }
 
