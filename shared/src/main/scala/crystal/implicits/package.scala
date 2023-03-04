@@ -122,7 +122,7 @@ package object implicits {
 
     override def traverse[F[_], A, B](
       fa: Pot[A]
-    )(f:  A => F[B])(implicit F: Applicative[F]): F[Pot[B]] =
+    )(f: A => F[B])(implicit F: Applicative[F]): F[Pot[B]] =
       fa match {
         case Pot.Pending        => F.pure(Pot.Pending)
         case err @ Pot.Error(_) => F.pure(err.valueCast[B])
@@ -246,7 +246,7 @@ package object implicits {
 
     override def traverse[F[_], A, B](
       fa: PotOption[A]
-    )(f:  A => F[B])(implicit F: Applicative[F]): F[PotOption[B]] =
+    )(f: A => F[B])(implicit F: Applicative[F]): F[PotOption[B]] =
       fa match {
         case PotOption.Pending        => F.pure(PotOption.Pending)
         case err @ PotOption.Error(_) => F.pure(err.valueCast[B])
@@ -263,7 +263,7 @@ package object implicits {
       }
 
     override def foldRight[A, B](fa: PotOption[A], lb: Eval[B])(
-      f:                             (A, Eval[B]) => Eval[B]
+      f: (A, Eval[B]) => Eval[B]
     ): Eval[B] =
       fa match {
         case PotOption.Pending      => lb
@@ -278,7 +278,7 @@ package object implicits {
       alignWith(fa, fb)(identity)
 
     override def alignWith[A, B, C](fa: PotOption[A], fb: PotOption[B])(
-      f:                                Ior[A, B] => C
+      f: Ior[A, B] => C
     ): PotOption[C] =
       fa match {
         case PotOption.Pending         =>

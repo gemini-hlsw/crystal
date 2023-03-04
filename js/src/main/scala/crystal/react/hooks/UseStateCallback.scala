@@ -34,7 +34,7 @@ object UseStateCallback {
        * Given a state, allows registering callbacks which are triggered when the state changes.
        */
       final def useStateCallback[A](state: => Hooks.UseState[A])(implicit
-        step:                              Step
+        step: Step
       ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
         useStateCallbackBy(_ => state)
 
@@ -42,7 +42,7 @@ object UseStateCallback {
        * Given a state, allows registering callbacks which are triggered when the state changes.
        */
       final def useStateCallbackBy[A](state: Ctx => Hooks.UseState[A])(implicit
-        step:                                Step
+        step: Step
       ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
@@ -58,7 +58,7 @@ object UseStateCallback {
        * Given a state, allows registering callbacks which are triggered when the state changes.
        */
       def useStateCallbackBy[A](state: CtxFn[Hooks.UseState[A]])(implicit
-        step:                          Step
+        step: Step
       ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
         useStateCallbackBy(step.squash(state)(_))
     }

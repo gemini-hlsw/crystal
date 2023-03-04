@@ -33,13 +33,13 @@ object UseSerialState {
 
       /** Creates component state that is reused while it's not updated. */
       final def useSerialState[A](initialValue: => A)(implicit
-        step:                                   Step
+        step: Step
       ): step.Next[UseSerialState[A]] =
         useSerialStateBy(_ => initialValue)
 
       /** Creates component state that is reused while it's not updated. */
       final def useSerialStateBy[A](initialValue: Ctx => A)(implicit
-        step:                                     Step
+        step: Step
       ): step.Next[UseSerialState[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
@@ -53,7 +53,7 @@ object UseSerialState {
 
       /** Creates component state that is reused while it's not updated. */
       def useSerialStateBy[A](initialValue: CtxFn[A])(implicit
-        step:                               Step
+        step: Step
       ): step.Next[UseSerialState[A]] =
         useSerialStateBy(step.squash(initialValue)(_))
     }

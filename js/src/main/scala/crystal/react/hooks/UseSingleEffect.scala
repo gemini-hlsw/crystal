@@ -16,8 +16,8 @@ import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
 import scala.concurrent.duration.FiniteDuration
 
 class UseSingleEffect[F[_]](
-  latch:      Ref[F, Option[Deferred[F, UnitFiber[F]]]],
-  debounce:   Option[FiniteDuration]
+  latch:    Ref[F, Option[Deferred[F, UnitFiber[F]]]],
+  debounce: Option[FiniteDuration]
 )(implicit F: Async[F], monoid: Monoid[F[Unit]]) {
   private val debounceEffect: F[Unit] = debounce.map(F.sleep).orEmpty
 
@@ -68,7 +68,7 @@ object UseSingleEffect {
        * A submitted effect can be explicitly canceled too.
        */
       final def useSingleEffect(debounce: FiniteDuration)(implicit
-        step:                             Step
+        step: Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
         useSingleEffectBy(_ => debounce)
 
@@ -90,7 +90,7 @@ object UseSingleEffect {
        * A submitted effect can be explicitly canceled too.
        */
       final def useSingleEffectBy(debounce: Ctx => FiniteDuration)(implicit
-        step:                               Step
+        step: Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
         api.customBy(ctx => hook(debounce(ctx).some))
     }
@@ -108,7 +108,7 @@ object UseSingleEffect {
        * `debounce` can specify a minimum `Duration` between invocations.
        */
       def useSingleEffectBy(debounce: CtxFn[FiniteDuration])(implicit
-        step:                         Step
+        step: Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
         useSingleEffectBy(step.squash(debounce)(_))
     }

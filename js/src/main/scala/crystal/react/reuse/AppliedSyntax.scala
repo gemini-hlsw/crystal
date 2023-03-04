@@ -88,7 +88,7 @@ protected trait AppliedSyntax {
   }
 
   implicit class AppliedFn4Ops[A, R, S, T, U, B](aa: Applied[A])(implicit
-    ev:                                              A =:= ((R, S, T, U) => B)
+    ev: A =:= ((R, S, T, U) => B)
   ) {
     /*
      * Given a (R, S, T, U) => B , instantiate R and build a (S, T, U) ==> B.
@@ -142,7 +142,7 @@ protected trait AppliedSyntax {
   }
 
   implicit class AppliedFn5Ops[A, R, S, T, U, V, B](aa: Applied[A])(implicit
-    ev:                                                 A =:= ((R, S, T, U, V) => B)
+    ev: A =:= ((R, S, T, U, V) => B)
   ) {
     /*
      * Given a (R, S, T, U, V) => B , instantiate R and build a (S, T, U, V) ==> B.
@@ -211,7 +211,7 @@ protected trait AppliedSyntax {
   }
 
   implicit class AppliedFn6Ops[A, R, S, T, U, V, W, B](aa: Applied[A])(implicit
-    ev:                                                    A =:= ((R, S, T, U, V, W) => B)
+    ev: A =:= ((R, S, T, U, V, W) => B)
   ) {
     /*
      * Given a (R, S, T, U, V, W) => B , instantiate R and build a (S, T, U, V, W) ==> B.
@@ -296,7 +296,7 @@ protected trait AppliedSyntax {
   }
 
   implicit class AppliedFn7Ops[A, R, S, T, U, V, W, X, B](aa: Applied[A])(implicit
-    ev:                                                       A =:= ((R, S, T, U, V, W, X) => B)
+    ev: A =:= ((R, S, T, U, V, W, X) => B)
   ) {
     /*
      * Given a (R, S, T, U, V, W, X) => B , instantiate R and build a (S, T, U, V, W, X) ==> B.
@@ -398,7 +398,7 @@ protected trait AppliedSyntax {
   }
 
   implicit class AppliedFn8Ops[A, R, S, T, U, V, W, X, Y, B](aa: Applied[A])(implicit
-    ev:                                                          A =:= ((R, S, T, U, V, W, X, Y) => B)
+    ev: A =:= ((R, S, T, U, V, W, X, Y) => B)
   ) {
     /*
      * Given a (R, S, T, U, V, W, X, Y) => B , instantiate R and build a (S, T, U, V, W, X, Y) ==> B.
@@ -517,7 +517,7 @@ protected trait AppliedSyntax {
       Reuse.by((r, s, t, u, v, w, x, y))(ev(aa.value())(r, s, t, u, v, w, x, y))
   }
   implicit class AppliedFn9Ops[A, R, S, T, U, V, W, X, Y, Z, B](aa: Applied[A])(implicit
-    ev:                                                             A =:= ((R, S, T, U, V, W, X, Y, Z) => B)
+    ev: A =:= ((R, S, T, U, V, W, X, Y, Z) => B)
   ) {
     /*
      * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R and build a (S, T, U, V, W, X, Y, Z) ==> B.

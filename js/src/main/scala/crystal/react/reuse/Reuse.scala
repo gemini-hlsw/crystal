@@ -126,7 +126,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
      * when constructing via the pattern `Reuse.by(value)(function)`.
      */
     def apply[A, S, T, B](
-      fn:                 (S, T) => B
+      fn: (S, T) => B
     )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T) ==> B =
       apply(fn.tupled)
 
@@ -135,7 +135,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
      * when constructing via the pattern `Reuse.by(value)(function)`.
      */
     def apply[A, S, T, U, B](
-      fn:                 (S, T, U) => B
+      fn: (S, T, U) => B
     )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T, U) ==> B =
       apply(fn.tupled)
 
@@ -144,7 +144,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
      * when constructing via the pattern `Reuse.by(value)(function)`.
      */
     def apply[A, S, T, U, V, B](
-      fn:                 (S, T, U, V) => B
+      fn: (S, T, U, V) => B
     )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T, U, V) ==> B =
       apply(fn.tupled)
 
@@ -153,7 +153,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
      * when constructing via the pattern `Reuse.by(value)(function)`.
      */
     def apply[A, S, T, U, V, W, B](
-      fn:                 (S, T, U, V, W) => B
+      fn: (S, T, U, V, W) => B
     )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T, U, V, W) ==> B =
       apply(fn.tupled)
 

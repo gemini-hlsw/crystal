@@ -103,8 +103,8 @@ object UseStreamResource {
        * cancelled on unmount or deps change.
        */
       final def useStream[D: Reusability, A](deps: => D)(
-        stream:                                    D => fs2.Stream[DefaultA, A]
-      )(implicit step:                             Step): step.Next[PotOption[A]] =
+        stream: D => fs2.Stream[DefaultA, A]
+      )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResource(deps)(deps => Resource.pure(stream(deps)))
 
       /**
@@ -113,8 +113,8 @@ object UseStreamResource {
        * cancelled on unmount or deps change.
        */
       final def useStreamView[D: Reusability, A](deps: => D)(
-        stream:                                        D => fs2.Stream[DefaultA, A]
-      )(implicit step:                                 Step): step.Next[PotOption[View[A]]] =
+        stream: D => fs2.Stream[DefaultA, A]
+      )(implicit step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceView(deps)(deps => Resource.pure(stream(deps)))
 
       /**
@@ -123,9 +123,9 @@ object UseStreamResource {
        * cancelled on unmount or deps change.
        */
       final def useStreamViewWithReuse[D: Reusability, A: ClassTag: Reusability](
-        deps:          => D
+        deps:   => D
       )(
-        stream:        D => fs2.Stream[DefaultA, A]
+        stream: D => fs2.Stream[DefaultA, A]
       )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuse(deps)(deps => Resource.pure(stream(deps)))
 
@@ -139,7 +139,7 @@ object UseStreamResource {
        * unmount.
        */
       final def useStreamOnMount[A](
-        stream:        fs2.Stream[DefaultA, A]
+        stream: fs2.Stream[DefaultA, A]
       )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMount(Resource.pure(stream))
 
@@ -161,7 +161,7 @@ object UseStreamResource {
        * unmount.
        */
       final def useStreamViewWithReuseOnMount[A: ClassTag: Reusability](
-        stream:        fs2.Stream[DefaultA, A]
+        stream: fs2.Stream[DefaultA, A]
       )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseOnMount(Resource.pure(stream))
 
@@ -175,8 +175,8 @@ object UseStreamResource {
        * cancelled on unmount or deps change.
        */
       final def useStreamBy[D: Reusability, A](deps: Ctx => D)(
-        stream:                                      Ctx => D => fs2.Stream[DefaultA, A]
-      )(implicit step:                               Step): step.Next[PotOption[A]] =
+        stream: Ctx => D => fs2.Stream[DefaultA, A]
+      )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResourceBy(deps)(ctx => deps => Resource.pure(stream(ctx)(deps)))
 
       /**
@@ -185,8 +185,8 @@ object UseStreamResource {
        * cancelled on unmount or deps change.
        */
       final def useStreamViewBy[D: Reusability, A](deps: Ctx => D)(
-        stream:                                          Ctx => D => fs2.Stream[DefaultA, A]
-      )(implicit step:                                   Step): step.Next[PotOption[View[A]]] =
+        stream: Ctx => D => fs2.Stream[DefaultA, A]
+      )(implicit step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewBy(deps)(ctx => deps => Resource.pure(stream(ctx)(deps)))
 
       /**
@@ -195,9 +195,9 @@ object UseStreamResource {
        * cancelled on unmount or deps change.
        */
       final def useStreamViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
-        deps:          Ctx => D
+        deps:   Ctx => D
       )(
-        stream:        Ctx => D => fs2.Stream[DefaultA, A]
+        stream: Ctx => D => fs2.Stream[DefaultA, A]
       )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseBy(deps)(ctx => deps => Resource.pure(stream(ctx)(deps)))
 
@@ -211,7 +211,7 @@ object UseStreamResource {
        * unmount.
        */
       final def useStreamOnMountBy[A](
-        stream:        Ctx => fs2.Stream[DefaultA, A]
+        stream: Ctx => fs2.Stream[DefaultA, A]
       )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMountBy(ctx => Resource.pure(stream(ctx)))
 
@@ -221,7 +221,7 @@ object UseStreamResource {
        * unmount.
        */
       final def useStreamViewOnMountBy[A](
-        stream:        Ctx => fs2.Stream[DefaultA, A]
+        stream: Ctx => fs2.Stream[DefaultA, A]
       )(implicit step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewOnMountBy(ctx => Resource.pure(stream(ctx)))
 
@@ -252,8 +252,8 @@ object UseStreamResource {
        * fiber will be cancelled and the resource closed on unmount or deps change.
        */
       final def useStreamResource[D: Reusability, A](deps: => D)(
-        streamResource:                                    D => StreamResource[A]
-      )(implicit step:                                     Step): step.Next[PotOption[A]] =
+        streamResource: D => StreamResource[A]
+      )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResourceBy(_ => deps)(_ => streamResource)
 
       /**
@@ -263,8 +263,8 @@ object UseStreamResource {
        * fiber will be cancelled and the resource closed on unmount or deps change.
        */
       final def useStreamResourceView[D: Reusability, A](deps: => D)(
-        streamResource:                                        D => StreamResource[A]
-      )(implicit step:                                         Step): step.Next[PotOption[View[A]]] =
+        streamResource: D => StreamResource[A]
+      )(implicit step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewBy(_ => deps)(_ => streamResource)
 
       /**
@@ -277,7 +277,7 @@ object UseStreamResource {
         deps:           => D
       )(
         streamResource: D => StreamResource[A]
-      )(implicit step:  Step): step.Next[PotOption[ReuseView[A]]] =
+      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseBy(_ => deps)(_ => streamResource)
 
       // END PLAIN METHODS
@@ -292,7 +292,7 @@ object UseStreamResource {
        */
       final def useStreamResourceOnMount[A](
         streamResource: StreamResource[A]
-      )(implicit step:  Step): step.Next[PotOption[A]] =
+      )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMountBy(_ => streamResource)
 
       /**
@@ -316,7 +316,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewWithReuseOnMount[A: ClassTag: Reusability](
         streamResource: StreamResource[A]
-      )(implicit step:  Step): step.Next[PotOption[ReuseView[A]]] =
+      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseOnMountBy(_ => streamResource)
 
       // END PLAIN "ON MOUNT" METHODS
@@ -330,8 +330,8 @@ object UseStreamResource {
        * fiber will be cancelled and the resource closed on unmount or deps change.
        */
       final def useStreamResourceBy[D: Reusability, A](deps: Ctx => D)(
-        streamResource:                                      Ctx => D => StreamResource[A]
-      )(implicit step:                                       Step): step.Next[PotOption[A]] =
+        streamResource: Ctx => D => StreamResource[A]
+      )(implicit step: Step): step.Next[PotOption[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[D, A]
           hookInstance(WithDeps(deps(ctx), streamResource(ctx)))
@@ -344,8 +344,8 @@ object UseStreamResource {
        * fiber will be cancelled and the resource closed on unmount or deps change.
        */
       final def useStreamResourceViewBy[D: Reusability, A](deps: Ctx => D)(
-        streamResource:                                          Ctx => D => StreamResource[A]
-      )(implicit step:                                           Step): step.Next[PotOption[View[A]]] =
+        streamResource: Ctx => D => StreamResource[A]
+      )(implicit step: Step): step.Next[PotOption[View[A]]] =
         api.customBy { ctx =>
           val hookInstance = hookView[D, A]
           hookInstance(WithDeps(deps(ctx), streamResource(ctx)))
@@ -361,7 +361,7 @@ object UseStreamResource {
         deps:           Ctx => D
       )(
         streamResource: Ctx => D => StreamResource[A]
-      )(implicit step:  Step): step.Next[PotOption[ReuseView[A]]] =
+      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
         api.customBy { ctx =>
           val hookInstance = hookReuseView[D, A]
           hookInstance(WithDeps(deps(ctx), streamResource(ctx)))
@@ -379,7 +379,7 @@ object UseStreamResource {
        */
       final def useStreamResourceOnMountBy[A](
         streamResource: Ctx => StreamResource[A]
-      )(implicit step:  Step): step.Next[PotOption[A]] = // () has Reusability = always.
+      )(implicit step: Step): step.Next[PotOption[A]] = // () has Reusability = always.
         useStreamResourceBy(_ => ())(ctx => _ => streamResource(ctx))
 
       /**
@@ -390,7 +390,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewOnMountBy[A](
         streamResource: Ctx => StreamResource[A]
-      )(implicit step:  Step): step.Next[PotOption[View[A]]] = // () has Reusability = always.
+      )(implicit step: Step): step.Next[PotOption[View[A]]] = // () has Reusability = always.
         useStreamResourceViewBy(_ => ())(ctx => _ => streamResource(ctx))
 
       /**
@@ -422,8 +422,8 @@ object UseStreamResource {
        * cancelled on unmount or deps change.
        */
       final def useStreamBy[D: Reusability, A](deps: CtxFn[D])(
-        stream:                                      CtxFn[D => fs2.Stream[DefaultA, A]]
-      )(implicit step:                               Step): step.Next[PotOption[A]] =
+        stream: CtxFn[D => fs2.Stream[DefaultA, A]]
+      )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResourceBy(step.squash(deps)(_))(ctx =>
           deps => Resource.pure(step.squash(stream)(ctx)(deps))
         )
@@ -434,8 +434,8 @@ object UseStreamResource {
        * cancelled on unmount or deps change.
        */
       final def useStreamViewBy[D: Reusability, A](deps: CtxFn[D])(
-        stream:                                          CtxFn[D => fs2.Stream[DefaultA, A]]
-      )(implicit step:                                   Step): step.Next[PotOption[View[A]]] =
+        stream: CtxFn[D => fs2.Stream[DefaultA, A]]
+      )(implicit step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewBy(step.squash(deps)(_))(ctx =>
           deps => Resource.pure(step.squash(stream)(ctx)(deps))
         )
@@ -446,9 +446,9 @@ object UseStreamResource {
        * cancelled on unmount or deps change.
        */
       final def useStreamViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
-        deps:          CtxFn[D]
+        deps:   CtxFn[D]
       )(
-        stream:        CtxFn[D => fs2.Stream[DefaultA, A]]
+        stream: CtxFn[D => fs2.Stream[DefaultA, A]]
       )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseBy(step.squash(deps)(_))(ctx =>
           deps => Resource.pure(step.squash(stream)(ctx)(deps))
@@ -464,7 +464,7 @@ object UseStreamResource {
        * unmount.
        */
       final def useStreamOnMountBy[A](
-        stream:        CtxFn[fs2.Stream[DefaultA, A]]
+        stream: CtxFn[fs2.Stream[DefaultA, A]]
       )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMountBy((ctx: Ctx) =>
           Resource.pure[DefaultA, fs2.Stream[DefaultA, A]](step.squash(stream)(ctx))
@@ -476,7 +476,7 @@ object UseStreamResource {
        * unmount.
        */
       final def useStreamViewOnMountBy[A](
-        stream:        CtxFn[fs2.Stream[DefaultA, A]]
+        stream: CtxFn[fs2.Stream[DefaultA, A]]
       )(implicit step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewOnMountBy((ctx: Ctx) =>
           Resource.pure[DefaultA, fs2.Stream[DefaultA, A]](step.squash(stream)(ctx))
@@ -511,8 +511,8 @@ object UseStreamResource {
        * fiber will be cancelled and the resource closed on unmount or deps change.
        */
       final def useStreamResourceBy[D: Reusability, A](deps: CtxFn[D])(
-        streamResource:                                      CtxFn[D => StreamResource[A]]
-      )(implicit step:                                       Step): step.Next[PotOption[A]] =
+        streamResource: CtxFn[D => StreamResource[A]]
+      )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResourceBy(step.squash(deps)(_))(step.squash(streamResource)(_))
 
       /**
@@ -522,8 +522,8 @@ object UseStreamResource {
        * fiber will be cancelled and the resource closed on unmount or deps change.
        */
       final def useStreamResourceViewBy[D: Reusability, A](deps: CtxFn[D])(
-        streamResource:                                          CtxFn[D => StreamResource[A]]
-      )(implicit step:                                           Step): step.Next[PotOption[View[A]]] =
+        streamResource: CtxFn[D => StreamResource[A]]
+      )(implicit step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewBy(step.squash(deps)(_))(step.squash(streamResource)(_))
 
       /**
@@ -536,7 +536,7 @@ object UseStreamResource {
         deps:           CtxFn[D]
       )(
         streamResource: CtxFn[D => StreamResource[A]]
-      )(implicit step:  Step): step.Next[PotOption[ReuseView[A]]] =
+      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseBy(step.squash(deps)(_))(step.squash(streamResource)(_))
 
       // END "BY" METHODS
@@ -551,7 +551,7 @@ object UseStreamResource {
        */
       final def useStreamResourceOnMountBy[A](
         streamResource: CtxFn[StreamResource[A]]
-      )(implicit step:  Step): step.Next[PotOption[A]] =
+      )(implicit step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMountBy(step.squash(streamResource)(_))
 
       /**
@@ -562,7 +562,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewOnMountBy[A](
         streamResource: CtxFn[StreamResource[A]]
-      )(implicit step:  Step): step.Next[PotOption[View[A]]] =
+      )(implicit step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewOnMountBy(step.squash(streamResource)(_))
 
       /**

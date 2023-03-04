@@ -21,13 +21,13 @@ object UseStateViewWithReuse {
 
       /** Creates component state as a View */
       final def useStateViewWithReuse[A: ClassTag: Reusability](initialValue: => A)(implicit
-        step:                                                                 Step
+        step: Step
       ): step.Next[ReuseView[A]] =
         useStateViewWithReuseBy(_ => initialValue)
 
       /** Creates component state as a View */
       final def useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: Ctx => A)(implicit
-        step:                                                                   Step
+        step: Step
       ): step.Next[ReuseView[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
@@ -41,7 +41,7 @@ object UseStateViewWithReuse {
 
       /** Creates component state as a View */
       def useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: CtxFn[A])(implicit
-        step:                                                             Step
+        step: Step
       ): step.Next[ReuseView[A]] =
         useStateViewWithReuseBy(step.squash(initialValue)(_))
     }
