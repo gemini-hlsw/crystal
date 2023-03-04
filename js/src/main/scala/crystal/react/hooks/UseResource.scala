@@ -34,9 +34,9 @@ object UseResource {
        * changes.
        */
       final def useResource[D: Reusability, A](
-        deps:     => D
+        deps: => D
       )(resource: D => Resource[DefaultA, A])(implicit
-        step:     Step
+        step: Step
       ): step.Next[Pot[A]] =
         useResourceBy(_ => deps)(_ => resource)
 
@@ -45,7 +45,7 @@ object UseResource {
        * rerender when the `Pot` state changes.
        */
       final def useResourceOnMount[A](resource: Resource[DefaultA, A])(implicit
-        step:                                   Step
+        step: Step
       ): step.Next[Pot[A]] =
         useResourceOnMountBy(_ => resource)
 
@@ -55,9 +55,9 @@ object UseResource {
        * changes.
        */
       final def useResourceBy[D: Reusability, A](
-        deps:     Ctx => D
+        deps: Ctx => D
       )(resource: Ctx => D => Resource[DefaultA, A])(implicit
-        step:     Step
+        step: Step
       ): step.Next[Pot[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[D, A]
@@ -69,7 +69,7 @@ object UseResource {
        * rerender when the `Pot` state changes.
        */
       final def useResourceOnMountBy[A](resource: Ctx => Resource[DefaultA, A])(implicit
-        step:                                     Step
+        step: Step
       ): step.Next[Pot[A]] = // () has Reusability = always.
         useResourceBy(_ => ())(ctx => _ => resource(ctx))
     }
@@ -84,9 +84,9 @@ object UseResource {
        * changes.
        */
       def useResourceBy[D: Reusability, A](
-        deps:     CtxFn[D]
+        deps: CtxFn[D]
       )(resource: CtxFn[D => Resource[DefaultA, A]])(implicit
-        step:     Step
+        step: Step
       ): step.Next[Pot[A]] =
         useResourceBy(step.squash(deps)(_))(step.squash(resource)(_))
 
@@ -95,7 +95,7 @@ object UseResource {
        * rerender when the `Pot` state changes.
        */
       final def useResourceOnMountBy[A](resource: CtxFn[Resource[DefaultA, A]])(implicit
-        step:                                     Step
+        step: Step
       ): step.Next[Pot[A]] =
         useResourceOnMountBy(step.squash(resource)(_))
     }

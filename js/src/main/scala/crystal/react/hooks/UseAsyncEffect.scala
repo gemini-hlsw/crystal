@@ -47,9 +47,9 @@ object UseAsyncEffect {
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
       final def useAsyncEffectWithDeps[D: Reusability, A](
-        deps:   => D
+        deps: => D
       )(effect: D => DefaultA[DefaultA[Unit]])(implicit
-        step:   Step
+        step: Step
       ): step.Self =
         useAsyncEffectWithDepsBy(_ => deps)(_ => effect)
 
@@ -58,7 +58,7 @@ object UseAsyncEffect {
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
       final def useAsyncEffect[A](effect: DefaultA[DefaultA[Unit]])(implicit
-        step:                             Step
+        step: Step
       ): step.Self =
         useAsyncEffectBy(_ => effect)
 
@@ -67,7 +67,7 @@ object UseAsyncEffect {
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
       final def useAsyncEffectOnMount[A](effect: DefaultA[DefaultA[Unit]])(implicit
-        step:                                    Step
+        step: Step
       ): step.Self =
         useAsyncEffectOnMountBy(_ => effect)
 
@@ -76,9 +76,9 @@ object UseAsyncEffect {
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
       final def useAsyncEffectWithDepsBy[D: Reusability, A](
-        deps:   Ctx => D
+        deps: Ctx => D
       )(effect: Ctx => D => DefaultA[DefaultA[Unit]])(implicit
-        step:   Step
+        step: Step
       ): step.Self =
         api.customBy { ctx =>
           val hookInstance = hook[D]
@@ -90,7 +90,7 @@ object UseAsyncEffect {
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
       final def useAsyncEffectBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(implicit
-        step:                               Step
+        step: Step
       ): step.Self =
         useAsyncEffectWithDepsBy(_ => NeverReuse)(ctx => _ => effect(ctx))
 
@@ -99,7 +99,7 @@ object UseAsyncEffect {
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
       final def useAsyncEffectOnMountBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(implicit
-        step:                                      Step
+        step: Step
       ): step.Self = // () has Reusability = always.
         useAsyncEffectWithDepsBy(_ => ())(ctx => _ => effect(ctx))
     }
@@ -113,9 +113,9 @@ object UseAsyncEffect {
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
       def useAsyncEffectWithDepsBy[D: Reusability, A](
-        deps:   CtxFn[D]
+        deps: CtxFn[D]
       )(effect: CtxFn[D => DefaultA[DefaultA[Unit]]])(implicit
-        step:   Step
+        step: Step
       ): step.Self =
         useAsyncEffectWithDepsBy(step.squash(deps)(_))(step.squash(effect)(_))
 
@@ -124,7 +124,7 @@ object UseAsyncEffect {
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
       def useAsyncEffectBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(implicit
-        step:                         Step
+        step: Step
       ): step.Self =
         useAsyncEffectBy(step.squash(effect)(_))
 
@@ -133,7 +133,7 @@ object UseAsyncEffect {
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
       def useAsyncEffectOnMountBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(implicit
-        step:                                Step
+        step: Step
       ): step.Self =
         useAsyncEffectOnMountBy(step.squash(effect)(_))
     }

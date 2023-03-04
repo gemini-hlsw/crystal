@@ -29,7 +29,7 @@ protected trait ReusableInterop extends ReusableInteropLowPriority {
 
   // Fn2
   implicit def toReusableFn2[A, R: Reusability, S, B](ra: Reuse[A])(implicit
-    ev:                                                   A =:= ((R, S) => B)
+    ev: A =:= ((R, S) => B)
   ): R ~=> (S ~=> B) =
     Reusable.implicitly(new Fn2(ra.map(ev)))
 
@@ -40,7 +40,7 @@ protected trait ReusableInterop extends ReusableInteropLowPriority {
 
   // Fn3
   implicit def toReusableFn3[A, R: Reusability, S: Reusability, T, B](ra: Reuse[A])(implicit
-    ev:                                                                   A =:= ((R, S, T) => B)
+    ev: A =:= ((R, S, T) => B)
   ): R ~=> (S ~=> (T ~=> B)) =
     Reusable.implicitly(new Fn3(ra.map(ev)))
 

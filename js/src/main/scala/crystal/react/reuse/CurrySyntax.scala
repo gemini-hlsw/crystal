@@ -42,17 +42,17 @@ protected trait CurrySyntax {
   // Auto tupling/untupling to support (R, S) ==> B syntax. Since ==> is a type alias,
   // (R, S) is interpreted as a tuple in that case.
   implicit def tupledReuseFn2[A, R, S, B](ra: Reuse[A])(implicit
-    ev:                                       A =:= ((R, S) => B)
+    ev: A =:= ((R, S) => B)
   ): (R, S) ==> B =
     ra.map(f => ev(f).tupled)
 
   implicit def untupledReuseFn2[A, R, S, B](ra: Reuse[A])(implicit
-    ev:                                         A =:= (((R, S)) => B)
+    ev: A =:= (((R, S)) => B)
   ): Reuse[(R, S) => B] =
     ra.map(f => (r, s) => ev(f)((r, s)))
 
   implicit class ReuseFn2TupledOps[A, R, S, B](val ra: Reuse[A])(implicit
-    ev:                                                A =:= (((R, S)) => B)
+    ev: A =:= (((R, S)) => B)
   ) {
     def curry(r: R)(implicit reuseR: Reusability[R]): Reuse[S => B] =
       (ra: Reuse[(R, S) => B]).curry(r)
@@ -77,17 +77,17 @@ protected trait CurrySyntax {
   // Auto tupling/untupling to support (R, S, T) ==> B syntax. Since ==> is a type alias,
   // (R, S, T) is interpreted as a tuple in that case.
   implicit def tupledReuseFn3[A, R, S, T, B](ra: Reuse[A])(implicit
-    ev:                                          A =:= ((R, S, T) => B)
+    ev: A =:= ((R, S, T) => B)
   ): (R, S, T) ==> B =
     ra.map(f => ev(f).tupled)
 
   implicit def untupledReuseFn3[A, R, S, T, B](ra: Reuse[A])(implicit
-    ev:                                            A =:= (((R, S, T)) => B)
+    ev: A =:= (((R, S, T)) => B)
   ): Reuse[(R, S, T) => B] =
     ra.map(f => (r, s, t) => ev(f)((r, s, t)))
 
   implicit class ReuseFn3TupledOps[A, R, S, T, B](val ra: Reuse[A])(implicit
-    ev:                                                   A =:= (((R, S, T)) => B)
+    ev: A =:= (((R, S, T)) => B)
   ) {
     def curry(r: R)(implicit reuseR: Reusability[R]): Reuse[(S, T) => B] =
       (ra: Reuse[(R, S, T) => B]).curry(r)

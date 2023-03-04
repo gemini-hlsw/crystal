@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
 
 package object implicits {
   implicit class DefaultSToOps[A](private val self: DefaultS[A])(implicit
-    dispatch:                                       UnsafeSync[DefaultS]
+    dispatch: UnsafeSync[DefaultS]
   ) {
     @inline def to[F[_]: Sync]: F[A] = Sync[F].delay(dispatch.runSync(self))
 
@@ -81,7 +81,7 @@ package object implicits {
      * Provides access only to state.
      */
     def modStateAsyncIn[F[_]: Async](
-      mod:               S => S
+      mod: S => S
     )(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
       Async[F].async_[Unit] { asyncCB =>
         val doMod = self.modState(mod, DefaultS.delay(asyncCB(Right(()))))
@@ -112,7 +112,7 @@ package object implicits {
      * Provides access to both state and props.
      */
     def modStateWithPropsIn[F[_]: Async](
-      mod:               (S, P) => S
+      mod: (S, P) => S
     )(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
       Async[F].async_[Unit] { cb =>
         val doMod = self.modState(mod, DefaultS.delay(cb(Right(()))))
@@ -170,7 +170,7 @@ package object implicits {
      *   Result handler returning a `F[Unit]`.
      */
     def runAsync(
-      cb:         Either[Throwable, A] => F[Unit]
+      cb: Either[Throwable, A] => F[Unit]
     )(implicit F: MonadError[F, Throwable], dispatcher: Effect.Dispatch[F]): DefaultS[Unit] =
       DefaultS.delay(dispatcher.dispatch(self.attempt.flatMap(cb)))
 

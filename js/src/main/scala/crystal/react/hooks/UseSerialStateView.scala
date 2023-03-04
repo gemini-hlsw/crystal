@@ -20,13 +20,13 @@ object UseSerialStateView {
 
       /** Creates component state as a View that is reused while it's not updated. */
       final def useSerialStateView[A](initialValue: => A)(implicit
-        step:                                       Step
+        step: Step
       ): step.Next[ReuseView[A]] =
         useSerialStateViewBy(_ => initialValue)
 
       /** Creates component state as a View that is reused while it's not updated. */
       final def useSerialStateViewBy[A](initialValue: Ctx => A)(implicit
-        step:                                         Step
+        step: Step
       ): step.Next[ReuseView[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
@@ -40,7 +40,7 @@ object UseSerialStateView {
 
       /** Creates component state as a View that is reused while it's not updated. */
       def useSerialStateViewBy[A](initialValue: CtxFn[A])(implicit
-        step:                                   Step
+        step: Step
       ): step.Next[ReuseView[A]] =
         useSerialStateViewBy(step.squash(initialValue)(_))
     }

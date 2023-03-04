@@ -24,13 +24,13 @@ object UseStateView {
 
       /** Creates component state as a View */
       final def useStateView[A](initialValue: => A)(implicit
-        step:                                 Step
+        step: Step
       ): step.Next[View[A]] =
         useStateViewBy(_ => initialValue)
 
       /** Creates component state as a View */
       final def useStateViewBy[A](initialValue: Ctx => A)(implicit
-        step:                                   Step
+        step: Step
       ): step.Next[View[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
@@ -44,7 +44,7 @@ object UseStateView {
 
       /** Creates component state as a View */
       def useStateViewBy[A](initialValue: CtxFn[A])(implicit
-        step:                             Step
+        step: Step
       ): step.Next[View[A]] =
         useStateViewBy(step.squash(initialValue)(_))
     }
