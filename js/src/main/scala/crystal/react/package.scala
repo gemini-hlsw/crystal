@@ -61,7 +61,7 @@ package react {
 
   class FromStateView {
     def apply[S]($ : StateAccess[DefaultS, DefaultA, S])(implicit
-      dispatch:      UnsafeSync[DefaultS]
+      dispatch: UnsafeSync[DefaultS]
     ): View[S] =
       View[S](
         dispatch.runSync($.state),
@@ -82,7 +82,7 @@ package react {
 
   class FromStateReuseView {
     def apply[S: ClassTag: Reusability]($ : StateAccess[DefaultS, DefaultA, S])(implicit
-      dispatch:                             UnsafeSync[DefaultS]
+      dispatch: UnsafeSync[DefaultS]
     ): ReuseView[S] =
       ReuseView[S](
         dispatch.runSync($.state),
