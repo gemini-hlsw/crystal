@@ -30,14 +30,17 @@ package object react {
   type StateComponent[S, B] =
     ScalaComponent[Reuse[View[S] => VdomNode], S, B, CtorType.Props]
 
-  type View[A]    = ViewF[DefaultS, A]
-  type ViewOpt[A] = ViewOptF[DefaultS, A]
+  type View[A]     = ViewF[DefaultS, A]
+  type ViewOpt[A]  = ViewOptF[DefaultS, A]
+  type ViewList[A] = ViewListF[DefaultS, A]
 
-  type ReuseViewF[F[_], A]    = Reuse[ViewF[F, A]]
-  type ReuseViewOptF[F[_], A] = Reuse[ViewOptF[F, A]]
+  type ReuseViewF[F[_], A]     = Reuse[ViewF[F, A]]
+  type ReuseViewOptF[F[_], A]  = Reuse[ViewOptF[F, A]]
+  type ReuseViewListF[F[_], A] = Reuse[ViewListF[F, A]]
 
-  type ReuseView[A]    = Reuse[View[A]]
-  type ReuseViewOpt[A] = Reuse[ViewOpt[A]]
+  type ReuseView[A]     = Reuse[View[A]]
+  type ReuseViewOpt[A]  = Reuse[ViewOpt[A]]
+  type ReuseViewList[A] = Reuse[ViewList[A]]
 
   val syncToAsync: DefaultS ~> DefaultA = new FunctionK[DefaultS, DefaultA] { self =>
     def apply[A](fa: DefaultS[A]): DefaultA[A] = fa.to[DefaultA]
