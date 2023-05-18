@@ -107,7 +107,10 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, A => F[Unit]) => F[U
     ViewF(get, (mod, cb) => toF1(modCB(mod, a => fromF1(cb(a)))))
 
   def mapValue[B, C](f: ViewF[F, B] => C)(implicit ev: A =:= Option[B]): Option[C] =
-    get.map(a => f(zoom(_ => a)(f => a1 => ev.flip(a1.map(f)))))
+    // _.get is safe here since it's only being called when the value is defined.
+    // The zoom getter function is stored to use in callbacks, se we have to pass _.get
+    // instead of capturing the value here. Otherwise, callbacks see a stale value.
+    get.map(_ => f(zoom(_.get)(f => a1 => ev.flip(a1.map(f)))))
 
   def when(cond: A => Boolean): Boolean = cond(get)
 
