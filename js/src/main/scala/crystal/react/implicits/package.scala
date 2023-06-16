@@ -62,15 +62,15 @@ package object implicits {
      *
      * Provides access only to state.
      */
-    def setStateAsyncIn[F[_]: Async](s: S)(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
-      Async[F].async_[Unit] { cb =>
-        val doMod = self.setState(s, DefaultS.delay(cb(Right(()))))
-        dispatch.runSync(
-          doMod
-            .maybeHandleError { case NonFatal(t) =>
-              DefaultS.delay(cb(Left(t)))
-            }
-        )
+    def setStateAsyncIn[F[_]](s: S)(implicit F: Async[F], dispatch: UnsafeSync[DefaultS]): F[Unit] =
+      F.async { cb =>
+        self
+          .setState(s, DefaultS.delay(cb(Right(()))))
+          .maybeHandleError { case NonFatal(t) =>
+            DefaultS.delay(cb(Left(t)))
+          }
+          .to[F]
+          .as(F.unit.some)
       }
 
     /**
@@ -80,17 +80,17 @@ package object implicits {
      *
      * Provides access only to state.
      */
-    def modStateAsyncIn[F[_]: Async](
+    def modStateAsyncIn[F[_]](
       mod: S => S
-    )(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
-      Async[F].async_[Unit] { asyncCB =>
-        val doMod = self.modState(mod, DefaultS.delay(asyncCB(Right(()))))
-        dispatch.runSync(
-          doMod
-            .maybeHandleError { case NonFatal(t) =>
-              DefaultS.delay(asyncCB(Left(t)))
-            }
-        )
+    )(implicit F: Async[F], dispatch: UnsafeSync[DefaultS]): F[Unit] =
+      F.async { asyncCB =>
+        self
+          .modState(mod, DefaultS.delay(asyncCB(Right(()))))
+          .maybeHandleError { case NonFatal(t) =>
+            DefaultS.delay(asyncCB(Left(t)))
+          }
+          .to[F]
+          .as(F.unit.some)
       }
 
     def setStateLIn[F[_]]: SetStateLApplied[F, S] =
@@ -111,17 +111,17 @@ package object implicits {
      *
      * Provides access to both state and props.
      */
-    def modStateWithPropsIn[F[_]: Async](
+    def modStateWithPropsIn[F[_]](
       mod: (S, P) => S
-    )(implicit dispatch: UnsafeSync[DefaultS]): F[Unit] =
-      Async[F].async_[Unit] { cb =>
-        val doMod = self.modState(mod, DefaultS.delay(cb(Right(()))))
-        dispatch.runSync(
-          doMod
-            .maybeHandleError { case NonFatal(t) =>
-              DefaultS.delay(cb(Left(t)))
-            }
-        )
+    )(implicit F: Async[F], dispatch: UnsafeSync[DefaultS]): F[Unit] =
+      F.async { cb =>
+        self
+          .modState(mod, DefaultS.delay(cb(Right(()))))
+          .maybeHandleError { case NonFatal(t) =>
+            DefaultS.delay(cb(Left(t)))
+          }
+          .to[F]
+          .as(F.unit.some)
       }
   }
 
