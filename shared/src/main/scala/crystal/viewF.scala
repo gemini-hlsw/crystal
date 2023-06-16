@@ -34,13 +34,13 @@ sealed abstract class ViewOps[F[_]: Monad, G[_], A] {
 class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, A => F[Unit]) => F[Unit])
     extends ViewOps[F, Id, A] { self =>
   def modAndExtract[B](f: (A => (A, B)))(implicit F: Async[F]): F[B] =
-    Async[F].async { cb =>
+    F.async { cb =>
       mod { (a: A) =>
         val (fa, b) = f(a)
         cb(b.asRight)
         fa
       // No need to run cb on errors, it will fail the async installation effect.
-      }.as(none)
+      }.as(F.unit.some)
     }
 
   // In a ViewF, we can derive modAndGet. In ViewOptF and ViewListF we have to pass it, since their
