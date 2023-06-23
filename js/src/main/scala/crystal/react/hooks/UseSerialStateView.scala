@@ -4,8 +4,8 @@
 package crystal.react.hooks
 
 import crystal.react.ReuseView
-import crystal.react.reuse._
-import japgolly.scalajs.react._
+import crystal.react.reuse.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 
 object UseSerialStateView {
@@ -19,13 +19,13 @@ object UseSerialStateView {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
       /** Creates component state as a View that is reused while it's not updated. */
-      final def useSerialStateView[A](initialValue: => A)(implicit
+      final def useSerialStateView[A](initialValue: => A)(using
         step: Step
       ): step.Next[ReuseView[A]] =
         useSerialStateViewBy(_ => initialValue)
 
       /** Creates component state as a View that is reused while it's not updated. */
-      final def useSerialStateViewBy[A](initialValue: Ctx => A)(implicit
+      final def useSerialStateViewBy[A](initialValue: Ctx => A)(using
         step: Step
       ): step.Next[ReuseView[A]] =
         api.customBy { ctx =>
@@ -39,15 +39,15 @@ object UseSerialStateView {
     ) extends Primary[Ctx, Step](api) {
 
       /** Creates component state as a View that is reused while it's not updated. */
-      def useSerialStateViewBy[A](initialValue: CtxFn[A])(implicit
+      def useSerialStateViewBy[A](initialValue: CtxFn[A])(using
         step: Step
       ): step.Next[ReuseView[A]] =
         useSerialStateViewBy(step.squash(initialValue)(_))
     }
   }
 
-  trait HooksApiExt {
-    import HooksApiExt._
+  protected trait HooksApiExt {
+    import HooksApiExt.*
 
     implicit def hooksExtSerialStateView1[Ctx, Step <: HooksApi.AbstractStep](
       api: HooksApi.Primary[Ctx, Step]
@@ -62,5 +62,5 @@ object UseSerialStateView {
       new Secondary(api)
   }
 
-  object implicits extends HooksApiExt
+  object syntax extends HooksApiExt
 }

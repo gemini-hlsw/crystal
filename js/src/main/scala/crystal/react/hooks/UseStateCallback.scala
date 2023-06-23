@@ -33,7 +33,7 @@ object UseStateCallback {
       /**
        * Given a state, allows registering callbacks which are triggered when the state changes.
        */
-      final def useStateCallback[A](state: => Hooks.UseState[A])(implicit
+      final def useStateCallback[A](state: => Hooks.UseState[A])(using
         step: Step
       ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
         useStateCallbackBy(_ => state)
@@ -41,7 +41,7 @@ object UseStateCallback {
       /**
        * Given a state, allows registering callbacks which are triggered when the state changes.
        */
-      final def useStateCallbackBy[A](state: Ctx => Hooks.UseState[A])(implicit
+      final def useStateCallbackBy[A](state: Ctx => Hooks.UseState[A])(using
         step: Step
       ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
         api.customBy { ctx =>
@@ -57,14 +57,14 @@ object UseStateCallback {
       /**
        * Given a state, allows registering callbacks which are triggered when the state changes.
        */
-      def useStateCallbackBy[A](state: CtxFn[Hooks.UseState[A]])(implicit
+      def useStateCallbackBy[A](state: CtxFn[Hooks.UseState[A]])(using
         step: Step
       ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
         useStateCallbackBy(step.squash(state)(_))
     }
   }
 
-  trait HooksApiExt {
+  protected trait HooksApiExt {
     import HooksApiExt._
 
     implicit def hooksExtDelayedCallback1[Ctx, Step <: HooksApi.AbstractStep](
@@ -80,5 +80,5 @@ object UseStateCallback {
       new Secondary(api)
   }
 
-  object implicits extends HooksApiExt
+  object syntax extends HooksApiExt
 }

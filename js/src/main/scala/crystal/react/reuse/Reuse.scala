@@ -42,9 +42,9 @@ trait Reuse[+A] {
 
   protected[reuse] val reuseBy: B // We need to store it to combine into tuples when currying.
 
-  protected[reuse] implicit val classTag: ClassTag[B]
+  protected[reuse] given classTag: ClassTag[B]
 
-  protected[reuse] implicit val reusability: Reusability[B]
+  protected[reuse] given reusability: Reusability[B]
 
   def addReuseBy[R: Reusability](r: R): Reuse[A]        = Reuse.by((reuseBy, r))(value)
   def addReuseByFrom[C](r:          Reuse[C]): Reuse[A] = addReuseBy(r.reuseBy)(r.reusability)
@@ -56,7 +56,7 @@ trait Reuse[+A] {
   def map[C](f: A => C): Reuse[C] = Reuse.by(reuseBy)(f(value))
 
   def zip[C](that: Reuse[C]): Reuse[(A, C)] = {
-    implicit val thatReuse: Reusability[that.B] = that.reusability
+    given Reusability[that.B] = that.reusability
     Reuse.by((reuseBy, that.reuseBy))((value, that.value))
   }
 
@@ -65,7 +65,10 @@ trait Reuse[+A] {
 }
 
 object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with ReusableInterop {
-  implicit def reusability[A]: Reusability[Reuse[A]] =
+  // Auto-unwrapping of Reuse[A] when expecting A.
+  given [A]: Conversion[Reuse[A], A] = _.value
+
+  given [A]: Reusability[Reuse[A]] =
     Reusability.apply { (reuseA, reuseB) =>
       reuseA.classTag == reuseB.classTag &&
       reuseA.reusability.test(reuseA.reuseBy, reuseB.reuseBy.asInstanceOf[reuseA.B]) &&
@@ -77,9 +80,9 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
    */
   def by[A, R](reuseByR: R) = new AppliedBy(reuseByR)
 
-  def always[A](a: A): Reuse[A] = by(())(a)(implicitly[ClassTag[Unit]], Reusability.always)
+  def always[A](a: A): Reuse[A] = by(())(a)(using summon[ClassTag[Unit]], Reusability.always)
 
-  def never[A](a: A): Reuse[A] = by(())(a)(implicitly[ClassTag[Unit]], Reusability.never)
+  def never[A](a: A): Reuse[A] = by(())(a)(using summon[ClassTag[Unit]], Reusability.never)
 
   /*
    * Constructs a `Reuse[A]` by using the pattern `Reuse(reusedValue).by(valueWithReusability)`.
@@ -127,7 +130,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
      */
     def apply[A, S, T, B](
       fn: (S, T) => B
-    )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T) ==> B =
+    )(using ClassTag[R], Reusability[R]): (S, T) ==> B =
       apply(fn.tupled)
 
     /*
@@ -136,7 +139,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
      */
     def apply[A, S, T, U, B](
       fn: (S, T, U) => B
-    )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T, U) ==> B =
+    )(using ClassTag[R], Reusability[R]): (S, T, U) ==> B =
       apply(fn.tupled)
 
     /*
@@ -145,7 +148,7 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
      */
     def apply[A, S, T, U, V, B](
       fn: (S, T, U, V) => B
-    )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T, U, V) ==> B =
+    )(using ClassTag[R], Reusability[R]): (S, T, U, V) ==> B =
       apply(fn.tupled)
 
     /*
@@ -154,10 +157,10 @@ object Reuse extends AppliedSyntax with CurryingSyntax with CurrySyntax with Reu
      */
     def apply[A, S, T, U, V, W, B](
       fn: (S, T, U, V, W) => B
-    )(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): (S, T, U, V, W) ==> B =
+    )(using ClassTag[R], Reusability[R]): (S, T, U, V, W) ==> B =
       apply(fn.tupled)
 
-    def apply[A](valueA: => A)(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): Reuse[A] =
+    def apply[A](valueA: => A)(using classTagR: ClassTag[R], reuseR: Reusability[R]): Reuse[A] =
       new Reuse[A] {
         type B = R
 

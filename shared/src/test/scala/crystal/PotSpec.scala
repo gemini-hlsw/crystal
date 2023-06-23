@@ -5,11 +5,10 @@ package crystal
 
 import cats.kernel.laws.discipline.EqTests
 import cats.laws.discipline.SemigroupalTests.Isomorphisms
-import cats.laws.discipline._
-import cats.laws.discipline.arbitrary._
-import cats.syntax.all._
-import crystal.implicits._
-import crystal.implicits.throwable._
+import cats.laws.discipline.*
+import cats.laws.discipline.arbitrary.*
+import cats.syntax.all.*
+import crystal.throwable.given
 import monocle.law.discipline.PrismTests
 import munit.DisciplineSuite
 import org.scalacheck.Prop
@@ -19,10 +18,10 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-import arbitraries._
+import arbitraries.given
 
 class PotSpec extends DisciplineSuite {
-  implicit def iso: Isomorphisms[Pot] = Isomorphisms.invariant[Pot]
+  given Isomorphisms[Pot] = Isomorphisms.invariant[Pot]
 
   checkAll(
     "Pot[Int].EqLaws",

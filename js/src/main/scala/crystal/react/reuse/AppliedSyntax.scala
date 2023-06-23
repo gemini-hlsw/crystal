@@ -5,6 +5,7 @@ package crystal.react.reuse
 
 import japgolly.scalajs.react.Reusability
 
+import scala.annotation.targetName
 import scala.reflect.ClassTag
 
 protected trait AppliedSyntax {
@@ -15,643 +16,415 @@ protected trait AppliedSyntax {
   class Applied[A](valueA: => A) {
     val value: () => A = () => valueA
 
-    def by[R](reuseByR: R)(implicit classTagR: ClassTag[R], reuseR: Reusability[R]): Reuse[A] =
+    def by[R: ClassTag: Reusability](reuseByR: R): Reuse[A] =
       Reuse.by(reuseByR)(valueA)
 
     def always: Reuse[A] = Reuse.by(())(valueA)
 
-    def self(implicit classTag: ClassTag[A], reusability: Reusability[A]): Reuse[A] =
+    def self(using ClassTag[A], Reusability[A]): Reuse[A] =
       Reuse.by(valueA)(valueA)
   }
 
-  implicit class AppliedFn2Ops[A, R, S, B](aa: Applied[A])(implicit ev: A =:= ((R, S) => B)) {
+  extension [A, R, S, B](aa: Applied[((R, S) => B)])
     /*
      * Given a (R, S) => B, instantiate R and build a S ==> B.
      */
-    def apply(
-      r:         R
-    )(implicit
-      classTagR: ClassTag[R],
-      reuseR:    Reusability[R]
-    ): Reuse[S => B] =
-      Reuse.by(r)(s => ev(aa.value())(r, s))
+    def apply(r: R)(using ClassTag[R], Reusability[R]): Reuse[S => B] =
+      Reuse.by(r)(s => aa.value()(r, s))
 
     /*
      * Given a (R, S) => B, instantiate R and S and build a Reuse[B].
      */
-    def apply(
-      r:         R,
-      s:         S
-    )(implicit
-      classTagR: ClassTag[(R, S)],
-      reuseR:    Reusability[(R, S)]
-    ): Reuse[B] =
-      Reuse.by((r, s))(ev(aa.value())(r, s))
-  }
+    def apply(r: R, s: S)(using ClassTag[(R, S)], Reusability[(R, S)]): Reuse[B] =
+      Reuse.by((r, s))(aa.value()(r, s))
 
-  implicit class AppliedFn3Ops[A, R, S, T, B](aa: Applied[A])(implicit ev: A =:= ((R, S, T) => B)) {
+  extension [A, R, S, T, B](aa: Applied[((R, S, T) => B)])
     /*
      * Given a (R, S, T) => B , instantiate R and build a (S, T) ==> B.
      */
-    def apply(
-      r:         R
-    )(implicit
-      classTagR: ClassTag[R],
-      reuseR:    Reusability[R]
-    ): Reuse[(S, T) => B] =
-      Reuse.by(r)((s, t) => ev(aa.value())(r, s, t))
+    @targetName("reuseFn3Apply1")
+    def apply(r: R)(using ClassTag[R], Reusability[R]): Reuse[(S, T) => B] =
+      Reuse.by(r)((s, t) => aa.value()(r, s, t))
 
     /*
      * Given a (R, S, T) => B , instantiate R and S and build a T ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S
-    )(implicit
-      classTagRS: ClassTag[(R, S)],
-      reuseR:     Reusability[(R, S)]
-    ): Reuse[T => B] =
-      Reuse.by((r, s))(t => ev(aa.value())(r, s, t))
+    @targetName("reuseFn3Apply2")
+    def apply(r: R, s: S)(using ClassTag[(R, S)], Reusability[(R, S)]): Reuse[T => B] =
+      Reuse.by((r, s))(t => aa.value()(r, s, t))
 
     /*
      * Given a (R, S, T) => B , instantiate R, S and T and build a Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T
-    )(implicit
-      classTagRS: ClassTag[(R, S, T)],
-      reuseR:     Reusability[(R, S, T)]
-    ): Reuse[B] =
-      Reuse.by((r, s, t))(ev(aa.value())(r, s, t))
-  }
+    @targetName("reuseFn3Apply3")
+    def apply(r: R, s: S, t: T)(using ClassTag[(R, S, T)], Reusability[(R, S, T)]): Reuse[B] =
+      Reuse.by((r, s, t))(aa.value()(r, s, t))
 
-  implicit class AppliedFn4Ops[A, R, S, T, U, B](aa: Applied[A])(implicit
-    ev: A =:= ((R, S, T, U) => B)
-  ) {
+  extension [A, R, S, T, U, B](aa: Applied[((R, S, T, U) => B)])
     /*
      * Given a (R, S, T, U) => B , instantiate R and build a (S, T, U) ==> B.
      */
-    def apply(
-      r:         R
-    )(implicit
-      classTagR: ClassTag[R],
-      reuseR:    Reusability[R]
-    ): Reuse[(S, T, U) => B] =
-      Reuse.by(r)((s, t, u) => ev(aa.value())(r, s, t, u))
+    @targetName("reuseFn4Apply1")
+    def apply(r: R)(using ClassTag[R], Reusability[R]): Reuse[(S, T, U) => B] =
+      Reuse.by(r)((s, t, u) => aa.value()(r, s, t, u))
 
     /*
      * Given a (R, S, T, U) => B , instantiate R and S and build a (T, U) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S
-    )(implicit
-      classTagRS: ClassTag[(R, S)],
-      reuseR:     Reusability[(R, S)]
-    ): Reuse[(T, U) => B] =
-      Reuse.by((r, s))((t, u) => ev(aa.value())(r, s, t, u))
+    @targetName("reuseFn4Apply2")
+    def apply(r: R, s: S)(using ClassTag[(R, S)], Reusability[(R, S)]): Reuse[(T, U) => B] =
+      Reuse.by((r, s))((t, u) => aa.value()(r, s, t, u))
 
     /*
      * Given a (R, S, T, U) => B , instantiate R, S and T and build a U ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T
-    )(implicit
-      classTagRS: ClassTag[(R, S, T)],
-      reuseR:     Reusability[(R, S, T)]
+    @targetName("reuseFn4Apply3")
+    def apply(r: R, s: S, t: T)(using
+      ClassTag[(R, S, T)],
+      Reusability[(R, S, T)]
     ): Reuse[U => B] =
-      Reuse.by((r, s, t))(u => ev(aa.value())(r, s, t, u))
+      Reuse.by((r, s, t))(u => aa.value()(r, s, t, u))
 
     /*
      * Given a (R, S, T, U) => B , instantiate R, S, T and U and build a Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U)],
-      reuseR:     Reusability[(R, S, T, U)]
+    @targetName("reuseFn4Apply3")
+    def apply(r: R, s: S, t: T, u: U)(using
+      ClassTag[(R, S, T, U)],
+      Reusability[(R, S, T, U)]
     ): Reuse[B] =
-      Reuse.by((r, s, t, u))(ev(aa.value())(r, s, t, u))
-  }
+      Reuse.by((r, s, t, u))(aa.value()(r, s, t, u))
 
-  implicit class AppliedFn5Ops[A, R, S, T, U, V, B](aa: Applied[A])(implicit
-    ev: A =:= ((R, S, T, U, V) => B)
-  ) {
+  extension [A, R, S, T, U, V, B](aa: Applied[((R, S, T, U, V) => B)])
     /*
      * Given a (R, S, T, U, V) => B , instantiate R and build a (S, T, U, V) ==> B.
      */
-    def apply(
-      r:         R
-    )(implicit
-      classTagR: ClassTag[R],
-      reuseR:    Reusability[R]
-    ): Reuse[(S, T, U, V) => B] =
-      Reuse.by(r)((s, t, u, v) => ev(aa.value())(r, s, t, u, v))
+    @targetName("reuseFn5Apply1")
+    def apply(r: R)(using ClassTag[R], Reusability[R]): Reuse[(S, T, U, V) => B] =
+      Reuse.by(r)((s, t, u, v) => aa.value()(r, s, t, u, v))
 
     /*
      * Given a (R, S, T, U, V) => B , instantiate R and S and build a (T, U, V) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S
-    )(implicit
-      classTagRS: ClassTag[(R, S)],
-      reuseR:     Reusability[(R, S)]
-    ): Reuse[(T, U, V) => B] =
-      Reuse.by((r, s))((t, u, v) => ev(aa.value())(r, s, t, u, v))
+    @targetName("reuseFn5Apply2")
+    def apply(r: R, s: S)(using ClassTag[(R, S)], Reusability[(R, S)]): Reuse[(T, U, V) => B] =
+      Reuse.by((r, s))((t, u, v) => aa.value()(r, s, t, u, v))
 
     /*
      * Given a (R, S, T, U, V) => B , instantiate R, S and T and build a (U, V) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T
-    )(implicit
-      classTagRS: ClassTag[(R, S, T)],
-      reuseR:     Reusability[(R, S, T)]
+    @targetName("reuseFn5Apply3")
+    def apply(r: R, s: S, t: T)(using
+      ClassTag[(R, S, T)],
+      Reusability[(R, S, T)]
     ): Reuse[(U, V) => B] =
-      Reuse.by((r, s, t))((u, v) => ev(aa.value())(r, s, t, u, v))
+      Reuse.by((r, s, t))((u, v) => aa.value()(r, s, t, u, v))
 
     /*
      * Given a (R, S, T, U, V) => B , instantiate R, S, T and U and build a V ==> B Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U)],
-      reuseR:     Reusability[(R, S, T, U)]
+    @targetName("reuseFn5Apply4")
+    def apply(r: R, s: S, t: T, u: U)(using
+      ClassTag[(R, S, T, U)],
+      Reusability[(R, S, T, U)]
     ): Reuse[V => B] =
-      Reuse.by((r, s, t, u))(v => ev(aa.value())(r, s, t, u, v))
+      Reuse.by((r, s, t, u))(v => aa.value()(r, s, t, u, v))
 
     /*
      * Given a (R, S, T, U, V) => B , instantiate R, S, T, U and V and build a Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V)],
-      reuseR:     Reusability[(R, S, T, U, V)]
+    @targetName("reuseFn5Apply5")
+    def apply(r: R, s: S, t: T, u: U, v: V)(using
+      ClassTag[(R, S, T, U, V)],
+      Reusability[(R, S, T, U, V)]
     ): Reuse[B] =
-      Reuse.by((r, s, t, u, v))(ev(aa.value())(r, s, t, u, v))
-  }
+      Reuse.by((r, s, t, u, v))(aa.value()(r, s, t, u, v))
 
-  implicit class AppliedFn6Ops[A, R, S, T, U, V, W, B](aa: Applied[A])(implicit
-    ev: A =:= ((R, S, T, U, V, W) => B)
-  ) {
+  extension [A, R, S, T, U, V, W, B](aa: Applied[((R, S, T, U, V, W) => B)])
     /*
      * Given a (R, S, T, U, V, W) => B , instantiate R and build a (S, T, U, V, W) ==> B.
      */
-    def apply(
-      r:         R
-    )(implicit
-      classTagR: ClassTag[R],
-      reuseR:    Reusability[R]
-    ): Reuse[(S, T, U, V, W) => B] =
-      Reuse.by(r)((s, t, u, v, w) => ev(aa.value())(r, s, t, u, v, w))
+    @targetName("reuseFn6Apply1")
+    def apply(r: R)(using ClassTag[R], Reusability[R]): Reuse[(S, T, U, V, W) => B] =
+      Reuse.by(r)((s, t, u, v, w) => aa.value()(r, s, t, u, v, w))
 
     /*
      * Given a (R, S, T, U, V, W) => B , instantiate R and S and build a (T, U, V, W) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S
-    )(implicit
-      classTagRS: ClassTag[(R, S)],
-      reuseR:     Reusability[(R, S)]
-    ): Reuse[(T, U, V, W) => B] =
-      Reuse.by((r, s))((t, u, v, w) => ev(aa.value())(r, s, t, u, v, w))
+    @targetName("reuseFn6Apply2")
+    def apply(r: R, s: S)(using ClassTag[(R, S)], Reusability[(R, S)]): Reuse[(T, U, V, W) => B] =
+      Reuse.by((r, s))((t, u, v, w) => aa.value()(r, s, t, u, v, w))
 
     /*
      * Given a (R, S, T, U, V, W) => B , instantiate R, S and T and build a (U, V, W) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T
-    )(implicit
-      classTagRS: ClassTag[(R, S, T)],
-      reuseR:     Reusability[(R, S, T)]
+    @targetName("reuseFn6Apply3")
+    def apply(r: R, s: S, t: T)(using
+      ClassTag[(R, S, T)],
+      Reusability[(R, S, T)]
     ): Reuse[(U, V, W) => B] =
-      Reuse.by((r, s, t))((u, v, w) => ev(aa.value())(r, s, t, u, v, w))
+      Reuse.by((r, s, t))((u, v, w) => aa.value()(r, s, t, u, v, w))
 
     /*
      * Given a (R, S, T, U, V, W) => B , instantiate R, S, T and U and build a (V, W) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U)],
-      reuseR:     Reusability[(R, S, T, U)]
+    @targetName("reuseFn6Apply4")
+    def apply(r: R, s: S, t: T, u: U)(using
+      ClassTag[(R, S, T, U)],
+      Reusability[(R, S, T, U)]
     ): Reuse[(V, W) => B] =
-      Reuse.by((r, s, t, u))((v, w) => ev(aa.value())(r, s, t, u, v, w))
+      Reuse.by((r, s, t, u))((v, w) => aa.value()(r, s, t, u, v, w))
 
     /*
      * Given a (R, S, T, U, V, W) => B , instantiate R, S, T, U and V and build a W ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V)],
-      reuseR:     Reusability[(R, S, T, U, V)]
+    @targetName("reuseFn6Apply5")
+    def apply(r: R, s: S, t: T, u: U, v: V)(using
+      ClassTag[(R, S, T, U, V)],
+      Reusability[(R, S, T, U, V)]
     ): Reuse[W => B] =
-      Reuse.by((r, s, t, u, v))(w => ev(aa.value())(r, s, t, u, v, w))
+      Reuse.by((r, s, t, u, v))(w => aa.value()(r, s, t, u, v, w))
 
     /*
      * Given a (R, S, T, U, V, W) => B , instantiate R, S, T, U, V and W and build a Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W)],
-      reuseR:     Reusability[(R, S, T, U, V, W)]
+    @targetName("reuseFn6Apply6")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W)(using
+      ClassTag[(R, S, T, U, V, W)],
+      Reusability[(R, S, T, U, V, W)]
     ): Reuse[B] =
-      Reuse.by((r, s, t, u, v, w))(ev(aa.value())(r, s, t, u, v, w))
-  }
+      Reuse.by((r, s, t, u, v, w))(aa.value()(r, s, t, u, v, w))
 
-  implicit class AppliedFn7Ops[A, R, S, T, U, V, W, X, B](aa: Applied[A])(implicit
-    ev: A =:= ((R, S, T, U, V, W, X) => B)
-  ) {
+  extension [A, R, S, T, U, V, W, X, B](aa: Applied[((R, S, T, U, V, W, X) => B)])
     /*
      * Given a (R, S, T, U, V, W, X) => B , instantiate R and build a (S, T, U, V, W, X) ==> B.
      */
-    def apply(
-      r:         R
-    )(implicit
-      classTagR: ClassTag[R],
-      reuseR:    Reusability[R]
-    ): Reuse[(S, T, U, V, W, X) => B] =
-      Reuse.by(r)((s, t, u, v, w, x) => ev(aa.value())(r, s, t, u, v, w, x))
+    @targetName("reuseFn7Apply1")
+    def apply(r: R)(using ClassTag[R], Reusability[R]): Reuse[(S, T, U, V, W, X) => B] =
+      Reuse.by(r)((s, t, u, v, w, x) => aa.value()(r, s, t, u, v, w, x))
 
     /*
      * Given a (R, S, T, U, V, W, X) => B , instantiate R and S and build a (T, U, V, W, X) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S
-    )(implicit
-      classTagRS: ClassTag[(R, S)],
-      reuseR:     Reusability[(R, S)]
+    @targetName("reuseFn7Apply2")
+    def apply(r: R, s: S)(using
+      ClassTag[(R, S)],
+      Reusability[(R, S)]
     ): Reuse[(T, U, V, W, X) => B] =
-      Reuse.by((r, s))((t, u, v, w, x) => ev(aa.value())(r, s, t, u, v, w, x))
+      Reuse.by((r, s))((t, u, v, w, x) => aa.value()(r, s, t, u, v, w, x))
 
     /*
      * Given a (R, S, T, U, V, W, X) => B , instantiate R, S and T and build a (U, V, W, X) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T
-    )(implicit
-      classTagRS: ClassTag[(R, S, T)],
-      reuseR:     Reusability[(R, S, T)]
+    @targetName("reuseFn7Apply3")
+    def apply(r: R, s: S, t: T)(using
+      ClassTag[(R, S, T)],
+      Reusability[(R, S, T)]
     ): Reuse[(U, V, W, X) => B] =
-      Reuse.by((r, s, t))((u, v, w, x) => ev(aa.value())(r, s, t, u, v, w, x))
+      Reuse.by((r, s, t))((u, v, w, x) => aa.value()(r, s, t, u, v, w, x))
 
     /*
      * Given a (R, S, T, U, V, W, X) => B , instantiate R, S, T and U and build a (V, W, X) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U)],
-      reuseR:     Reusability[(R, S, T, U)]
+    @targetName("reuseFn7Apply4")
+    def apply(r: R, s: S, t: T, u: U)(using
+      ClassTag[(R, S, T, U)],
+      Reusability[(R, S, T, U)]
     ): Reuse[(V, W, X) => B] =
-      Reuse.by((r, s, t, u))((v, w, x) => ev(aa.value())(r, s, t, u, v, w, x))
+      Reuse.by((r, s, t, u))((v, w, x) => aa.value()(r, s, t, u, v, w, x))
 
     /*
      * Given a (R, S, T, U, V, W, X) => B , instantiate R, S, T, U and V and build a (W, X) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V)],
-      reuseR:     Reusability[(R, S, T, U, V)]
+    @targetName("reuseFn7Apply5")
+    def apply(r: R, s: S, t: T, u: U, v: V)(using
+      ClassTag[(R, S, T, U, V)],
+      Reusability[(R, S, T, U, V)]
     ): Reuse[(W, X) => B] =
-      Reuse.by((r, s, t, u, v))((w, x) => ev(aa.value())(r, s, t, u, v, w, x))
+      Reuse.by((r, s, t, u, v))((w, x) => aa.value()(r, s, t, u, v, w, x))
 
     /*
      * Given a (R, S, T, U, V, W, W, X) => B , instantiate R, S, T, U, V and W and build a X ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W)],
-      reuseR:     Reusability[(R, S, T, U, V, W)]
+    @targetName("reuseFn7Apply6")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W)(using
+      ClassTag[(R, S, T, U, V, W)],
+      Reusability[(R, S, T, U, V, W)]
     ): Reuse[X => B] =
-      Reuse.by((r, s, t, u, v, w))(x => ev(aa.value())(r, s, t, u, v, w, x))
+      Reuse.by((r, s, t, u, v, w))(x => aa.value()(r, s, t, u, v, w, x))
 
     /*
      * Given a (R, S, T, U, V, W, W, X) => B , instantiate R, S, T, U, V, W and X and build a Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W,
-      x:          X
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W, X)],
-      reuseR:     Reusability[(R, S, T, U, V, W, X)]
+    @targetName("reuseFn7Apply7")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W, x: X)(using
+      ClassTag[(R, S, T, U, V, W, X)],
+      Reusability[(R, S, T, U, V, W, X)]
     ): Reuse[B] =
-      Reuse.by((r, s, t, u, v, w, x))(ev(aa.value())(r, s, t, u, v, w, x))
-  }
+      Reuse.by((r, s, t, u, v, w, x))(aa.value()(r, s, t, u, v, w, x))
 
-  implicit class AppliedFn8Ops[A, R, S, T, U, V, W, X, Y, B](aa: Applied[A])(implicit
-    ev: A =:= ((R, S, T, U, V, W, X, Y) => B)
-  ) {
+  extension [A, R, S, T, U, V, W, X, Y, B](aa:    Applied[((R, S, T, U, V, W, X, Y) => B)])
     /*
      * Given a (R, S, T, U, V, W, X, Y) => B , instantiate R and build a (S, T, U, V, W, X, Y) ==> B.
      */
-    def apply(
-      r:         R
-    )(implicit
-      classTagR: ClassTag[R],
-      reuseR:    Reusability[R]
-    ): Reuse[(S, T, U, V, W, X, Y) => B] =
-      Reuse.by(r)((s, t, u, v, w, x, y) => ev(aa.value())(r, s, t, u, v, w, x, y))
+    @targetName("reuseFn8Apply1")
+    def apply(r: R)(using ClassTag[R], Reusability[R]): Reuse[(S, T, U, V, W, X, Y) => B] =
+      Reuse.by(r)((s, t, u, v, w, x, y) => aa.value()(r, s, t, u, v, w, x, y))
 
     /*
      * Given a (R, S, T, U, V, W, X, Y) => B , instantiate R and S and build a (T, U, V, W, X, Y) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S
-    )(implicit
-      classTagRS: ClassTag[(R, S)],
-      reuseR:     Reusability[(R, S)]
+    @targetName("reuseFn8Apply2")
+    def apply(r: R, s: S)(using
+      ClassTag[(R, S)],
+      Reusability[(R, S)]
     ): Reuse[(T, U, V, W, X, Y) => B] =
-      Reuse.by((r, s))((t, u, v, w, x, y) => ev(aa.value())(r, s, t, u, v, w, x, y))
+      Reuse.by((r, s))((t, u, v, w, x, y) => aa.value()(r, s, t, u, v, w, x, y))
 
     /*
      * Given a (R, S, T, U, V, W, X, Y) => B , instantiate R, S and T and build a (U, V, W, X, Y) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T
-    )(implicit
-      classTagRS: ClassTag[(R, S, T)],
-      reuseR:     Reusability[(R, S, T)]
+    @targetName("reuseFn8Apply3")
+    def apply(r: R, s: S, t: T)(using
+      ClassTag[(R, S, T)],
+      Reusability[(R, S, T)]
     ): Reuse[(U, V, W, X, Y) => B] =
-      Reuse.by((r, s, t))((u, v, w, x, y) => ev(aa.value())(r, s, t, u, v, w, x, y))
+      Reuse.by((r, s, t))((u, v, w, x, y) => aa.value()(r, s, t, u, v, w, x, y))
 
     /*
      * Given a (R, S, T, U, V, W, X, Y) => B , instantiate R, S, T and U and build a (V, W, X, Y) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U)],
-      reuseR:     Reusability[(R, S, T, U)]
+    @targetName("reuseFn8Apply4")
+    def apply(r: R, s: S, t: T, u: U)(using
+      ClassTag[(R, S, T, U)],
+      Reusability[(R, S, T, U)]
     ): Reuse[(V, W, X, Y) => B] =
-      Reuse.by((r, s, t, u))((v, w, x, y) => ev(aa.value())(r, s, t, u, v, w, x, y))
+      Reuse.by((r, s, t, u))((v, w, x, y) => aa.value()(r, s, t, u, v, w, x, y))
 
     /*
      * Given a (R, S, T, U, V, W, X, Y) => B , instantiate R, S, T, U and V and build a (W, X, Y) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V)],
-      reuseR:     Reusability[(R, S, T, U, V)]
+    @targetName("reuseFn8Apply5")
+    def apply(r: R, s: S, t: T, u: U, v: V)(using
+      ClassTag[(R, S, T, U, V)],
+      Reusability[(R, S, T, U, V)]
     ): Reuse[(W, X, Y) => B] =
-      Reuse.by((r, s, t, u, v))((w, x, y) => ev(aa.value())(r, s, t, u, v, w, x, y))
+      Reuse.by((r, s, t, u, v))((w, x, y) => aa.value()(r, s, t, u, v, w, x, y))
 
     /*
      * Given a (R, S, T, U, V, W, W, X, Y) => B , instantiate R, S, T, U, V and W and build a (X, Y) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W)],
-      reuseR:     Reusability[(R, S, T, U, V, W)]
+    @targetName("reuseFn8Apply6")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W)(using
+      ClassTag[(R, S, T, U, V, W)],
+      Reusability[(R, S, T, U, V, W)]
     ): Reuse[(X, Y) => B] =
-      Reuse.by((r, s, t, u, v, w))((x, y) => ev(aa.value())(r, s, t, u, v, w, x, y))
+      Reuse.by((r, s, t, u, v, w))((x, y) => aa.value()(r, s, t, u, v, w, x, y))
 
     /*
      * Given a (R, S, T, U, V, W, W, X, Y) => B , instantiate R, S, T, U, V, W and X and build a Y => Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W,
-      x:          X
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W, X)],
-      reuseR:     Reusability[(R, S, T, U, V, W, X)]
+    @targetName("reuseFn8Apply7")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W, x: X)(using
+      ClassTag[(R, S, T, U, V, W, X)],
+      Reusability[(R, S, T, U, V, W, X)]
     ): Reuse[Y => B] =
-      Reuse.by((r, s, t, u, v, w, x))(y => ev(aa.value())(r, s, t, u, v, w, x, y))
+      Reuse.by((r, s, t, u, v, w, x))(y => aa.value()(r, s, t, u, v, w, x, y))
 
     /*
      * Given a (R, S, T, U, V, W, W, X, Y) => B , instantiate R, S, T, U, V, W and X and build a Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W,
-      x:          X,
-      y:          Y
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W, X, Y)],
-      reuseR:     Reusability[(R, S, T, U, V, W, X, Y)]
+    @targetName("reuseFn8Apply8")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W, x: X, y: Y)(using
+      ClassTag[(R, S, T, U, V, W, X, Y)],
+      Reusability[(R, S, T, U, V, W, X, Y)]
     ): Reuse[B] =
-      Reuse.by((r, s, t, u, v, w, x, y))(ev(aa.value())(r, s, t, u, v, w, x, y))
-  }
-  implicit class AppliedFn9Ops[A, R, S, T, U, V, W, X, Y, Z, B](aa: Applied[A])(implicit
-    ev: A =:= ((R, S, T, U, V, W, X, Y, Z) => B)
-  ) {
+      Reuse.by((r, s, t, u, v, w, x, y))(aa.value()(r, s, t, u, v, w, x, y))
+  extension [A, R, S, T, U, V, W, X, Y, Z, B](aa: Applied[((R, S, T, U, V, W, X, Y, Z) => B)])
     /*
      * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R and build a (S, T, U, V, W, X, Y, Z) ==> B.
      */
-    def apply(
-      r:         R
-    )(implicit
-      classTagR: ClassTag[R],
-      reuseR:    Reusability[R]
-    ): Reuse[(S, T, U, V, W, X, Y, Z) => B] =
-      Reuse.by(r)((s, t, u, v, w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+    @targetName("reuseFn9Apply1")
+    def apply(r: R)(using ClassTag[R], Reusability[R]): Reuse[(S, T, U, V, W, X, Y, Z) => B] =
+      Reuse.by(r)((s, t, u, v, w, x, y, z) => aa.value()(r, s, t, u, v, w, x, y, z))
 
     /*
      * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R and S and build a (T, U, V, W, X, Y, Z) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S
-    )(implicit
-      classTagRS: ClassTag[(R, S)],
-      reuseR:     Reusability[(R, S)]
+    @targetName("reuseFn9Apply2")
+    def apply(r: R, s: S)(using
+      ClassTag[(R, S)],
+      Reusability[(R, S)]
     ): Reuse[(T, U, V, W, X, Y, Z) => B] =
-      Reuse.by((r, s))((t, u, v, w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+      Reuse.by((r, s))((t, u, v, w, x, y, z) => aa.value()(r, s, t, u, v, w, x, y, z))
 
     /*
      * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R, S and T and build a (U, V, W, X, Y, Z) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T
-    )(implicit
-      classTagRS: ClassTag[(R, S, T)],
-      reuseR:     Reusability[(R, S, T)]
+    @targetName("reuseFn9Apply3")
+    def apply(r: R, s: S, t: T)(using
+      ClassTag[(R, S, T)],
+      Reusability[(R, S, T)]
     ): Reuse[(U, V, W, X, Y, Z) => B] =
-      Reuse.by((r, s, t))((u, v, w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+      Reuse.by((r, s, t))((u, v, w, x, y, z) => aa.value()(r, s, t, u, v, w, x, y, z))
 
     /*
      * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R, S, T and U and build a (V, W, X, Y, Z) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U)],
-      reuseR:     Reusability[(R, S, T, U)]
+    @targetName("reuseFn9Apply4")
+    def apply(r: R, s: S, t: T, u: U)(using
+      ClassTag[(R, S, T, U)],
+      Reusability[(R, S, T, U)]
     ): Reuse[(V, W, X, Y, Z) => B] =
-      Reuse.by((r, s, t, u))((v, w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+      Reuse.by((r, s, t, u))((v, w, x, y, z) => aa.value()(r, s, t, u, v, w, x, y, z))
 
     /*
      * Given a (R, S, T, U, V, W, X, Y, Z) => B , instantiate R, S, T, U and V and build a (W, X, Y, Z) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V)],
-      reuseR:     Reusability[(R, S, T, U, V)]
+    @targetName("reuseFn9Apply5")
+    def apply(r: R, s: S, t: T, u: U, v: V)(using
+      ClassTag[(R, S, T, U, V)],
+      Reusability[(R, S, T, U, V)]
     ): Reuse[(W, X, Y, Z) => B] =
-      Reuse.by((r, s, t, u, v))((w, x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+      Reuse.by((r, s, t, u, v))((w, x, y, z) => aa.value()(r, s, t, u, v, w, x, y, z))
 
     /*
      * Given a (R, S, T, U, V, W, W, X, Y, Z) => B , instantiate R, S, T, U, V and W and build a (X, Y, Z) ==> B.
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W)],
-      reuseR:     Reusability[(R, S, T, U, V, W)]
+    @targetName("reuseFn9Apply6")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W)(using
+      ClassTag[(R, S, T, U, V, W)],
+      Reusability[(R, S, T, U, V, W)]
     ): Reuse[(X, Y, Z) => B] =
-      Reuse.by((r, s, t, u, v, w))((x, y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+      Reuse.by((r, s, t, u, v, w))((x, y, z) => aa.value()(r, s, t, u, v, w, x, y, z))
 
     /*
      * Given a (R, S, T, U, V, W, W, X, Y, Z) => B , instantiate R, S, T, U, V, W and X and build a (Y, Z) => Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W,
-      x:          X
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W, X)],
-      reuseR:     Reusability[(R, S, T, U, V, W, X)]
+    @targetName("reuseFn9Apply7")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W, x: X)(using
+      ClassTag[(R, S, T, U, V, W, X)],
+      Reusability[(R, S, T, U, V, W, X)]
     ): Reuse[(Y, Z) => B] =
-      Reuse.by((r, s, t, u, v, w, x))((y, z) => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+      Reuse.by((r, s, t, u, v, w, x))((y, z) => aa.value()(r, s, t, u, v, w, x, y, z))
 
     /*
      * Given a (R, S, T, U, V, W, W, X, Y, Z) => B , instantiate R, S, T, U, V, W, X and Y and build a Z => Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W,
-      x:          X,
-      y:          Y
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W, X, Y)],
-      reuseR:     Reusability[(R, S, T, U, V, W, X, Y)]
+    @targetName("reuseFn9Apply8")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W, x: X, y: Y)(using
+      ClassTag[(R, S, T, U, V, W, X, Y)],
+      Reusability[(R, S, T, U, V, W, X, Y)]
     ): Reuse[Z => B] =
-      Reuse.by((r, s, t, u, v, w, x, y))(z => ev(aa.value())(r, s, t, u, v, w, x, y, z))
+      Reuse.by((r, s, t, u, v, w, x, y))(z => aa.value()(r, s, t, u, v, w, x, y, z))
 
     /*
      * Given a (R, S, T, U, V, W, W, X, Y, Z) => B , instantiate R, S, T, U, V, W, X, Y, Z and build a Reuse[B].
      */
-    def apply(
-      r:          R,
-      s:          S,
-      t:          T,
-      u:          U,
-      v:          V,
-      w:          W,
-      x:          X,
-      y:          Y,
-      z:          Z
-    )(implicit
-      classTagRS: ClassTag[(R, S, T, U, V, W, X, Y, Z)],
-      reuseR:     Reusability[(R, S, T, U, V, W, X, Y, Z)]
+    @targetName("reuseFn9Apply9")
+    def apply(r: R, s: S, t: T, u: U, v: V, w: W, x: X, y: Y, z: Z)(using
+      ClassTag[(R, S, T, U, V, W, X, Y, Z)],
+      Reusability[(R, S, T, U, V, W, X, Y, Z)]
     ): Reuse[B] =
-      Reuse.by((r, s, t, u, v, w, x, y, z))(ev(aa.value())(r, s, t, u, v, w, x, y, z))
-  }
+      Reuse.by((r, s, t, u, v, w, x, y, z))(aa.value()(r, s, t, u, v, w, x, y, z))
 }

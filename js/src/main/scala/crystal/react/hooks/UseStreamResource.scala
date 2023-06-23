@@ -4,14 +4,10 @@
 package crystal.react.hooks
 
 import cats.effect.Resource
-import cats.syntax.all._
-import crystal.Pot
-import crystal.PotOption
-import crystal.implicits._
-import crystal.react.ReuseView
-import crystal.react.View
-import crystal.react.implicits._
-import japgolly.scalajs.react._
+import cats.syntax.all.*
+import crystal.*
+import crystal.react.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.hooks.Hooks
 import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
@@ -104,7 +100,7 @@ object UseStreamResource {
        */
       final def useStream[D: Reusability, A](deps: => D)(
         stream: D => fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResource(deps)(deps => Resource.pure(stream(deps)))
 
       /**
@@ -114,7 +110,7 @@ object UseStreamResource {
        */
       final def useStreamView[D: Reusability, A](deps: => D)(
         stream: D => fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] =
+      )(using step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceView(deps)(deps => Resource.pure(stream(deps)))
 
       /**
@@ -126,7 +122,7 @@ object UseStreamResource {
         deps:   => D
       )(
         stream: D => fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuse(deps)(deps => Resource.pure(stream(deps)))
 
       // END PLAIN METHODS
@@ -140,7 +136,7 @@ object UseStreamResource {
        */
       final def useStreamOnMount[A](
         stream: fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMount(Resource.pure(stream))
 
       /**
@@ -150,7 +146,7 @@ object UseStreamResource {
        */
       final def useStreamViewOnMount[A](
         stream: fs2.Stream[DefaultA, A]
-      )(implicit
+      )(using
         step:   Step
       ): step.Next[PotOption[View[A]]] =
         useStreamResourceViewOnMount(Resource.pure(stream))
@@ -162,7 +158,7 @@ object UseStreamResource {
        */
       final def useStreamViewWithReuseOnMount[A: ClassTag: Reusability](
         stream: fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseOnMount(Resource.pure(stream))
 
       // END PLAIN "ON MOUNT" METHODS
@@ -176,7 +172,7 @@ object UseStreamResource {
        */
       final def useStreamBy[D: Reusability, A](deps: Ctx => D)(
         stream: Ctx => D => fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResourceBy(deps)(ctx => deps => Resource.pure(stream(ctx)(deps)))
 
       /**
@@ -186,7 +182,7 @@ object UseStreamResource {
        */
       final def useStreamViewBy[D: Reusability, A](deps: Ctx => D)(
         stream: Ctx => D => fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] =
+      )(using step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewBy(deps)(ctx => deps => Resource.pure(stream(ctx)(deps)))
 
       /**
@@ -198,7 +194,7 @@ object UseStreamResource {
         deps:   Ctx => D
       )(
         stream: Ctx => D => fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseBy(deps)(ctx => deps => Resource.pure(stream(ctx)(deps)))
 
       // END "BY" METHODS
@@ -212,7 +208,7 @@ object UseStreamResource {
        */
       final def useStreamOnMountBy[A](
         stream: Ctx => fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMountBy(ctx => Resource.pure(stream(ctx)))
 
       /**
@@ -222,7 +218,7 @@ object UseStreamResource {
        */
       final def useStreamViewOnMountBy[A](
         stream: Ctx => fs2.Stream[DefaultA, A]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] =
+      )(using step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewOnMountBy(ctx => Resource.pure(stream(ctx)))
 
       /**
@@ -232,7 +228,7 @@ object UseStreamResource {
        */
       final def useStreamViewWithReuseOnMountBy[A: ClassTag: Reusability](
         stream: Ctx => fs2.Stream[DefaultA, A]
-      )(implicit
+      )(using
         step:   Step
       ): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseOnMountBy(ctx => Resource.pure(stream(ctx)))
@@ -253,7 +249,7 @@ object UseStreamResource {
        */
       final def useStreamResource[D: Reusability, A](deps: => D)(
         streamResource: D => StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResourceBy(_ => deps)(_ => streamResource)
 
       /**
@@ -264,7 +260,7 @@ object UseStreamResource {
        */
       final def useStreamResourceView[D: Reusability, A](deps: => D)(
         streamResource: D => StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] =
+      )(using step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewBy(_ => deps)(_ => streamResource)
 
       /**
@@ -277,7 +273,7 @@ object UseStreamResource {
         deps:           => D
       )(
         streamResource: D => StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseBy(_ => deps)(_ => streamResource)
 
       // END PLAIN METHODS
@@ -292,7 +288,7 @@ object UseStreamResource {
        */
       final def useStreamResourceOnMount[A](
         streamResource: StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMountBy(_ => streamResource)
 
       /**
@@ -303,7 +299,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewOnMount[A](
         streamResource: StreamResource[A]
-      )(implicit
+      )(using
         step:           Step
       ): step.Next[PotOption[View[A]]] =
         useStreamResourceViewOnMountBy(_ => streamResource)
@@ -316,7 +312,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewWithReuseOnMount[A: ClassTag: Reusability](
         streamResource: StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseOnMountBy(_ => streamResource)
 
       // END PLAIN "ON MOUNT" METHODS
@@ -331,7 +327,7 @@ object UseStreamResource {
        */
       final def useStreamResourceBy[D: Reusability, A](deps: Ctx => D)(
         streamResource: Ctx => D => StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         api.customBy { ctx =>
           val hookInstance = hook[D, A]
           hookInstance(WithDeps(deps(ctx), streamResource(ctx)))
@@ -345,7 +341,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewBy[D: Reusability, A](deps: Ctx => D)(
         streamResource: Ctx => D => StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] =
+      )(using step: Step): step.Next[PotOption[View[A]]] =
         api.customBy { ctx =>
           val hookInstance = hookView[D, A]
           hookInstance(WithDeps(deps(ctx), streamResource(ctx)))
@@ -361,7 +357,7 @@ object UseStreamResource {
         deps:           Ctx => D
       )(
         streamResource: Ctx => D => StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
         api.customBy { ctx =>
           val hookInstance = hookReuseView[D, A]
           hookInstance(WithDeps(deps(ctx), streamResource(ctx)))
@@ -379,7 +375,7 @@ object UseStreamResource {
        */
       final def useStreamResourceOnMountBy[A](
         streamResource: Ctx => StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[A]] = // () has Reusability = always.
+      )(using step: Step): step.Next[PotOption[A]] = // () has Reusability = always.
         useStreamResourceBy(_ => ())(ctx => _ => streamResource(ctx))
 
       /**
@@ -390,7 +386,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewOnMountBy[A](
         streamResource: Ctx => StreamResource[A]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] = // () has Reusability = always.
+      )(using step: Step): step.Next[PotOption[View[A]]] = // () has Reusability = always.
         useStreamResourceViewBy(_ => ())(ctx => _ => streamResource(ctx))
 
       /**
@@ -401,7 +397,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewWithReuseOnMountBy[A: ClassTag: Reusability](
         streamResource: Ctx => StreamResource[A]
-      )(implicit
+      )(using
         step:           Step
       ): step.Next[PotOption[ReuseView[A]]] = // () has Reusability = always.
         useStreamResourceViewWithReuseBy(_ => ())(ctx => _ => streamResource(ctx))
@@ -423,7 +419,7 @@ object UseStreamResource {
        */
       final def useStreamBy[D: Reusability, A](deps: CtxFn[D])(
         stream: CtxFn[D => fs2.Stream[DefaultA, A]]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResourceBy(step.squash(deps)(_))(ctx =>
           deps => Resource.pure(step.squash(stream)(ctx)(deps))
         )
@@ -435,7 +431,7 @@ object UseStreamResource {
        */
       final def useStreamViewBy[D: Reusability, A](deps: CtxFn[D])(
         stream: CtxFn[D => fs2.Stream[DefaultA, A]]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] =
+      )(using step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewBy(step.squash(deps)(_))(ctx =>
           deps => Resource.pure(step.squash(stream)(ctx)(deps))
         )
@@ -449,7 +445,7 @@ object UseStreamResource {
         deps:   CtxFn[D]
       )(
         stream: CtxFn[D => fs2.Stream[DefaultA, A]]
-      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseBy(step.squash(deps)(_))(ctx =>
           deps => Resource.pure(step.squash(stream)(ctx)(deps))
         )
@@ -465,7 +461,7 @@ object UseStreamResource {
        */
       final def useStreamOnMountBy[A](
         stream: CtxFn[fs2.Stream[DefaultA, A]]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMountBy((ctx: Ctx) =>
           Resource.pure[DefaultA, fs2.Stream[DefaultA, A]](step.squash(stream)(ctx))
         )
@@ -477,7 +473,7 @@ object UseStreamResource {
        */
       final def useStreamViewOnMountBy[A](
         stream: CtxFn[fs2.Stream[DefaultA, A]]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] =
+      )(using step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewOnMountBy((ctx: Ctx) =>
           Resource.pure[DefaultA, fs2.Stream[DefaultA, A]](step.squash(stream)(ctx))
         )
@@ -489,7 +485,7 @@ object UseStreamResource {
        */
       final def useStreamViewWithReuseOnMountBy[A: ClassTag: Reusability](
         stream: CtxFn[fs2.Stream[DefaultA, A]]
-      )(implicit
+      )(using
         step:   Step
       ): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseOnMountBy((ctx: Ctx) =>
@@ -512,7 +508,7 @@ object UseStreamResource {
        */
       final def useStreamResourceBy[D: Reusability, A](deps: CtxFn[D])(
         streamResource: CtxFn[D => StreamResource[A]]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResourceBy(step.squash(deps)(_))(step.squash(streamResource)(_))
 
       /**
@@ -523,7 +519,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewBy[D: Reusability, A](deps: CtxFn[D])(
         streamResource: CtxFn[D => StreamResource[A]]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] =
+      )(using step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewBy(step.squash(deps)(_))(step.squash(streamResource)(_))
 
       /**
@@ -536,7 +532,7 @@ object UseStreamResource {
         deps:           CtxFn[D]
       )(
         streamResource: CtxFn[D => StreamResource[A]]
-      )(implicit step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseBy(step.squash(deps)(_))(step.squash(streamResource)(_))
 
       // END "BY" METHODS
@@ -551,7 +547,7 @@ object UseStreamResource {
        */
       final def useStreamResourceOnMountBy[A](
         streamResource: CtxFn[StreamResource[A]]
-      )(implicit step: Step): step.Next[PotOption[A]] =
+      )(using step: Step): step.Next[PotOption[A]] =
         useStreamResourceOnMountBy(step.squash(streamResource)(_))
 
       /**
@@ -562,7 +558,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewOnMountBy[A](
         streamResource: CtxFn[StreamResource[A]]
-      )(implicit step: Step): step.Next[PotOption[View[A]]] =
+      )(using step: Step): step.Next[PotOption[View[A]]] =
         useStreamResourceViewOnMountBy(step.squash(streamResource)(_))
 
       /**
@@ -573,7 +569,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewWithReuseOnMountBy[A: ClassTag: Reusability](
         streamResource: CtxFn[StreamResource[A]]
-      )(implicit
+      )(using
         step:           Step
       ): step.Next[PotOption[ReuseView[A]]] =
         useStreamResourceViewWithReuseOnMountBy(step.squash(streamResource)(_))
@@ -584,8 +580,8 @@ object UseStreamResource {
     }
   }
 
-  trait HooksApiExt {
-    import HooksApiExt._
+  protected trait HooksApiExt {
+    import HooksApiExt.*
 
     implicit def hooksExtStreamResourceView1[Ctx, Step <: HooksApi.AbstractStep](
       api: HooksApi.Primary[Ctx, Step]
@@ -600,5 +596,5 @@ object UseStreamResource {
       new Secondary(api)
   }
 
-  object implicits extends HooksApiExt
+  object syntax extends HooksApiExt
 }

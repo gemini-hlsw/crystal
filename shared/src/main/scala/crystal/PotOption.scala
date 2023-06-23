@@ -3,9 +3,18 @@
 
 package crystal
 
-import cats.syntax.all._
+import cats.Align
+import cats.Applicative
+import cats.Eq
+import cats.Eval
+import cats.Functor
+import cats.MonadError
+import cats.Traverse
+import cats.data.Ior
+import cats.syntax.all.*
 import monocle.Prism
 
+import scala.annotation.tailrec
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -35,7 +44,7 @@ sealed trait PotOption[+A] {
 
   def isError: Boolean = fold(false, _ => true, false, _ => false)
 
-  def flatten[B](implicit ev: A <:< PotOption[B]): PotOption[B] =
+  def flatten[B](using A <:< PotOption[B]): PotOption[B] =
     this match {
       case PotOption.Pending         => PotOption.Pending
       case err @ PotOption.Error(_)  => err.valueCast[B]
@@ -111,4 +120,119 @@ object PotOption {
     case _        => none
   }(Error(_))
 
+  given Eq[PotOption[Nothing]] =
+    new Eq[PotOption[Nothing]] {
+      import throwable.given
+
+      def eqv(x: PotOption[Nothing], y: PotOption[Nothing]): Boolean =
+        x match
+          case PotOption.Pending   =>
+            y match
+              case PotOption.Pending => true
+              case _                 => false
+          case PotOption.Error(tx) =>
+            y match
+              case PotOption.Error(ty) => tx === ty
+              case _                   => false
+          case PotOption.ReadyNone =>
+            y match
+              case PotOption.ReadyNone => true
+              case _                   => false
+          case _                   => false
+    }
+
+  given [A: Eq]: Eq[PotOption[A]] =
+    new Eq[PotOption[A]] {
+      def eqv(x: PotOption[A], y: PotOption[A]): Boolean =
+        x match
+          case PotOption.ReadySome(ax) =>
+            y match
+              case PotOption.ReadySome(ay) => ax === ay
+              case _                       => false
+          case _                       =>
+            y match
+              case PotOption.ReadySome(_) => false
+              case _                      => x.asInstanceOf[PotOption[Nothing]] === y.asInstanceOf[PotOption[Nothing]]
+    }
+
+  implicit object PotOptionCats
+      extends MonadError[PotOption, Throwable],
+        Traverse[PotOption],
+        Align[PotOption] {
+
+    override def pure[A](a: A): PotOption[A] = PotOption(a)
+
+    @tailrec
+    override def tailRecM[A, B](a: A)(f: A => PotOption[Either[A, B]]): PotOption[B] =
+      f(a) match
+        case PotOption.Pending             => PotOption.Pending
+        case err @ PotOption.Error(_)      => err.valueCast[B]
+        case PotOption.ReadyNone           => PotOption.ReadyNone
+        case PotOption.ReadySome(Left(a))  => tailRecM(a)(f)
+        case PotOption.ReadySome(Right(b)) => PotOption.ReadySome(b)
+
+    override def flatMap[A, B](fa: PotOption[A])(f: A => PotOption[B]): PotOption[B] =
+      fa.flatMap(f)
+
+    override def raiseError[A](t: Throwable): PotOption[A] = PotOption.Error(t)
+
+    override def handleErrorWith[A](fa: PotOption[A])(f: Throwable => PotOption[A]): PotOption[A] =
+      fa match
+        case PotOption.Error(t) => f(t)
+        case _                  => fa
+
+    override def traverse[F[_], A, B](
+      fa: PotOption[A]
+    )(f: A => F[B])(using F: Applicative[F]): F[PotOption[B]] =
+      fa match
+        case PotOption.Pending        => F.pure(PotOption.Pending)
+        case err @ PotOption.Error(_) => F.pure(err.valueCast[B])
+        case PotOption.ReadyNone      => F.pure(PotOption.ReadyNone)
+        case PotOption.ReadySome(a)   => F.map(f(a))(PotOption.ReadySome(_))
+
+    override def foldLeft[A, B](fa: PotOption[A], b: B)(f: (B, A) => B): B =
+      fa match
+        case PotOption.Pending      => b
+        case PotOption.Error(_)     => b
+        case PotOption.ReadyNone    => b
+        case PotOption.ReadySome(a) => f(b, a)
+
+    override def foldRight[A, B](fa: PotOption[A], lb: Eval[B])(
+      f: (A, Eval[B]) => Eval[B]
+    ): Eval[B] =
+      fa match
+        case PotOption.Pending      => lb
+        case PotOption.Error(_)     => lb
+        case PotOption.ReadyNone    => lb
+        case PotOption.ReadySome(a) => f(a, lb)
+
+    override def functor: Functor[PotOption] = this
+
+    override def align[A, B](fa: PotOption[A], fb: PotOption[B]): PotOption[Ior[A, B]] =
+      alignWith(fa, fb)(identity)
+
+    override def alignWith[A, B, C](fa: PotOption[A], fb: PotOption[B])(
+      f: Ior[A, B] => C
+    ): PotOption[C] =
+      fa match
+        case PotOption.Pending         =>
+          fb match
+            case PotOption.ReadySome(b)    => PotOption.ReadySome(f(Ior.right(b)))
+            case errb @ PotOption.Error(_) => errb.valueCast[C]
+            case _                         => PotOption.Pending
+        case erra @ PotOption.Error(_) =>
+          fb match
+            case PotOption.ReadySome(b) => PotOption.ReadySome(f(Ior.right(b)))
+            case _                      => erra.valueCast[C]
+        case PotOption.ReadyNone       =>
+          fb match
+            case PotOption.Pending         => PotOption.Pending
+            case errb @ PotOption.Error(_) => errb.valueCast[C]
+            case PotOption.ReadyNone       => PotOption.ReadyNone
+            case PotOption.ReadySome(b)    => PotOption.ReadySome(f(Ior.right(b)))
+        case PotOption.ReadySome(a)    =>
+          fb match
+            case PotOption.ReadySome(b) => PotOption.ReadySome(f(Ior.both(a, b)))
+            case _                      => PotOption.ReadySome(f(Ior.left(a)))
+  }
 }
