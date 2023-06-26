@@ -5,9 +5,10 @@ package crystal
 
 import org.scalacheck.*
 
+import scala.annotation.targetName
+
 import Arbitrary.*
 import Gen.*
-import scala.annotation.targetName
 
 object arbitraries {
   given [A: Arbitrary]: Arbitrary[Pot[A]] =
