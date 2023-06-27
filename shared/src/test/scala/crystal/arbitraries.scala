@@ -3,13 +3,15 @@
 
 package crystal
 
-import org.scalacheck._
+import org.scalacheck.*
 
-import Arbitrary._
-import Gen._
+import scala.annotation.targetName
+
+import Arbitrary.*
+import Gen.*
 
 object arbitraries {
-  implicit def arbPot[A: Arbitrary]: Arbitrary[Pot[A]] =
+  given [A: Arbitrary]: Arbitrary[Pot[A]] =
     Arbitrary(
       oneOf(
         Gen.const(Pot.Pending),
@@ -18,10 +20,10 @@ object arbitraries {
       )
     )
 
-  implicit def arbPotF[A](implicit fArb: Arbitrary[A => A]): Arbitrary[Pot[A] => Pot[A]] =
+  given [A](using Arbitrary[A => A]): Arbitrary[Pot[A] => Pot[A]] =
     Arbitrary(arbitrary[A => A].map(f => _.map(f)))
 
-  implicit def arbPotOption[A: Arbitrary]: Arbitrary[PotOption[A]] =
+  given [A: Arbitrary]: Arbitrary[PotOption[A]] =
     Arbitrary(
       oneOf(
         Gen.const(PotOption.Pending),
@@ -31,8 +33,7 @@ object arbitraries {
       )
     )
 
-  implicit def arbPotOptionF[A](implicit
-    fArb: Arbitrary[A => A]
-  ): Arbitrary[PotOption[A] => PotOption[A]] =
+  @targetName("potOptionFnArbitrary")
+  given [A](using fArb: Arbitrary[A => A]): Arbitrary[PotOption[A] => PotOption[A]] =
     Arbitrary(arbitrary[A => A].map(f => _.map(f)))
 }

@@ -6,7 +6,7 @@ package crystal
 import cats.effect.Deferred
 import cats.effect.IO
 import cats.effect.Ref
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.std.option.some
 
 class ViewOptFSpec extends munit.CatsEffectSuite {

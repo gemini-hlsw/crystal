@@ -15,5 +15,5 @@ case class SerialState[A] private (
 object SerialState {
   def initial[A](value: A): SerialState[A] = SerialState(value)
 
-  implicit def reuseSerialState[A]: Reusability[SerialState[A]] = Reusability.by(_.serial)
+  given [A]: Reusability[SerialState[A]] = Reusability.by(_.serial)
 }

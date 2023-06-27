@@ -4,10 +4,9 @@
 package crystal.react.hooks
 
 import cats.effect.Resource
-import crystal.Pot
-import crystal.implicits._
-import crystal.react.implicits._
-import japgolly.scalajs.react._
+import crystal.*
+import crystal.react.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
 
@@ -35,7 +34,7 @@ object UseResource {
        */
       final def useResource[D: Reusability, A](
         deps: => D
-      )(resource: D => Resource[DefaultA, A])(implicit
+      )(resource: D => Resource[DefaultA, A])(using
         step: Step
       ): step.Next[Pot[A]] =
         useResourceBy(_ => deps)(_ => resource)
@@ -44,7 +43,7 @@ object UseResource {
        * Open a `Resource[Async, A]` on mount and close it on unmount. Provided as a `Pot[A]`. Will
        * rerender when the `Pot` state changes.
        */
-      final def useResourceOnMount[A](resource: Resource[DefaultA, A])(implicit
+      final def useResourceOnMount[A](resource: Resource[DefaultA, A])(using
         step: Step
       ): step.Next[Pot[A]] =
         useResourceOnMountBy(_ => resource)
@@ -56,7 +55,7 @@ object UseResource {
        */
       final def useResourceBy[D: Reusability, A](
         deps: Ctx => D
-      )(resource: Ctx => D => Resource[DefaultA, A])(implicit
+      )(resource: Ctx => D => Resource[DefaultA, A])(using
         step: Step
       ): step.Next[Pot[A]] =
         api.customBy { ctx =>
@@ -68,7 +67,7 @@ object UseResource {
        * Open a `Resource[Async, A]` on mount and close it on unmount. Provided as a `Pot[A]`. Will
        * rerender when the `Pot` state changes.
        */
-      final def useResourceOnMountBy[A](resource: Ctx => Resource[DefaultA, A])(implicit
+      final def useResourceOnMountBy[A](resource: Ctx => Resource[DefaultA, A])(using
         step: Step
       ): step.Next[Pot[A]] = // () has Reusability = always.
         useResourceBy(_ => ())(ctx => _ => resource(ctx))
@@ -85,7 +84,7 @@ object UseResource {
        */
       def useResourceBy[D: Reusability, A](
         deps: CtxFn[D]
-      )(resource: CtxFn[D => Resource[DefaultA, A]])(implicit
+      )(resource: CtxFn[D => Resource[DefaultA, A]])(using
         step: Step
       ): step.Next[Pot[A]] =
         useResourceBy(step.squash(deps)(_))(step.squash(resource)(_))
@@ -94,15 +93,15 @@ object UseResource {
        * Open a `Resource[Async, A]` on mount and close it on unmount. Provided as a `Pot[A]`. Will
        * rerender when the `Pot` state changes.
        */
-      final def useResourceOnMountBy[A](resource: CtxFn[Resource[DefaultA, A]])(implicit
+      final def useResourceOnMountBy[A](resource: CtxFn[Resource[DefaultA, A]])(using
         step: Step
       ): step.Next[Pot[A]] =
         useResourceOnMountBy(step.squash(resource)(_))
     }
   }
 
-  trait HooksApiExt {
-    import HooksApiExt._
+  protected trait HooksApiExt {
+    import HooksApiExt.*
 
     implicit def hooksExtResource1[Ctx, Step <: HooksApi.AbstractStep](
       api: HooksApi.Primary[Ctx, Step]
@@ -115,5 +114,5 @@ object UseResource {
       new Secondary(api)
   }
 
-  object implicits extends HooksApiExt
+  object syntax extends HooksApiExt
 }

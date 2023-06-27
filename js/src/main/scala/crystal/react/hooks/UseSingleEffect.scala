@@ -7,9 +7,9 @@ import cats.Monoid
 import cats.effect.Async
 import cats.effect.Deferred
 import cats.effect.Ref
-import cats.effect.syntax.all._
-import cats.syntax.all._
-import japgolly.scalajs.react._
+import cats.effect.syntax.all.given
+import cats.syntax.all.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
 
@@ -18,7 +18,7 @@ import scala.concurrent.duration.FiniteDuration
 class UseSingleEffect[F[_]](
   latch:    Ref[F, Option[Deferred[F, UnitFiber[F]]]],
   debounce: Option[FiniteDuration]
-)(implicit F: Async[F], monoid: Monoid[F[Unit]]) {
+)(using F: Async[F], monoid: Monoid[F[Unit]]) {
   private val debounceEffect: F[Unit] = debounce.map(F.sleep).orEmpty
 
   private def switchTo(effect: F[Unit]): F[Unit] =
@@ -67,7 +67,7 @@ object UseSingleEffect {
        *
        * A submitted effect can be explicitly canceled too.
        */
-      final def useSingleEffect(debounce: FiniteDuration)(implicit
+      final def useSingleEffect(debounce: FiniteDuration)(using
         step: Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
         useSingleEffectBy(_ => debounce)
@@ -78,7 +78,7 @@ object UseSingleEffect {
        *
        * A submitted effect can be explicitly canceled too.
        */
-      final def useSingleEffect(implicit
+      final def useSingleEffect(using
         step: Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
         api.customBy(_ => hook(none))
@@ -89,7 +89,7 @@ object UseSingleEffect {
        *
        * A submitted effect can be explicitly canceled too.
        */
-      final def useSingleEffectBy(debounce: Ctx => FiniteDuration)(implicit
+      final def useSingleEffectBy(debounce: Ctx => FiniteDuration)(using
         step: Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
         api.customBy(ctx => hook(debounce(ctx).some))
@@ -107,15 +107,15 @@ object UseSingleEffect {
        *
        * `debounce` can specify a minimum `Duration` between invocations.
        */
-      def useSingleEffectBy(debounce: CtxFn[FiniteDuration])(implicit
+      def useSingleEffectBy(debounce: CtxFn[FiniteDuration])(using
         step: Step
       ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
         useSingleEffectBy(step.squash(debounce)(_))
     }
   }
 
-  trait HooksApiExt {
-    import HooksApiExt._
+  protected trait HooksApiExt {
+    import HooksApiExt.*
 
     implicit def hooksExtSingleEffect1[Ctx, Step <: HooksApi.AbstractStep](
       api: HooksApi.Primary[Ctx, Step]
@@ -128,5 +128,5 @@ object UseSingleEffect {
       new Secondary(api)
   }
 
-  object implicits extends HooksApiExt
+  object syntax extends HooksApiExt
 }

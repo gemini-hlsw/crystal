@@ -16,7 +16,7 @@ package crystal {
   object Wrap              {
     def a[A]: Lens[Wrap[A], A] = GenLens[Wrap[A]](_.a)
 
-    implicit def eqWrap[A: Eq]: Eq[Wrap[A]] = Eq.by(_.a)
+    given [A: Eq]: Eq[Wrap[A]] = Eq.by(_.a)
 
     def iso[A]: Iso[Wrap[A], A] = Iso[Wrap[A], A](_.a)(Wrap.apply)
   }
@@ -25,19 +25,17 @@ package crystal {
   object WrapOpt {
     def a[A]: Lens[WrapOpt[A], Option[A]] = GenLens[WrapOpt[A]](_.a)
 
-    def aOpt[A]: Optional[WrapOpt[A], A] =
-      WrapOpt.a.andThen(some[A].asOptional)
+    def aOpt[A]: Optional[WrapOpt[A], A] = WrapOpt.a.andThen(some[A].asOptional)
 
-    implicit def eqWrapOpt[A: Eq]: Eq[WrapOpt[A]] = Eq.by(_.a)
+    given [A: Eq]: Eq[WrapOpt[A]] = Eq.by(_.a)
   }
 
   case class WrapList[A](a: List[A])
   object WrapList {
     def a[A]: Lens[WrapList[A], List[A]] = GenLens[WrapList[A]](_.a)
 
-    def aList[A]: Traversal[WrapList[A], A] =
-      WrapList.a.andThen(Traversal.fromTraverse[List, A])
+    def aList[A]: Traversal[WrapList[A], A] = WrapList.a.andThen(Traversal.fromTraverse[List, A])
 
-    implicit def eqWrapList[A: Eq]: Eq[WrapList[A]] = Eq.by(_.a)
+    given [A: Eq]: Eq[WrapList[A]] = Eq.by(_.a)
   }
 }

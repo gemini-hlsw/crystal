@@ -3,10 +3,9 @@
 
 package crystal.react.hooks
 
-import crystal.Pot
-import crystal.implicits._
-import crystal.react.implicits._
-import japgolly.scalajs.react._
+import crystal.*
+import crystal.react.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
 
@@ -31,7 +30,7 @@ object UseEffectResult {
        */
       final def useEffectResultWithDeps[D: Reusability, A](
         deps: => D
-      )(effect: D => DefaultA[A])(implicit
+      )(effect: D => DefaultA[A])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultWithDepsBy(_ => deps)(_ => effect)
@@ -39,7 +38,7 @@ object UseEffectResult {
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
        */
-      final def useEffectResult[A](effect: DefaultA[A])(implicit
+      final def useEffectResult[A](effect: DefaultA[A])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultBy(_ => effect)
@@ -47,7 +46,7 @@ object UseEffectResult {
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
        */
-      final def useEffectResultOnMount[A](effect: DefaultA[A])(implicit
+      final def useEffectResultOnMount[A](effect: DefaultA[A])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultOnMountBy(_ => effect)
@@ -57,7 +56,7 @@ object UseEffectResult {
        */
       final def useEffectResultWithDepsBy[D: Reusability, A](
         deps: Ctx => D
-      )(effect: Ctx => D => DefaultA[A])(implicit
+      )(effect: Ctx => D => DefaultA[A])(using
         step: Step
       ): step.Next[Pot[A]] =
         api.customBy { ctx =>
@@ -68,7 +67,7 @@ object UseEffectResult {
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
        */
-      final def useEffectResultBy[A](effect: Ctx => DefaultA[A])(implicit
+      final def useEffectResultBy[A](effect: Ctx => DefaultA[A])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultWithDepsBy(_ => NeverReuse)(ctx => _ => effect(ctx))
@@ -76,7 +75,7 @@ object UseEffectResult {
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
        */
-      final def useEffectResultOnMountBy[A](effect: Ctx => DefaultA[A])(implicit
+      final def useEffectResultOnMountBy[A](effect: Ctx => DefaultA[A])(using
         step: Step
       ): step.Next[Pot[A]] = // () has Reusability = always.
         useEffectResultWithDepsBy(_ => ())(ctx => _ => effect(ctx))
@@ -91,7 +90,7 @@ object UseEffectResult {
        */
       def useEffectResultWithDepsBy[D: Reusability, A](
         deps: CtxFn[D]
-      )(effect: CtxFn[D => DefaultA[A]])(implicit
+      )(effect: CtxFn[D => DefaultA[A]])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultWithDepsBy(step.squash(deps)(_))(step.squash(effect)(_))
@@ -99,7 +98,7 @@ object UseEffectResult {
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
        */
-      final def useEffectResult[A](effect: CtxFn[DefaultA[A]])(implicit
+      final def useEffectResult[A](effect: CtxFn[DefaultA[A]])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultBy(step.squash(effect)(_))
@@ -107,15 +106,15 @@ object UseEffectResult {
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
        */
-      final def useEffectResultOnMountBy[A](effect: CtxFn[DefaultA[A]])(implicit
+      final def useEffectResultOnMountBy[A](effect: CtxFn[DefaultA[A]])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultOnMountBy(step.squash(effect)(_))
     }
   }
 
-  trait HooksApiExt {
-    import HooksApiExt._
+  protected trait HooksApiExt {
+    import HooksApiExt.*
 
     implicit def hooksExtEffectResult1[Ctx, Step <: HooksApi.AbstractStep](
       api: HooksApi.Primary[Ctx, Step]
@@ -128,5 +127,5 @@ object UseEffectResult {
       new Secondary(api)
   }
 
-  object implicits extends HooksApiExt
+  object syntax extends HooksApiExt
 }

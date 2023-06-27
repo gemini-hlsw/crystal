@@ -4,7 +4,7 @@
 package crystal.react.hooks
 
 import crystal.react.View
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 
 object UseStateView {
@@ -23,13 +23,13 @@ object UseStateView {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
       /** Creates component state as a View */
-      final def useStateView[A](initialValue: => A)(implicit
+      final def useStateView[A](initialValue: => A)(using
         step: Step
       ): step.Next[View[A]] =
         useStateViewBy(_ => initialValue)
 
       /** Creates component state as a View */
-      final def useStateViewBy[A](initialValue: Ctx => A)(implicit
+      final def useStateViewBy[A](initialValue: Ctx => A)(using
         step: Step
       ): step.Next[View[A]] =
         api.customBy { ctx =>
@@ -43,15 +43,15 @@ object UseStateView {
     ) extends Primary[Ctx, Step](api) {
 
       /** Creates component state as a View */
-      def useStateViewBy[A](initialValue: CtxFn[A])(implicit
+      def useStateViewBy[A](initialValue: CtxFn[A])(using
         step: Step
       ): step.Next[View[A]] =
         useStateViewBy(step.squash(initialValue)(_))
     }
   }
 
-  trait HooksApiExt {
-    import HooksApiExt._
+  protected trait HooksApiExt {
+    import HooksApiExt.*
 
     implicit def hooksExtStateView1[Ctx, Step <: HooksApi.AbstractStep](
       api: HooksApi.Primary[Ctx, Step]
@@ -64,5 +64,5 @@ object UseStateView {
       new Secondary(api)
   }
 
-  object implicits extends HooksApiExt
+  object syntax extends HooksApiExt
 }
