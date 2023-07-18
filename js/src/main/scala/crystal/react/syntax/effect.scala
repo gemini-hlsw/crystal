@@ -119,9 +119,12 @@ trait effect {
       self.modState(f).map(_.to[DefaultA])
 
   extension [A](self: Hooks.UseRef[A])
-    inline def setAsync: A => DefaultA[Unit]        = a => self.set(a).to[DefaultA]
-    inline def modAsync: (A => A) => DefaultA[Unit] = f => self.mod(f).to[DefaultA]
-    inline def getAsync: DefaultA[A]                = self.get.to[DefaultA]
+    inline def setIn[F[_]: Sync](a: A): F[Unit]      = self.set(a).to[F]
+    inline def modIn[F[_]: Sync](f: A => A): F[Unit] = self.mod(f).to[F]
+    inline def getIn[F[_]: Sync]: F[A]              = self.get.to[F]
+    inline def setAsync: A => DefaultA[Unit]        = setIn[DefaultA](_)
+    inline def modAsync: (A => A) => DefaultA[Unit] = modIn[DefaultA](_)
+    inline def getAsync: DefaultA[A]                = getIn[DefaultA]
 
   extension [S](self: UseSerialState[S])
     inline def setStateAsync: Reusable[S => DefaultA[Unit]] =
