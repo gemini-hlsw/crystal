@@ -50,7 +50,7 @@ jobs:
 
       - name: sbt update
         if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
-        run: sbt 'project ${{ matrix.project }}' '++ ${{ matrix.scala }}' reload +update
+        run: sbt +update
 
       - name: Check that workflows are up to date
         run: sbt githubWorkflowCheck
@@ -110,7 +110,7 @@ jobs:
 
       - name: sbt update
         if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
-        run: sbt reload +update
+        run: sbt +update
 
       - name: Import signing key
         if: env.PGP_SECRET != '' && env.PGP_PASSPHRASE == ''
