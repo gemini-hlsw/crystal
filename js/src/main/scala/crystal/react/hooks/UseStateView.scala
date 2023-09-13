@@ -15,7 +15,7 @@ object UseStateView {
       .buildReturning { (_, state, delayedCallback) =>
         View[A](
           state.value,
-          (f, cb) => state.modState(f) >> delayedCallback(cb)
+          (f, cb) => delayedCallback(cb) >> state.modState(f)
         )
       }
 
