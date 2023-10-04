@@ -14,6 +14,8 @@ import monocle.Optional
 import monocle.Prism
 import monocle.Traversal
 
+import scala.annotation.targetName
+
 sealed abstract class ViewOps[F[_]: Monad, G[_], A] {
   val get: G[A]
 
@@ -113,6 +115,19 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, A => F[Unit]) => F[U
     // The zoom getter function is stored to use in callbacks, se we have to pass _.get
     // instead of capturing the value here. Otherwise, callbacks see a stale value.
     get.map(_ => f(zoom(_.get)(f => a1 => ev.flip(a1.map(f)))))
+
+  def toOptionView[B](using ev: A =:= Option[B]): Option[ViewF[F, B]] =
+    mapValue[B, ViewF[F, B]](identity)
+
+  @targetName("mapValuePot")
+  def mapValue[B, C](f: ViewF[F, B] => C)(using ev: A =:= Pot[B]): Pot[C] =
+    // _.get is safe here since it's only being called when the value is defined.
+    // The zoom getter function is stored to use in callbacks, se we have to pass _.get
+    // instead of capturing the value here. Otherwise, callbacks see a stale value.
+    get.map(_ => f(zoom(_.toOption.get)(f => a1 => ev.flip(a1.map(f)))))
+
+  def toPotView[B](using ev: A =:= Pot[B]): Pot[ViewF[F, B]] =
+    mapValue[B, ViewF[F, B]](identity)
 
   def when(cond: A => Boolean): Boolean = cond(get)
 
