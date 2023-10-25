@@ -3,6 +3,7 @@
 
 package crystal
 
+import cats.Id
 import org.scalacheck.*
 
 import scala.annotation.targetName
@@ -32,6 +33,10 @@ object arbitraries {
         arbitrary[A].map(PotOption.ReadySome.apply)
       )
     )
+
+  given viewFArb[A: Arbitrary]: Arbitrary[ViewF[Id, A]] = Arbitrary(
+    arbitrary[A].map(a => ViewF.apply[Id, A](a, (f, cb) => cb(f(a))))
+  )
 
   @targetName("potOptionFnArbitrary")
   given [A](using fArb: Arbitrary[A => A]): Arbitrary[PotOption[A] => PotOption[A]] =

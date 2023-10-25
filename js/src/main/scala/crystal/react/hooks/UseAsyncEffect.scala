@@ -46,7 +46,7 @@ object UseAsyncEffect {
        * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
-      final def useAsyncEffectWithDeps[D: Reusability, A](
+      final def useAsyncEffectWithDeps[D: Reusability](
         deps: => D
       )(effect: D => DefaultA[DefaultA[Unit]])(using
         step: Step
@@ -57,7 +57,7 @@ object UseAsyncEffect {
        * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
-      final def useAsyncEffect[A](effect: DefaultA[DefaultA[Unit]])(using
+      final def useAsyncEffect(effect: DefaultA[DefaultA[Unit]])(using
         step: Step
       ): step.Self =
         useAsyncEffectBy(_ => effect)
@@ -66,7 +66,7 @@ object UseAsyncEffect {
        * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
-      final def useAsyncEffectOnMount[A](effect: DefaultA[DefaultA[Unit]])(using
+      final def useAsyncEffectOnMount(effect: DefaultA[DefaultA[Unit]])(using
         step: Step
       ): step.Self =
         useAsyncEffectOnMountBy(_ => effect)
@@ -75,7 +75,7 @@ object UseAsyncEffect {
        * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
-      final def useAsyncEffectWithDepsBy[D: Reusability, A](
+      final def useAsyncEffectWithDepsBy[D: Reusability](
         deps: Ctx => D
       )(effect: Ctx => D => DefaultA[DefaultA[Unit]])(using
         step: Step
@@ -89,7 +89,7 @@ object UseAsyncEffect {
        * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
-      final def useAsyncEffectBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(using
+      final def useAsyncEffectBy(effect: Ctx => DefaultA[DefaultA[Unit]])(using
         step: Step
       ): step.Self =
         useAsyncEffectWithDepsBy(_ => NeverReuse)(ctx => _ => effect(ctx))
@@ -98,7 +98,7 @@ object UseAsyncEffect {
        * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
-      final def useAsyncEffectOnMountBy[A](effect: Ctx => DefaultA[DefaultA[Unit]])(using
+      final def useAsyncEffectOnMountBy(effect: Ctx => DefaultA[DefaultA[Unit]])(using
         step: Step
       ): step.Self = // () has Reusability = always.
         useAsyncEffectWithDepsBy(_ => ())(ctx => _ => effect(ctx))
@@ -112,7 +112,7 @@ object UseAsyncEffect {
        * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
-      def useAsyncEffectWithDepsBy[D: Reusability, A](
+      def useAsyncEffectWithDepsBy[D: Reusability](
         deps: CtxFn[D]
       )(effect: CtxFn[D => DefaultA[DefaultA[Unit]]])(using
         step: Step
@@ -123,7 +123,7 @@ object UseAsyncEffect {
        * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
-      def useAsyncEffectBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(using
+      def useAsyncEffectBy(effect: CtxFn[DefaultA[DefaultA[Unit]]])(using
         step: Step
       ): step.Self =
         useAsyncEffectBy(step.squash(effect)(_))
@@ -132,7 +132,7 @@ object UseAsyncEffect {
        * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
        * without a cleanup callback, just use the regular `useEffect` hook.
        */
-      def useAsyncEffectOnMountBy[A](effect: CtxFn[DefaultA[DefaultA[Unit]]])(using
+      def useAsyncEffectOnMountBy(effect: CtxFn[DefaultA[DefaultA[Unit]]])(using
         step: Step
       ): step.Self =
         useAsyncEffectOnMountBy(step.squash(effect)(_))
