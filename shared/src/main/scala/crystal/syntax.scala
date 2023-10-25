@@ -28,6 +28,7 @@ trait syntax {
     def toPot: Pot[A]             = Pot.fromTry[A](a)
     @targetName("tryToPotOption")
     def toPotOption: PotOption[A] = PotOption.fromTry(a)
+
 }
 
 object syntax extends syntax
