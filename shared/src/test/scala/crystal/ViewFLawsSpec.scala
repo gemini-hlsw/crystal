@@ -6,23 +6,16 @@ package crystal
 import cats.Eq
 import cats.Id
 import cats.Invariant
-import cats.laws.discipline.InvariantTests
-import cats.laws.discipline.SemigroupalTests
+import cats.laws.discipline.InvariantSemigroupalTests
 import munit.DisciplineSuite
 
 import arbitraries.given
 
-class ViewFLawsSpec extends DisciplineSuite {
-
-  private given viewEq[A: Eq]: Eq[ViewF[Id, A]] = Eq.by(_.get)
+class ViewFLawsSpec extends DisciplineSuite with EqInstances {
 
   checkAll(
-    "ViewF[Int].InvariantLaws",
-    InvariantTests[ViewF[Id, *]].invariant[Int, Int, String]
+    "ViewF[Int].InvariantSemigroupalTests",
+    InvariantSemigroupalTests[ViewF[Id, *]].invariantSemigroupal[Int, Int, Int]
   )
 
-  checkAll(
-    "ViewF[Int].SemigroupalLaws",
-    SemigroupalTests[ViewF[Id, *]].semigroupal[Int, Int, String]
-  )
 }

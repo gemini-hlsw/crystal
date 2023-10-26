@@ -6,9 +6,8 @@ package crystal
 import cats.Applicative
 import cats.Eq
 import cats.FlatMap
-import cats.Invariant
+import cats.InvariantSemigroupal
 import cats.Monad
-import cats.Semigroupal
 import cats.effect.Ref
 import cats.syntax.all.*
 
@@ -39,10 +38,28 @@ object throwable {
     }
 }
 
-given [F[_]: Monad]: Semigroupal[ViewF[F, *]] with
+given [F[_]: Monad]: InvariantSemigroupal[ViewF[F, *]] with
   def product[A, B](fa: ViewF[F, A], fb: ViewF[F, B]): ViewF[F, (A, B)] =
-    ViewF.apply(fa.get -> fb.get, (f, cb) => cb(f(fa.get, fb.get)))
+    ViewF.apply(
+      fa.get -> fb.get,
+      (f, cb) =>
+        fa.modCB( // Get current a value
+          identity(_),
+          oldA =>
+            fb.modCB( // Get current b value
+              identity(_),
+              oldB =>
+                fa.modCB( // Modify underlying a value
+                  a => f(a, oldB)._1,
+                  newA =>
+                    fb.modCB( // Modify underlying b value
+                      b => f(oldA, b)._2,
+                      newB => cb((newA, newB))
+                    )
+                )
+            )
+        )
+    )
 
-given [F[_]: Monad]: Invariant[ViewF[F, *]] with
   def imap[A, B](fa: ViewF[F, A])(f: A => B)(g: B => A): ViewF[F, B] =
     fa.zoom(f)(mod => a => g(mod(f(a))))
