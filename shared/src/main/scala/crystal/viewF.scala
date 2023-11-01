@@ -219,6 +219,9 @@ abstract class ViewOptF[F[_]: Monad, A](
   def mapValue[B](f: ViewF[F, A] => B)(using Monoid[F[Unit]]): Option[B] =
     get.map(a => f(ViewF[F, A](a, (mod, cb) => modCB(mod, _.foldMap(cb)))))
 
+  def toOptionView(using Monoid[F[Unit]]): Option[ViewF[F, A]] =
+    mapValue(identity)
+
   override def toString(): String = s"ViewOptF($get, <modFn>)"
 }
 
