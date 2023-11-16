@@ -61,8 +61,11 @@ sealed trait PotOption[+A] {
 
   def toOption: Option[A] = fold(none, _ => none, none, _.some)
 
-  def toOptionTry: Option[Try[A]] =
-    toPot.toOptionTry
+  def toOptionTry: Option[Try[Option[A]]] =
+    fold(none, t => Failure(t).some, Success(none).some, a => Success(a.some).some)
+
+  def toOptionEither: Option[Either[Throwable, Option[A]]] =
+    toOptionTry.map(_.toEither)
 }
 
 object PotOption {
