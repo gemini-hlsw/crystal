@@ -102,8 +102,8 @@ class PotOptionSpec extends DisciplineSuite {
     forAll((t: Throwable) => PotOption.error[Int](t).toOptionTry.contains_(Failure(t)))
   }
 
-  property("PotOption[Int].toOptionTry: ReadySome(a) is Some(Success(a))") {
-    forAll((i: Int) => PotOption.ReadySome(i).toOptionTry === Success(i).some)
+  property("PotOption[Int].toOptionTry: ReadySome(a) is Some(Success(Some(a)))") {
+    forAll((i: Int) => PotOption.ReadySome(i).toOptionTry === Success(i.some).some)
   }
 
   property("PotOption[Int] (Any.ready): a.ready === Ready(a)") {

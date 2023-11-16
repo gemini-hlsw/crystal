@@ -64,6 +64,8 @@ sealed trait Pot[+A] {
       case Pot.Error(t) => Failure(t).some
       case Pot.Ready(a) => Success(a).some
     }
+
+  def toOptionEither: Option[Either[Throwable, A]] = toOptionTry.map(_.toEither)
 }
 
 object Pot {
