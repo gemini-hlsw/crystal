@@ -7,9 +7,8 @@ import cats.Eq
 import cats.Id
 import cats.Invariant
 import cats.laws.discipline.InvariantSemigroupalTests
+import crystal.arb.given
 import munit.DisciplineSuite
-
-import arbitraries.given
 
 class ViewFLawsSpec extends DisciplineSuite with EqInstances {
 

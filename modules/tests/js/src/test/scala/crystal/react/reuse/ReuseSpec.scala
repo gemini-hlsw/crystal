@@ -7,6 +7,8 @@ import japgolly.scalajs.react.Reusability
 import munit.ScalaCheckSuite
 import org.scalacheck.Prop.*
 
+import scala.language.implicitConversions
+
 final class ReuseSpec extends ScalaCheckSuite {
 
   test("Reuse(function).by(value) syntax") {

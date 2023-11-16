@@ -1,35 +1,51 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / crossScalaVersions := List("3.3.1")
-ThisBuild / tlBaseVersion      := "0.35"
+ThisBuild / tlBaseVersion      := "0.36"
 
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
-lazy val root = tlCrossRootProject.aggregate(crystal)
+lazy val root = tlCrossRootProject.aggregate(core, testkit, tests)
 
-lazy val crystal = crossProject(JVMPlatform, JSPlatform)
-  .in(file("."))
+lazy val core = crossProject(JVMPlatform, JSPlatform)
+  .in(file("modules/core"))
   .settings(
+    name := "crystal",
     scalacOptions += "-language:implicitConversions",
     libraryDependencies ++=
       Settings.Libraries.CatsJS.value ++
         Settings.Libraries.CatsEffectJS.value ++
         Settings.Libraries.Fs2JS.value ++
         Settings.Libraries.Monocle.value ++
-        Settings.Libraries.Log4Cats.value ++
-        (
-          Settings.Libraries.MUnit.value ++
-            Settings.Libraries.Discipline.value ++
-            Settings.Libraries.DisciplineMUnit.value ++
-            Settings.Libraries.CatsLaws.value ++
-            Settings.Libraries.MonocleMacro.value ++
-            Settings.Libraries.MonocleLaw.value
-        ).map(_ % Test)
+        Settings.Libraries.Log4Cats.value
   )
   .jsSettings(
     libraryDependencies ++= {
-      Settings.Libraries.ScalaJSReact.value ++ (if (scalaBinaryVersion.value == "3")
-                                                  Settings.Libraries.LucumaReact.value
-                                                else Settings.Libraries.ReactCommon.value)
+      Settings.Libraries.ScalaJSReact.value ++
+        Settings.Libraries.LucumaReact.value
     }
   )
+
+lazy val testkit = crossProject(JVMPlatform, JSPlatform)
+  .in(file("modules/testkit"))
+  .settings(
+    name := "crystal-testkit",
+    libraryDependencies ++=
+      Settings.Libraries.ScalaCheck.value
+  )
+  .dependsOn(core)
+
+lazy val tests = crossProject(JVMPlatform, JSPlatform)
+  .in(file("modules/tests"))
+  .enablePlugins(NoPublishPlugin)
+  .settings(
+    name := "crystal-tests",
+    libraryDependencies ++=
+      (Settings.Libraries.MUnit.value ++
+        Settings.Libraries.Discipline.value ++
+        Settings.Libraries.DisciplineMUnit.value ++
+        Settings.Libraries.CatsLaws.value ++
+        Settings.Libraries.MonocleMacro.value ++
+        Settings.Libraries.MonocleLaw.value).map(_ % Test)
+  )
+  .dependsOn(testkit)
