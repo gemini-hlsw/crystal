@@ -11,11 +11,11 @@ object Settings {
     val disciplineMUnit = "1.0.9"
     val fs2             = "3.9.3"
     val log4Cats        = "2.6.0"
+    val lucumaReact     = "0.47.0"
     val monocle         = "3.2.0"
     val mUnit           = "0.7.29"
     val mUnitCatsEffect = "1.0.7"
-    val reactCommon     = "0.24.0"
-    val lucumaReact     = "0.47.0"
+    val scalaCheck      = "1.17.0"
     val scalajsReact    = "2.1.1"
   }
 
@@ -90,16 +90,15 @@ object Settings {
       )
     )
 
-    val ReactCommon = Def.setting(
-      Seq[ModuleID](
-        "io.github.cquiroz.react" %%% "common" % reactCommon,
-        "io.github.cquiroz.react" %%% "cats"   % reactCommon
-      )
-    )
-
     val LucumaReact = Def.setting(
       Seq[ModuleID](
         "edu.gemini" %%% "lucuma-react-common" % lucumaReact
+      )
+    )
+
+    val ScalaCheck = Def.setting(
+      Seq[ModuleID](
+        "org.scalacheck" %%% "scalacheck" % scalaCheck
       )
     )
 

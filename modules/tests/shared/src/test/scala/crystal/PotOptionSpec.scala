@@ -8,6 +8,7 @@ import cats.laws.discipline.SemigroupalTests.Isomorphisms
 import cats.laws.discipline.*
 import cats.laws.discipline.arbitrary.*
 import cats.syntax.all.*
+import crystal.arb.given
 import crystal.throwable.given
 import monocle.law.discipline.PrismTests
 import munit.DisciplineSuite
@@ -17,8 +18,6 @@ import org.scalacheck.Prop.forAll
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
-
-import arbitraries.given
 
 class PotOptionSpec extends DisciplineSuite {
   given Isomorphisms[PotOption] = Isomorphisms.invariant[PotOption]

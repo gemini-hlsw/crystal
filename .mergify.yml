@@ -17,3 +17,27 @@ pull_request_rules:
   - status-success=Build and Test (ubuntu-latest, 3, temurin@17, rootJVM)
   actions:
     merge: {}
+- name: Label core PRs
+  conditions:
+  - files~=^modules/core/
+  actions:
+    label:
+      add:
+      - core
+      remove: []
+- name: Label testkit PRs
+  conditions:
+  - files~=^modules/testkit/
+  actions:
+    label:
+      add:
+      - testkit
+      remove: []
+- name: Label tests PRs
+  conditions:
+  - files~=^modules/tests/
+  actions:
+    label:
+      add:
+      - tests
+      remove: []
