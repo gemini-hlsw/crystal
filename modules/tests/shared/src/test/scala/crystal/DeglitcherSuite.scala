@@ -25,14 +25,14 @@ class DeglitcherSuite extends CatsEffectSuite {
     TestControl
       .executeEmbed {
         Deglitcher[IO](100.millis).flatMap { deglitcher =>
-          server(() -> 1.millis, () -> 1.millis, () -> 1.millis)
+          server(0 -> 1.millis, 1 -> 1.millis, 2 -> 1.millis)
             .through(deglitcher.debounce)
-            .evalMap(_ => IO.realTime)
+            .evalMap(IO.realTime.tupleLeft(_))
             .compile
             .toList
         }
       }
-      .assertEquals(List(1.millis, 2.millis, 3.millis))
+      .assertEquals(List(0 -> 1.millis, 1 -> 2.millis, 2 -> 3.millis))
   }
 
   test("respects throttling") {
@@ -51,6 +51,28 @@ class DeglitcherSuite extends CatsEffectSuite {
         }
       }
       .assertEquals(List(0 -> 0.millis, 2 -> 101.millis, 3 -> 230.millis))
+  }
+
+  test("respects multiple throttles") {
+    TestControl
+      .executeEmbed {
+        Deglitcher[IO](100.millis).flatMap { deglitcher =>
+          server(0 -> 20.millis)
+            .through(deglitcher.debounce)
+            .evalMap(IO.realTime.tupleLeft(_))
+            .compile
+            .toList
+            .background
+            .use { result =>
+              IO.sleep(10.millis) *>
+                deglitcher.throttle *>
+                IO.sleep(40.millis) *>
+                deglitcher.throttle *>
+                result.flatMap(_.embedError)
+            }
+        }
+      }
+      .assertEquals(List(0 -> 150.millis))
   }
 
 }
