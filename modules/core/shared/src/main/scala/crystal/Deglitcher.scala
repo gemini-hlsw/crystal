@@ -9,7 +9,6 @@ import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Stream
 
-import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 
 final class Deglitcher[F[_]] private (
