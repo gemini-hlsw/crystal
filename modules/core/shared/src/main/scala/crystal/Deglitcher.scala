@@ -38,5 +38,5 @@ final class Deglitcher[F[_]] private (
 
 object Deglitcher {
   def apply[F[_]](timeout: FiniteDuration)(using F: Temporal[F]): F[Deglitcher[F]] =
-    F.ref(Duration.Zero).map(new Deglitcher(_, timeout))
+    F.monotonic.flatMap(F.ref(_)).map(new Deglitcher(_, timeout))
 }
