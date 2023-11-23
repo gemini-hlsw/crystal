@@ -5,7 +5,7 @@ package crystal
 
 import cats.effect.Ref
 import cats.effect.Temporal
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Stream
 
@@ -18,13 +18,13 @@ final class Deglitcher[F[_]] private (
 )(using F: Temporal[F]) {
 
   def throttle: F[Unit] =
-    F.realTime.flatMap(now => waitUntil.set(now + timeout))
+    F.monotonic.flatMap(now => waitUntil.set(now + timeout))
 
   def debounce[A]: Pipe[F, A, A] =
     _.switchMap { a =>
       Stream.eval {
         def wait: F[Unit] =
-          (waitUntil.get, F.realTime).flatMapN { (waitUntil, now) =>
+          (waitUntil.get, F.monotonic).flatMapN { (waitUntil, now) =>
             if (waitUntil > now)
               F.sleep(waitUntil - now) *> wait
             else F.unit
