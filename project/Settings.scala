@@ -34,6 +34,12 @@ object Settings {
       )
     )
 
+    val CatsEffectTestkit = Def.setting(
+      Seq[ModuleID](
+        "org.typelevel" %%% "cats-effect-testkit" % catsEffect
+      )
+    )
+
     val CatsLaws = Def.setting(
       Seq[ModuleID](
         "org.typelevel" %%% "cats-laws" % cats
