@@ -144,11 +144,15 @@ class PotSpec extends DisciplineSuite {
     }
   }
 
-  // property("Ready(None).flatOpt === Pending") {
-  //   Pot.Ready(None).flatOpt == Pot.Pending
-  // }
+  property("Pot[Int].filter") {
+    forAll { (p: Pot[Int]) =>
+      p.filter(_ > 0) === p.flatMap(i => if (i > 0) Pot.Ready(i) else Pot.Pending)
+    }
+  }
 
-  // property("Pot[Option[Int]] (Pot.flatten): Ready(Some(a)).flatOpt === Ready(a)") {
-  //   forAll((i: Int) => Pot.Ready(Some(i)).flatOpt === Pot.Ready(i))
-  // }
+  property("Pot[Int].filterNot") {
+    forAll { (p: Pot[Int]) =>
+      p.filterNot(_ > 0) === p.flatMap(i => if (i <= 0) Pot.Ready(i) else Pot.Pending)
+    }
+  }
 }

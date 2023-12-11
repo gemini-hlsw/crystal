@@ -66,6 +66,14 @@ sealed trait Pot[+A] {
     }
 
   def toOptionEither: Option[Either[Throwable, A]] = toOptionTry.map(_.toEither)
+
+  def filter(f: A => Boolean): Pot[A] =
+    this match {
+      case Pot.Ready(a) if !f(a) => Pot.pending
+      case _                     => this
+    }
+
+  def filterNot(f: A => Boolean): Pot[A] = filter(a => !f(a))
 }
 
 object Pot {
