@@ -11,7 +11,7 @@ object Settings {
     val disciplineMUnit = "1.0.9"
     val fs2             = "3.9.4"
     val log4Cats        = "2.6.0"
-    val lucumaReact     = "0.48.3"
+    val lucumaReact     = "0.50.0"
     val monocle         = "3.2.0"
     val mUnit           = "0.7.29"
     val mUnitCatsEffect = "1.0.7"
