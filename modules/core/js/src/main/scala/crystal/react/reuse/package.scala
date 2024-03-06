@@ -304,16 +304,16 @@ extension [F[_]: Monad, A](rv: Reuse[ViewF[F, A]])
 
   def asList: Reuse[ViewListF[F, A]] = zoom(Iso.id[A].asTraversal)
 
-  def zoom[B](lens: Lens[A, B]): Reuse[ViewF[F, B]] = zoom(lens.get _)(lens.modify)
+  def zoom[B](lens: Lens[A, B]): Reuse[ViewF[F, B]] = zoom(lens.get)(lens.modify)
 
   def zoom[B](optional: Optional[A, B]): Reuse[ViewOptF[F, B]] =
-    zoomOpt(optional.getOption _)(optional.modify)
+    zoomOpt(optional.getOption)(optional.modify)
 
   def zoom[B](prism: Prism[A, B]): Reuse[ViewOptF[F, B]] =
-    zoomOpt(prism.getOption _)(prism.modify)
+    zoomOpt(prism.getOption)(prism.modify)
 
   def zoom[B](traversal: Traversal[A, B]): Reuse[ViewListF[F, B]] =
-    zoomList(traversal.getAll _)(traversal.modify)
+    zoomList(traversal.getAll)(traversal.modify)
 
   def withOnMod(f: A => F[Unit]): Reuse[ViewF[F, A]] = rv.map(_.withOnMod(f))
 
@@ -358,7 +358,7 @@ extension [F[_]: Monad, A](rvo: Reuse[ViewOptF[F, A]])
     rvo.map(_.zoomList(getB)(modB))
 
   @targetName("reuseViewOptZoomLens")
-  def zoom[B](lens: Lens[A, B]): Reuse[ViewOptF[F, B]] = zoom(lens.get _)(lens.modify)
+  def zoom[B](lens: Lens[A, B]): Reuse[ViewOptF[F, B]] = zoom(lens.get)(lens.modify)
 
   @targetName("reuseViewOptZoomOptional")
   def zoom[B](optional: Optional[A, B]): Reuse[ViewOptF[F, B]] =
@@ -415,7 +415,7 @@ extension [F[_]: Monad, A](rvl: Reuse[ViewListF[F, A]])
     rvl.map(_.zoomList(getB)(modB))
 
   @targetName("reuseViewListZoomLens")
-  def zoom[B](lens: Lens[A, B]): Reuse[ViewListF[F, B]] = zoom(lens.get _)(lens.modify)
+  def zoom[B](lens: Lens[A, B]): Reuse[ViewListF[F, B]] = zoom(lens.get)(lens.modify)
 
   @targetName("reuseViewListZoomOptional")
   def zoom[B](optional: Optional[A, B]): Reuse[ViewListF[F, B]] =

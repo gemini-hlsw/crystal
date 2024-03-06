@@ -18,7 +18,7 @@ import scala.reflect.ClassTag
 trait view {
   extension [A](view: View[A])
     def async(using Logger[DefaultA]): ViewF[DefaultA, A] =
-      view.to[DefaultA](syncToAsync.apply[Unit] _, _.runAsync)
+      view.to[DefaultA](syncToAsync.apply[Unit], _.runAsync)
 
   extension [F[_], A: ClassTag: Reusability](view: ViewF[F, A])
     def reuseByValue: Reuse[ViewF[F, A]] = Reuse.by(view.get)(view)
@@ -36,7 +36,7 @@ trait view {
 
   extension [A](view: ReuseView[A])
     def async(using Logger[DefaultA]): ReuseViewF[DefaultA, A] =
-      view.map(_.to[DefaultA](syncToAsync.apply[Unit] _, _.runAsync))
+      view.map(_.to[DefaultA](syncToAsync.apply[Unit], _.runAsync))
 }
 
 object view extends view

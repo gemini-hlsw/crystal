@@ -16,7 +16,7 @@ trait EqInstances {
    */
   protected def functionEqualityCheckCount: Int = 16
 
-  private[this] def arbitraryValues[A](using A: Arbitrary[A]): LazyList[A] =
+  private def arbitraryValues[A](using A: Arbitrary[A]): LazyList[A] =
     LazyList.continually(A.arbitrary.sample).flatten
 
   given [A: Eq: Arbitrary: Cogen]: Eq[ViewF[Id, A]] = Eq.instance { (v1, v2) =>

@@ -85,16 +85,16 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, A => F[Unit]) => F[U
   def asViewList: ViewListF[F, A] = zoom(Iso.id[A].asTraversal)
 
   def zoom[B](lens: Lens[A, B]): ViewF[F, B] =
-    zoom(lens.get _)(lens.modify)
+    zoom(lens.get)(lens.modify)
 
   def zoom[B](optional: Optional[A, B]): ViewOptF[F, B] =
-    zoomOpt(optional.getOption _)(optional.modify)
+    zoomOpt(optional.getOption)(optional.modify)
 
   def zoom[B](prism: Prism[A, B]): ViewOptF[F, B] =
-    zoomOpt(prism.getOption _)(prism.modify)
+    zoomOpt(prism.getOption)(prism.modify)
 
   def zoom[B](traversal: Traversal[A, B]): ViewListF[F, B] =
-    zoomList(traversal.getAll _)(traversal.modify)
+    zoomList(traversal.getAll)(traversal.modify)
 
   def withOnMod(f: A => F[Unit]): ViewF[F, A] =
     new ViewF[F, A](
@@ -189,7 +189,7 @@ abstract class ViewOptF[F[_]: Monad, A](
     }
 
   def zoom[B](lens: Lens[A, B]): ViewOptF[F, B] =
-    zoom(lens.get _)(lens.modify)
+    zoom(lens.get)(lens.modify)
 
   def zoom[B](optional: Optional[A, B]): ViewOptF[F, B] =
     zoomOpt(optional.getOption)(optional.modify)
@@ -265,7 +265,7 @@ abstract class ViewListF[F[_]: Monad, A](
     }
 
   def zoom[B](lens: Lens[A, B]): ViewListF[F, B] =
-    zoom(lens.get _)(lens.modify)
+    zoom(lens.get)(lens.modify)
 
   def zoom[B](optional: Optional[A, B]): ViewListF[F, B] =
     zoomOpt(optional.getOption)(optional.modify)

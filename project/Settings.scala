@@ -11,12 +11,12 @@ object Settings {
     val disciplineMUnit = "1.0.9"
     val fs2             = "3.9.4"
     val log4Cats        = "2.6.0"
-    val lucumaReact     = "0.48.3"
+    val lucumaReact     = "0.52.0"
     val monocle         = "3.2.0"
     val mUnit           = "0.7.29"
     val mUnitCatsEffect = "1.0.7"
     val scalaCheck      = "1.17.0"
-    val scalajsReact    = "2.2.0-beta2"
+    val scalajsReact    = "3.0.0-beta3"
   }
 
   object Libraries {
