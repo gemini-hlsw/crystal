@@ -47,11 +47,11 @@ trait Reuse[+A] {
   protected[reuse] given reusability: Reusability[B]
 
   def addReuseBy[R: Reusability](r: R): Reuse[A]        = Reuse.by((reuseBy, r))(value)
-  def addReuseByFrom[C](r:          Reuse[C]): Reuse[A] = addReuseBy(r.reuseBy)(r.reusability)
+  def addReuseByFrom[C](r:          Reuse[C]): Reuse[A] = addReuseBy(r.reuseBy)(using r.reusability)
 
   def replaceReuseBy[R: Reusability: ClassTag](r: R): Reuse[A] = Reuse.by(r)(value)
   def replaceReuseByFrom[C](r: Reuse[C]): Reuse[A] =
-    replaceReuseBy(r.reuseBy)(r.reusability, r.classTag)
+    replaceReuseBy(r.reuseBy)(using r.reusability, r.classTag)
 
   def map[C](f: A => C): Reuse[C] = Reuse.by(reuseBy)(f(value))
 

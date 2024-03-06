@@ -21,7 +21,7 @@ object UseStateCallback {
           DefaultS.empty
         else
           delayedCallbacks.set(Queue.empty) >>
-            DefaultS.runAll(cbs.toList.map(_(state.value)): _*)
+            DefaultS.runAll(cbs.toList.map(_(state.value))*)
       }
       .buildReturning((_, delayedCallbacks) =>
         (cb: A => DefaultS[Unit]) => delayedCallbacks.mod(_.enqueue(cb))
