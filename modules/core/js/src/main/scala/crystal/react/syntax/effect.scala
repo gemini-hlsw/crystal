@@ -11,8 +11,8 @@ import crystal.*
 import crystal.react.hooks.UseSerialState
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Generic.MountedSimple
-import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
-import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
+import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
+import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 import japgolly.scalajs.react.util.Effect
 import japgolly.scalajs.react.util.Effect.UnsafeSync
 import monocle.Lens

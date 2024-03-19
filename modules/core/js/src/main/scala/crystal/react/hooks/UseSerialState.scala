@@ -6,7 +6,7 @@ package crystal.react.hooks
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.hooks.Hooks
-import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
+import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 case class UseSerialState[A] protected[hooks] (
   private val state: Hooks.UseState[SerialState[A]]

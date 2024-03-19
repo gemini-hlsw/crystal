@@ -4,8 +4,8 @@
 package crystal
 
 import cats.kernel.laws.discipline.EqTests
-import cats.laws.discipline.SemigroupalTests.Isomorphisms
 import cats.laws.discipline.*
+import cats.laws.discipline.SemigroupalTests.Isomorphisms
 import cats.laws.discipline.arbitrary.*
 import cats.syntax.all.*
 import crystal.arb.given

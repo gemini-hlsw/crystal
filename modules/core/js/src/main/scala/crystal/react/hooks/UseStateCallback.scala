@@ -3,10 +3,10 @@
 
 package crystal.react.hooks
 
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.hooks.Hooks
-import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
+import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 import scala.collection.immutable.Queue
 

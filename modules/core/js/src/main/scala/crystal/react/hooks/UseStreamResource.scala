@@ -10,8 +10,8 @@ import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.hooks.Hooks
-import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
-import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
+import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
+import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 import scala.reflect.ClassTag
 
