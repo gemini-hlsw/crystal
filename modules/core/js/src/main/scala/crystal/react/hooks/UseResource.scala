@@ -8,7 +8,7 @@ import crystal.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
-import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
+import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 object UseResource {
   def hook[D: Reusability, A] = CustomHook[WithDeps[D, Resource[DefaultA, A]]]

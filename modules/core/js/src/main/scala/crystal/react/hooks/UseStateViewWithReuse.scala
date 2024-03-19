@@ -3,8 +3,8 @@
 
 package crystal.react.hooks
 
-import crystal.react.ReuseView
 import crystal.react.*
+import crystal.react.ReuseView
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 

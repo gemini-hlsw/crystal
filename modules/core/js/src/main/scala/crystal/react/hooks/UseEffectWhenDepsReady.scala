@@ -11,7 +11,7 @@ import crystal.react.syntax.pot.given
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.hooks.Hooks.UseEffectArg
-import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
+import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 object UseEffectWhenDepsReady:
   def hook[D, A: UseEffectArg: Monoid] =

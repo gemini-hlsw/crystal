@@ -10,7 +10,7 @@ import crystal.*
 import crystal.react.*
 import crystal.react.reuse.*
 import japgolly.scalajs.react.*
-import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
+import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 import org.typelevel.log4cats.Logger
 
 import scala.reflect.ClassTag

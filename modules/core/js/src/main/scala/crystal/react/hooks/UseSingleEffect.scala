@@ -11,7 +11,7 @@ import cats.effect.syntax.all.given
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
-import japgolly.scalajs.react.util.DefaultEffects.{Async => DefaultA}
+import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 import scala.concurrent.duration.FiniteDuration
 
