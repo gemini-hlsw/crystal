@@ -180,6 +180,23 @@ Version of `useSerialState` that returns a `Reuse[View[A]]`.
   useSerialStateViewBy[A](initialValue: Ctx => A): Reuse[View[A]]
 ```
 
+### useEffectWhenDepsReady
+
+Version of `useEffect` applicable only when there's a unique dependency of type `Pot[A]`. It will trigger the effect only when the dependency transitions to a `Ready` state, whether it was from `Pending` or `Error`. 
+
+Note that multiple `Pot` dependencies can be combined into one with `.tupled`.
+
+``` scala
+  useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => Callback)
+  useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => Callback)
+
+  useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[Unit])
+  useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
+
+  useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => CallbackTo[Callback]) // return cleanup
+  useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx =>D => CallbackTo[Callback]) // return cleanup
+```
+
 ### useAsyncEffect
 
 Version of `useEffect` that allows defining an async effect with an (also async) cleanup effect.
@@ -190,16 +207,16 @@ This hook should only be used when a cleanup effect is needed. To use a regular 
 
 ``` scala
   useAsyncEffect(effect: IO[IO[Unit]])
-
   useAsyncEffectBy(effect: Ctx => IO[IO[Unit]])
 
   useAsyncEffectWithDeps[D: Reusability](deps: => D)(effect: D => IO[IO[Unit]])
-
   useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[IO[Unit]])
 
   useAsyncEffectOnMount(effect: IO[IO[Unit]])
-
   useAsyncEffectOnMountBy(effect: Ctx => IO[IO[Unit]])
+
+  useAsyncEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[IO[Unit]]) // return cleanup
+  useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) // return cleanup
 ```
 
 
@@ -207,17 +224,14 @@ This hook should only be used when a cleanup effect is needed. To use a regular 
 
 Stores the result `A` of an effect in state. The state is provided as `Pot[A]`, with value `Pending` until the effect completes (and `Error` if it fails).
 
+Note that all versions either have dependencies or are executed `onMount`. It doesn't make sense to execute the effect on each render since its completion will alter state and force a rerender, which would provoke a render loop. The naming keeps the `WithDeps`, even though it's redundant, for consistency with the `useEffect` family of hooks.
+
+
 ``` scala
-  useEffectResult[A](effect: IO[A]): Pot[A]
-
-  useEffectResultBy[A](effect: Ctx => IO[A]): Pot[A]
-
   useEffectResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
-
   useEffectResultWithDepsBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
 
   useEffectResultOnMount[A](effect: IO[A]): Pot[A]
-
   useEffectResultOnMountBy[A](effect: Ctx => IO[A]): Pot[A]
 ```
 
@@ -242,15 +256,13 @@ Opens a `Resource[IO, A]` upon mount or dependency change, and provides its valu
 
 The resource is gracefully closed upon unmount or dependency change.
 
-Note that there is no version without deps or `onMount` since it doesn't make sense to open a resource in each render, especially taking into account that once the resource is acquired it will force a rerender.
+Note that all versions either have dependencies or are executed `onMount`. It doesn't make sense to open a resource on each render since once the resource is acquired it will alter state and force a rerender, which would provoke a render loop.
 
 ``` scala
   useResource[D: Reusability, A](deps: => D)(resource: D => Resource[IO, A]): Pot[A]
-
   useResourceBy[D: Reusability, A](deps: Ctx => D)(resource: Ctx => D => Resource[IO, A]): Pot[A]
 
   useResourceOnMount[A](resource: Resource[IO, A]): Pot[A]
-
   useResourceOnMountBy[A](resource: Ctx => Resource[IO, A]): Pot[A]
 ```
 
@@ -260,15 +272,13 @@ Executes and drains a `fs2.Stream[IO, A]` upon mount or dependency change, and p
 
 The fiber evaluating the stream is canceled upon unmount or dependency change.
 
-Note that there is no version without deps or `onMount` since it doesn't make sense to open a resource in each render, especially taking into account that starting the draining fiber will force a rerender, as well as every new value produced.
+Note that all versions either have dependencies or are executed `onMount`. It doesn't make sense to open a stream on each render since executing the stream will alter state and force a rerender, which would provoke a render loop.
 
 ``` scala
   useStream[D: Reusability, A](deps: => D)(stream: D => fs2.Stream[IO, A]): PotOption[A]
-
   useStreamBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[A]
 
   useStreamOnMount[A](stream: fs2.Stream[IO, A]): PotOption[A]
-
   useStreamOnMountBy[A](stream: Ctx => fs2.Stream[IO, A]): PotOption[A]
 ```
 
@@ -286,11 +296,9 @@ In other words, the state will be modified on every new value produced by the st
 
 ``` scala
   useStreamView[D: Reusability, A](deps: => D)(stream: D => fs2.Stream[IO, A]): PotOption[View[A]]
-
   useStreamViewBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[View[A]]
 
   useStreamViewOnMount[A](stream: fs2.Stream[IO, A]): PotOption[View[A]]
-
   useStreamViewOnMountBy[A](stream: Ctx => fs2.Stream[IO, A]): PotOption[View[A]]
 ```
 
@@ -304,11 +312,9 @@ Upon unmount or dependency change, the evaluating fiber is cancelled and the res
 
 ``` scala
   useStreamResource[D: Reusability, A](deps: => D)(streamResource: D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
-
   useStreamResourceBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
 
   useStreamResourceOnMount[A](streamResource: Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
-
   useStreamResourceOnMountBy[A](streamResource: Ctx => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
 ```
 
@@ -320,13 +326,52 @@ Like `useStreamResource` but returns a `PotOption[View[A]]`, allowing local modi
 
 ``` scala
   useStreamResourceView[D: Reusability, A](deps: => D)(streamResource: D => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
-
   useStreamResourceViewBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
 
   useStreamResourceViewOnMount[A](streamResource: Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
-
   useStreamResourceViewOnMountBy[A](streamResource: Ctx => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
 ```
+
+### useEffectStream
+
+Executes and drains a `fs2.Stream[IO, Unit]` upon mount or dependency change. If still running, execution is cancelled upon unmount or dependency change.
+
+Like the `useEffect` family of hooks, this hook doesn't add any new parameters to the context.
+
+``` scala
+  useEffectStream(stream: D => fs2.Stream[IO, Unit])
+  useEffectStreamBy(stream: Ctx => fs2.Stream[IO, Unit])
+
+  useEffectStreamWithDeps[D: Reusability](deps: => D)(stream: D => fs2.Stream[IO, Unit])
+  useEffectStreamWithDepsBy[D: Reusability](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, Unit])
+
+  useEffectStreamOnMount(stream: fs2.Stream[IO, Unit])
+  useEffectStreamOnMountBy(stream: Ctx => fs2.Stream[IO, Unit])
+
+  useEffectStreamWhenDepsReady[D](deps: => Pot[D])(stream: D => fs2.Stream[IO, Unit])
+  useEffectStreamWhenDepsReadyBy[D](deps: Ctx => Pot[D])(stream: Ctx => D => fs2.Stream[IO, Unit])
+```
+
+### useEffectStreamResource
+
+Given a `Resource[IO, fs2.Stream[IO, Unit]]`, opens the resource and executes and drains the stream upon mount or dependency change. If still running, execution is cancelled and the resource closed upon unmount or dependency change.
+
+Like the `useEffect` family of hooks, this hook doesn't add any new parameters to the context.
+
+``` scala
+  useEffectStreamResource(stream: Resource[IO, fs2.Stream[IO, Unit]])
+  useEffectStreamResourceBy(stream: Ctx => Resource[IO, fs2.Stream[IO, Unit]])
+
+  useEffectStreamResourceWithDeps[D: Reusability](deps: => D)(stream: D => Resource[IO, fs2.Stream[IO, Unit]])
+  useEffectStreamResourceWithDepsBy[D: Reusability](deps: Ctx => D)(stream: Ctx => D => Resource[IO, fs2.Stream[IO, Unit]])
+
+  useEffectStreamResourceOnMount(stream: Resource[IO, fs2.Stream[IO, Unit]])
+  useEffectStreamResourceOnMountBy(stream: Ctx => Resource[IO, fs2.Stream[IO, Unit]])
+
+  useEffectStreamResourceWhenDepsReady[D](deps: => Pot[D])(stream: D => Resource[IO, fs2.Stream[IO, Unit]])
+  useEffectStreamResourceWhenDepsReadyBy[D](deps: Ctx => Pot[D])(stream: Ctx => D => Resource[IO, fs2.Stream[IO, Unit]])
+```
+
 
 ### `scalajs-react` <-> `cats-effect` interop
 
