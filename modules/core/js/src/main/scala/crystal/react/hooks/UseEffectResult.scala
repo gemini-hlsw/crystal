@@ -38,14 +38,6 @@ object UseEffectResult {
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
        */
-      final def useEffectResult[A](effect: DefaultA[A])(using
-        step: Step
-      ): step.Next[Pot[A]] =
-        useEffectResultBy(_ => effect)
-
-      /**
-       * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
-       */
       final def useEffectResultOnMount[A](effect: DefaultA[A])(using
         step: Step
       ): step.Next[Pot[A]] =
@@ -63,14 +55,6 @@ object UseEffectResult {
           val hookInstance = hook[D, A]
           hookInstance(WithDeps(deps(ctx), effect(ctx)))
         }
-
-      /**
-       * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
-       */
-      final def useEffectResultBy[A](effect: Ctx => DefaultA[A])(using
-        step: Step
-      ): step.Next[Pot[A]] =
-        useEffectResultWithDepsBy(_ => NeverReuse)(ctx => _ => effect(ctx))
 
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
@@ -94,14 +78,6 @@ object UseEffectResult {
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultWithDepsBy(step.squash(deps)(_))(step.squash(effect)(_))
-
-      /**
-       * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
-       */
-      final def useEffectResult[A](effect: CtxFn[DefaultA[A]])(using
-        step: Step
-      ): step.Next[Pot[A]] =
-        useEffectResultBy(step.squash(effect)(_))
 
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.

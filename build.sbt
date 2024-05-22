@@ -1,7 +1,7 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / crossScalaVersions := List("3.4.1")
-ThisBuild / tlBaseVersion      := "0.37"
+ThisBuild / tlBaseVersion      := "0.38"
 
 ThisBuild / tlCiReleaseBranches := Seq("master")
 

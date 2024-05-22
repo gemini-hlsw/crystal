@@ -25,73 +25,57 @@ object UseStreamResource {
   protected def hookBase[D: Reusability, A] =
     CustomHook[WithDeps[D, StreamResource[A]]]
       .useState(PotOption.pending[A])
-      .useResourceBy((props, _) => props.deps) { (props, state) => deps =>
-        for {
-          _      <- Resource.eval(state.setStateAsync(PotOption.pending))
-          stream <- props.fromDeps(deps)
-          fiber  <- Resource
-                      .make(
-                        stream
-                          .evalMap(v => state.setStateAsync(v.readySome))
-                          .compile
-                          .drain
-                          .handleErrorWith(state.setStateAsync.compose(PotOption.error))
-                          .start
-                      )(_.cancel)
-                      .evalTap(_ => state.setStateAsync(PotOption.ReadyNone))
-        } yield fiber
-      }
-
-  protected def buildResult[A](
-    resource: Pot[AsyncUnitFiber],
-    state:    Hooks.UseState[PotOption[A]]
-  ): PotOption[A] =
-    resource.toPotOption.flatMap(_ => state.value)
+      .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>
+        deps =>
+          Resource
+            .eval(state.setStateAsync(PotOption.pending))
+            .flatMap: _ =>
+              props
+                .fromDeps(deps)
+                .map: stream =>
+                  fs2.Stream.eval(state.setStateAsync(PotOption.ReadyNone)) ++
+                    stream
+                      .evalMap(v => state.setStateAsync(v.readySome))
+                      .handleErrorWith: t =>
+                        fs2.Stream.eval(state.setStateAsync(PotOption.error(t)))
 
   protected def buildView[A](
-    resource:        Pot[AsyncUnitFiber],
     state:           Hooks.UseState[PotOption[A]],
     delayedCallback: (PotOption[A] => DefaultS[Unit]) => DefaultS[Unit]
   ): PotOption[View[A]] =
-    resource.toPotOption.flatMap(_ =>
-      state.value.map(a =>
-        View[A](
-          a,
-          (f: A => A, cb: A => DefaultS[Unit]) =>
-            state.modState(_.map(f)) >> delayedCallback(_.toOption.foldMap(cb))
-        )
+    state.value.map: a =>
+      View[A](
+        a,
+        (f: A => A, cb: A => DefaultS[Unit]) =>
+          state.modState(_.map(f)) >> delayedCallback(_.toOption.foldMap(cb))
       )
-    )
 
   protected def buildReuseView[A: ClassTag: Reusability](
-    resource:        Pot[AsyncUnitFiber],
     state:           Hooks.UseState[PotOption[A]],
     delayedCallback: (PotOption[A] => DefaultS[Unit]) => DefaultS[Unit]
   ): PotOption[ReuseView[A]] =
-    buildView(resource, state, delayedCallback).map(_.reuseByValue)
+    buildView(state, delayedCallback).map(_.reuseByValue)
 
   def hook[D: Reusability, A] =
     hookBase[D, A]
-      .buildReturning((_, state, resource) => buildResult(resource, state))
+      .buildReturning((_, state) => state.value)
 
   def hookView[D: Reusability, A] =
     hookBase[D, A]
-      .useStateCallbackBy((_, state, _) => state)
-      .buildReturning { (_, state, resource, delayedCallback) =>
-        buildView[A](resource, state, delayedCallback)
-      }
+      .useStateCallbackBy((_, state) => state)
+      .buildReturning: (_, state, delayedCallback) =>
+        buildView[A](state, delayedCallback)
 
   def hookReuseView[D: Reusability, A: ClassTag: Reusability] =
     hookBase[D, A]
-      .useStateCallbackBy((_, state, _) => state)
-      .buildReturning { (_, state, resource, delayedCallback) =>
-        buildReuseView(resource, state, delayedCallback)
-      }
+      .useStateCallbackBy((_, state) => state)
+      .buildReturning: (_, state, delayedCallback) =>
+        buildReuseView(state, delayedCallback)
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
-      //// BEGIN STREAM METHODS
+      //// BEGIN PLAIN METHODS
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
