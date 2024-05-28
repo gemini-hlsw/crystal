@@ -57,8 +57,10 @@ object UseEffectStreamResource {
        * `Ready`. The fiber will be cancelled on unmount or if the dependency transitions to
        * `Pending` or `Error`.
        */
-      def useEffectStreamWhenDepsReady[D](deps: => Pot[D])(stream: D => fs2.Stream[DefaultA, Unit])(
-        using step: Step
+      final def useEffectStreamWhenDepsReady[D](
+        deps: => Pot[D]
+      )(stream: D => fs2.Stream[DefaultA, Unit])(using
+        step: Step
       ): step.Self =
         useEffectStreamWithDeps(deps.toOption.void)(_ => deps.toOption.map(stream).orEmpty)
 
@@ -94,7 +96,7 @@ object UseEffectStreamResource {
        * `Ready`. The fiber will be cancelled on unmount or if the dependency transitions to
        * `Pending` or `Error`.
        */
-      def useEffectStreamWhenDepsReadyBy[D](
+      final def useEffectStreamWhenDepsReadyBy[D](
         deps: Ctx => Pot[D]
       )(stream: Ctx => D => fs2.Stream[DefaultA, Unit])(using
         step: Step
@@ -229,7 +231,7 @@ object UseEffectStreamResource {
        * `Ready`. The fiber will be cancelled on unmount or if the dependency transitions to
        * `Pending` or `Error`.
        */
-      def useEffectStreamWhenDepsReadyBy[D](
+      final def useEffectStreamWhenDepsReadyBy[D](
         deps: CtxFn[Pot[D]]
       )(stream: CtxFn[D => fs2.Stream[DefaultA, Unit]])(using
         step: Step
@@ -267,7 +269,7 @@ object UseEffectStreamResource {
        * and drain the stream by creating a fiber. The fiber will be cancelled and the resource
        * closed on unmount or if the dependency transitions to `Pending` or `Error`.
        */
-      def useEffectStreamResourceWhenDepsReadyBy[D](
+      final def useEffectStreamResourceWhenDepsReadyBy[D](
         deps: CtxFn[Pot[D]]
       )(stream: CtxFn[D => StreamResource[Unit]])(using
         step: Step
