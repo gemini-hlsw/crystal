@@ -14,44 +14,76 @@ import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 import scala.concurrent.duration.FiniteDuration
+import cats.Applicative
+import scala.annotation.targetName
+
+trait EffectWithCleanup[G, F[_]]:
+  def resolve(f: G): F[F[Unit]]
+
+given effectWithNoCleanup: EffectWithCleanup[DefaultA[DefaultA[Unit]], DefaultA] with
+  def resolve(f: DefaultA[DefaultA[Unit]]): DefaultA[DefaultA[Unit]] = f
+
+given effectWithCleanup: EffectWithCleanup[DefaultA[Unit], DefaultA] with
+  def resolve(f: DefaultA[Unit]): DefaultA[DefaultA[Unit]] = f.as(Applicative[DefaultA].unit)
 
 class UseSingleEffect[F[_]](
   latch:    Ref[F, Option[Deferred[F, UnitFiber[F]]]],
+  cleanup:  Ref[F, Option[F[Unit]]],
   debounce: Option[FiniteDuration]
 )(using F: Async[F], monoid: Monoid[F[Unit]]) {
+  // given effectWithNoCleanup: EffectWithCleanup[F[F[Unit]], F] with
+  //   def resolve(f: F[F[Unit]]): F[F[Unit]] = f
+
+  // given effectWithCleanup: EffectWithCleanup[F[Unit], F] with
+  //   def resolve(f: F[Unit]): F[F[Unit]] = f.as(F.unit)
+
   private val debounceEffect: F[Unit] = debounce.map(F.sleep).orEmpty
 
-  private def switchTo(effect: F[Unit]): F[Unit] =
+  private def switchTo(effect: F[F[Unit]]): F[Unit] =
     Deferred[F, UnitFiber[F]] >>= (newLatch =>
       latch
-        .modify(oldLatch =>
-          (newLatch.some,
-           for {
-             // Cleanup latch after effect + debounce, so that we don't run debounce again next time.
-             newFiber <- (oldLatch.map(_.get.flatMap(_.cancel >> debounceEffect)).orEmpty >>
-                           effect >> debounceEffect >> latch.set(none)).start
-             _        <- newLatch.complete(newFiber)
-           } yield ()
+        .modify: oldLatch =>
+          (
+            newLatch.some,
+            (
+              oldLatch
+                .map:
+                  _.get.flatMap(_.cancel >> debounceEffect) >>
+                    cleanup.getAndSet(none).flatMap(_.orEmpty)
+                .orEmpty >>
+                effect.flatMap(f => cleanup.set(f.some)) >>
+                debounceEffect >>
+                // Discard latch after effect + debounce, so that we don't run debounce again next time.
+                latch.set(none)
+            ).start
+              .flatMap: newFiber =>
+                newLatch.complete(newFiber).void
           )
-        )
         .flatten
         .uncancelable
     )
 
-  val cancel: F[Unit] = switchTo(F.unit)
+  val cancel: F[Unit] = switchTo(F.unit.pure[F])
 
   // There's no need to clean up the fiber reference once the effect completes.
   // Worst case scenario, cancel will be called on it, which will do nothing.
-  def submit(effect: F[Unit]): F[Unit] = switchTo(effect)
+  def submit(effect: F[F[Unit]]): F[Unit] = switchTo(effect)
+
+  @targetName("submitNoCleanup")
+  def submit(effect: F[Unit]): F[Unit] = switchTo(effect.as(F.unit))
+
+  // def submit[G](effect: G)(using resolver: EffectWithCleanup[G, F]) = switchTo(
+  //   resolver.resolve(effect)
+  // )
 }
 
 object UseSingleEffect {
-
   val hook = CustomHook[Option[FiniteDuration]]
     .useMemoBy(_ => ())(debounce =>
       _ =>
         new UseSingleEffect(
           Ref.unsafe[DefaultA, Option[Deferred[DefaultA, UnitFiber[DefaultA]]]](none),
+          Ref.unsafe[DefaultA, Option[DefaultA[Unit]]](none),
           debounce
         )
     )
