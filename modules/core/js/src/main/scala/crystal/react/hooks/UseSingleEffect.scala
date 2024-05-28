@@ -14,29 +14,12 @@ import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 import scala.concurrent.duration.FiniteDuration
-import cats.Applicative
-import scala.annotation.targetName
-
-trait EffectWithCleanup[G, F[_]]:
-  def resolve(f: G): F[F[Unit]]
-
-given effectWithNoCleanup: EffectWithCleanup[DefaultA[DefaultA[Unit]], DefaultA] with
-  def resolve(f: DefaultA[DefaultA[Unit]]): DefaultA[DefaultA[Unit]] = f
-
-given effectWithCleanup: EffectWithCleanup[DefaultA[Unit], DefaultA] with
-  def resolve(f: DefaultA[Unit]): DefaultA[DefaultA[Unit]] = f.as(Applicative[DefaultA].unit)
 
 class UseSingleEffect[F[_]](
   latch:    Ref[F, Option[Deferred[F, UnitFiber[F]]]],
   cleanup:  Ref[F, Option[F[Unit]]],
   debounce: Option[FiniteDuration]
 )(using F: Async[F], monoid: Monoid[F[Unit]]) {
-  // given effectWithNoCleanup: EffectWithCleanup[F[F[Unit]], F] with
-  //   def resolve(f: F[F[Unit]]): F[F[Unit]] = f
-
-  // given effectWithCleanup: EffectWithCleanup[F[Unit], F] with
-  //   def resolve(f: F[Unit]): F[F[Unit]] = f.as(F.unit)
-
   private val debounceEffect: F[Unit] = debounce.map(F.sleep).orEmpty
 
   private def switchTo(effect: F[F[Unit]]): F[Unit] =
@@ -67,14 +50,13 @@ class UseSingleEffect[F[_]](
 
   // There's no need to clean up the fiber reference once the effect completes.
   // Worst case scenario, cancel will be called on it, which will do nothing.
-  def submit(effect: F[F[Unit]]): F[Unit] = switchTo(effect)
+  // def submit(effect: F[F[Unit]]): F[Unit] = switchTo(effect)
 
-  @targetName("submitNoCleanup")
-  def submit(effect: F[Unit]): F[Unit] = switchTo(effect.as(F.unit))
+  // @targetName("submitNoCleanup")
+  // def submit(effect: F[Unit]): F[Unit] = switchTo(effect.as(F.unit))
 
-  // def submit[G](effect: G)(using resolver: EffectWithCleanup[G, F]) = switchTo(
-  //   resolver.resolve(effect)
-  // )
+  def submit[G](effect: G)(using EffectWithCleanup[G, F]) =
+    switchTo(effect.normalize)
 }
 
 object UseSingleEffect {
