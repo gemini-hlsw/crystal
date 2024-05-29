@@ -14,7 +14,7 @@ object Settings {
     val lucumaReact     = "0.58.0"
     val monocle         = "3.2.0"
     val mUnit           = "0.7.29"
-    val mUnitCatsEffect = "1.0.7"
+    val mUnitCatsEffect = "2.0.0"
     val scalaCheck      = "1.18.0"
     val scalajsReact    = "3.0.0-beta3"
   }
@@ -90,9 +90,9 @@ object Settings {
 
     val MUnit = Def.setting(
       Seq[ModuleID](
-        "org.scalameta" %%% "munit"               % mUnit,
-        "org.scalameta" %%% "munit-scalacheck"    % mUnit,
-        "org.typelevel" %%% "munit-cats-effect-3" % mUnitCatsEffect
+        "org.scalameta" %%% "munit"             % mUnit,
+        "org.scalameta" %%% "munit-scalacheck"  % mUnit,
+        "org.typelevel" %%% "munit-cats-effect" % mUnitCatsEffect
       )
     )
 
