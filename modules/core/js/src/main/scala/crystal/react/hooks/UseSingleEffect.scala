@@ -4,6 +4,7 @@
 package crystal.react.hooks
 
 import cats.Monoid
+import cats.Parallel
 import cats.effect.Async
 import cats.effect.Deferred
 import cats.effect.Ref
@@ -13,37 +14,37 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
-import scala.concurrent.duration.FiniteDuration
-
 class UseSingleEffect[F[_]](
-  latch:    Ref[F, Option[Deferred[F, UnitFiber[F]]]],
-  cleanup:  Ref[F, Option[F[Unit]]],
-  debounce: Option[FiniteDuration]
-)(using F: Async[F], monoid: Monoid[F[Unit]]) {
-  private val debounceEffect: F[Unit] = debounce.map(F.sleep).orEmpty
+  latch:   Ref[F, Option[Deferred[F, UnitFiber[F]]]], // latch released as effect starts, holds fiber
+  cleanup: Ref[F, Option[F[Unit]]]                    // cleanup of the currently running effect
+)(using F: Async[F], parF: Parallel[F], monoid: Monoid[F[Unit]]) {
+
+  private def endOldEffect(oldLatch: Deferred[F, UnitFiber[F]]): F[Unit] =
+    // 1) We ensure the effect of the last call has started by waiting for the latch.
+    oldLatch.get.flatMap: oldFiber =>
+      // 2a) If the effect is still running, we cancel it. Noop if it has already completed; or
+      // 2b) If the effect has completed, we run its cleanup effect (will be none if it's still running).
+      val cleanupEffect: F[Unit] = cleanup.getAndSet(none).flatMap(_.orEmpty)
+      (oldFiber.cancel, cleanupEffect).parTupled.void
+
+  private def startNewEffect(effect: F[F[Unit]], newLatch: Deferred[F, UnitFiber[F]]): F[Unit] =
+    effect
+      .flatMap(f => cleanup.set(f.some)) // When effect completes, store cleanup effect.
+      .start
+      .flatMap: newFiber =>
+        newLatch.complete(newFiber).void // Store the running fiber, releasing the latch.
 
   private def switchTo(effect: F[F[Unit]]): F[Unit] =
     Deferred[F, UnitFiber[F]] >>= (newLatch =>
       latch
         .modify: oldLatch =>
           (
-            newLatch.some,
-            (
-              oldLatch
-                .map:
-                  _.get.flatMap(_.cancel >> debounceEffect) >>
-                    cleanup.getAndSet(none).flatMap(_.orEmpty)
-                .orEmpty >>
-                effect.flatMap(f => cleanup.set(f.some)) >>
-                debounceEffect >>
-                // Discard latch after effect + debounce, so that we don't run debounce again next time.
-                latch.set(none)
-            ).start
-              .flatMap: newFiber =>
-                newLatch.complete(newFiber).void
+            newLatch.some,                        // Replace current latch with a new one.
+            oldLatch.map(endOldEffect).orEmpty >> // Cancel and cleanup old effect, if any.
+              startNewEffect(effect, newLatch)    // Start new effect.
           )
         .flatten
-        .uncancelable
+        .uncancelable // We can't cancel before new latch is set, otherwise we deadlock.
     )
 
   val cancel: F[Unit] = switchTo(F.unit.pure[F])
@@ -55,15 +56,13 @@ class UseSingleEffect[F[_]](
 }
 
 object UseSingleEffect {
-  val hook = CustomHook[Option[FiniteDuration]]
-    .useMemoBy(_ => ()): debounce =>
-      _ =>
-        new UseSingleEffect(
-          Ref.unsafe[DefaultA, Option[Deferred[DefaultA, UnitFiber[DefaultA]]]](none),
-          Ref.unsafe[DefaultA, Option[DefaultA[Unit]]](none),
-          debounce
-        )
-    .useEffectBy((_, singleEffect) => Callback(singleEffect.cancel)) // Cleanup on unmount
+  val hook = CustomHook[Unit]
+    .useMemo(()): _ =>
+      new UseSingleEffect(
+        Ref.unsafe[DefaultA, Option[Deferred[DefaultA, UnitFiber[DefaultA]]]](none),
+        Ref.unsafe[DefaultA, Option[DefaultA[Unit]]](none)
+      )
+    .useEffectBy((_, singleEffect) => CallbackTo(singleEffect.cancel)) // Cleanup on unmount
     .buildReturning((_, singleEffect) => singleEffect)
 
   object HooksApiExt {
@@ -75,50 +74,8 @@ object UseSingleEffect {
        *
        * A submitted effect can be explicitly canceled too.
        */
-      final def useSingleEffect(debounce: FiniteDuration)(using
-        step: Step
-      ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
-        useSingleEffectBy(_ => debounce)
-
-      /**
-       * Provides a context in which to run a single effect at a time. When a new effect is
-       * submitted, the previous one is canceled. Also cancels the effect on unmount.
-       *
-       * A submitted effect can be explicitly canceled too.
-       */
-      final def useSingleEffect(using
-        step: Step
-      ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
-        api.customBy(_ => hook(none))
-
-      /**
-       * Provides a context in which to run a single effect at a time. When a new effect is
-       * submitted, the previous one is canceled. Also cancels the effect on unmount.
-       *
-       * A submitted effect can be explicitly canceled too.
-       */
-      final def useSingleEffectBy(debounce: Ctx => FiniteDuration)(using
-        step: Step
-      ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
-        api.customBy(ctx => hook(debounce(ctx).some))
-    }
-
-    final class Secondary[Ctx, CtxFn[_], Step <: HooksApi.SubsequentStep[Ctx, CtxFn]](
-      api: HooksApi.Secondary[Ctx, CtxFn, Step]
-    ) extends Primary[Ctx, Step](api) {
-
-      /**
-       * Provides a context in which to run a single effect at a time. When a new effect is
-       * submitted, the previous one is canceled. Also cancels the effect on unmount.
-       *
-       * A submitted effect can be explicitly canceled too.
-       *
-       * `debounce` can specify a minimum `Duration` between invocations.
-       */
-      def useSingleEffectBy(debounce: CtxFn[FiniteDuration])(using
-        step: Step
-      ): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
-        useSingleEffectBy(step.squash(debounce)(_))
+      final def useSingleEffect(using step: Step): step.Next[Reusable[UseSingleEffect[DefaultA]]] =
+        api.customBy(_ => hook)
     }
   }
 
@@ -129,11 +86,6 @@ object UseSingleEffect {
       api: HooksApi.Primary[Ctx, Step]
     ): Primary[Ctx, Step] =
       new Primary(api)
-
-    implicit def hooksExtSingleEffect2[Ctx, CtxFn[_], Step <: HooksApi.SubsequentStep[Ctx, CtxFn]](
-      api: HooksApi.Secondary[Ctx, CtxFn, Step]
-    ): Secondary[Ctx, CtxFn, Step] =
-      new Secondary(api)
   }
 
   object syntax extends HooksApiExt
