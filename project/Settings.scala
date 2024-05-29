@@ -13,7 +13,7 @@ object Settings {
     val log4Cats        = "2.7.0"
     val lucumaReact     = "0.58.0"
     val monocle         = "3.2.0"
-    val mUnit           = "0.7.29"
+    val mUnit           = "1.0.0"
     val mUnitCatsEffect = "1.0.7"
     val scalaCheck      = "1.18.0"
     val scalajsReact    = "3.0.0-beta3"
