@@ -3,10 +3,10 @@
 
 package crystal.react.hooks
 
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.hooks.Hooks
-import japgolly.scalajs.react.util.DefaultEffects.{Sync => DefaultS}
+import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 import scala.collection.immutable.Queue
 
@@ -21,7 +21,7 @@ object UseStateCallback {
           DefaultS.empty
         else
           delayedCallbacks.set(Queue.empty) >>
-            DefaultS.runAll(cbs.toList.map(_(state.value)): _*)
+            DefaultS.runAll(cbs.toList.map(_(state.value))*)
       }
       .buildReturning((_, delayedCallbacks) =>
         (cb: A => DefaultS[Unit]) => delayedCallbacks.mod(_.enqueue(cb))
