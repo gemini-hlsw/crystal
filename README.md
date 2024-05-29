@@ -199,24 +199,30 @@ Note that multiple `Pot` dependencies can be combined into one with `.tupled`.
 
 ### useAsyncEffect
 
-Version of `useEffect` that allows defining an async effect with an (also async) cleanup effect.
+Version of `useEffect` that avoids race conditions when executing async effects. This is achieved by cancelling the previous instance of the effect before executing a new one.
 
-`useEffect` allows defining a cleanup effect only when used with the default sync effect (usually `CallbackTo`).
-
-This hook should only be used when a cleanup effect is needed. To use a regular async effect, just use regular `useEffect`.
+Also allows returning a cleanup effect, which `useEffect` only supports when used with the default sync effect (usually `CallbackTo`).
 
 ``` scala
-  useAsyncEffect(effect: IO[IO[Unit]])
-  useAsyncEffectBy(effect: Ctx => IO[IO[Unit]])
+  useAsyncEffect(effect: IO[Unit])
+  useAsyncEffect(effect: IO[IO[Unit]])  // return a cleanup effect
+  useAsyncEffectBy(effect: Ctx => IO[Unit])
+  useAsyncEffectBy(effect: Ctx => IO[IO[Unit]]) // return a cleanup effect
 
-  useAsyncEffectWithDeps[D: Reusability](deps: => D)(effect: D => IO[IO[Unit]])
-  useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[IO[Unit]])
+  useAsyncEffectWithDeps[D: Reusability](deps: => D)(effect: D => IO[Unit])
+  useAsyncEffectWithDeps[D: Reusability](deps: => D)(effect: D => IO[IO[Unit]]) // return a cleanup effect
+  useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[Unit])
+  useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[IO[Unit]]) // return a cleanup effect
 
   useAsyncEffectOnMount(effect: IO[IO[Unit]])
-  useAsyncEffectOnMountBy(effect: Ctx => IO[IO[Unit]])
+  useAsyncEffectOnMount(effect: IO[Unit]) // return a cleanup effect
+  useAsyncEffectOnMountBy(effect: Ctx => IO[Unit])
+  useAsyncEffectOnMountBy(effect: Ctx => IO[IO[Unit]]) // return a cleanup effect
 
-  useAsyncEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[IO[Unit]]) // return cleanup
-  useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) // return cleanup
+  useAsyncEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[Unit])
+  useAsyncEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[IO[Unit]]) // return a cleanup effect
+  useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
+  useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) // return a cleanup effect
 ```
 
 
