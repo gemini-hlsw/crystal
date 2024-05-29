@@ -15,17 +15,15 @@ object UseStateCallback {
     CustomHook[Hooks.UseState[A]]
       .useRef(Queue.empty[A => DefaultS[Unit]])
       // Credit to japgolly for this implementation; this is copied from StateSnapshot.
-      .useEffectBy { (state, delayedCallbacks) =>
+      .useEffectBy: (state, delayedCallbacks) =>
         val cbs = delayedCallbacks.value
         if (cbs.isEmpty)
           DefaultS.empty
         else
           delayedCallbacks.set(Queue.empty) >>
             DefaultS.runAll(cbs.toList.map(_(state.value))*)
-      }
-      .buildReturning((_, delayedCallbacks) =>
+      .buildReturning: (_, delayedCallbacks) =>
         (cb: A => DefaultS[Unit]) => delayedCallbacks.mod(_.enqueue(cb))
-      )
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {

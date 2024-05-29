@@ -14,18 +14,17 @@ import japgolly.scalajs.react.hooks.Hooks.UseEffectArg
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 object UseEffectWhenDepsReady:
+
   def hook[D, A: UseEffectArg: Monoid] =
     CustomHook[WithPotDeps[D, A]]
-      .useEffectWithDepsBy(props => props.deps.toOption.void)(props =>
+      .useEffectWithDepsBy(props => props.deps.toOption.void): props =>
         _ => props.deps.toOption.map(props.fromDeps).orEmpty
-      )
       .build
 
-  def asyncHook[D] =
-    CustomHook[WithPotDeps[D, DefaultA[DefaultA[Unit]]]]
-      .useAsyncEffectWithDepsBy(props => props.deps.void)(props =>
-        _ => props.deps.toOption.map(props.fromDeps).orEmpty
-      )
+  def asyncHook[G, D](using EffectWithCleanup[G, DefaultA]) =
+    CustomHook[WithPotDeps[D, G]]
+      .useAsyncEffectWithDepsBy(props => props.deps.void): props =>
+        _ => props.deps.toOption.map(props.fromDeps(_).normalize).orEmpty
       .build
 
   object HooksApiExt {
@@ -34,8 +33,7 @@ object UseEffectWhenDepsReady:
       /**
        * Effect that runs when `Pot` dependencies transition into a `Ready` state. For multiple
        * dependencies, use `(par1, par2, ...).tupled`. Dependencies are passed unpacked to the
-       * effect bulding function. Returning a cleanup callback is supported, but when using an async
-       * effect with cleanup use `useAsyncEffectWhenDepsReady` instead.
+       * effect bulding function.
        */
       final def useEffectWhenDepsReady[D, A: UseEffectArg: Monoid](
         deps: => Pot[D]
@@ -47,8 +45,7 @@ object UseEffectWhenDepsReady:
       /**
        * Effect that runs when `Pot` dependencies transition into a `Ready` state. For multiple
        * dependencies, use `(par1, par2, ...).tupled`. Dependencies are passed unpacked to the
-       * effect bulding function. Returning a cleanup callback is supported, but when using an async
-       * effect with cleanup use `useAsyncEffectWhenDepsReady` instead.
+       * effect bulding function.
        */
       final def useEffectWhenDepsReadyBy[D, A: UseEffectArg: Monoid](
         deps: Ctx => Pot[D]
@@ -65,10 +62,9 @@ object UseEffectWhenDepsReady:
        * a cleanup callback. For multiple dependencies, use `(par1, par2, ...).tupled`. Dependencies
        * are passed unpacked to the effect bulding function.
        */
-      final def useAsyncEffectWhenDepsReady[D](
-        deps: => Pot[D]
-      )(effect: D => DefaultA[DefaultA[Unit]])(using
-        step: Step
+      final def useAsyncEffectWhenDepsReady[G, D](deps: => Pot[D])(effect: D => G)(using
+        step: Step,
+        G:    EffectWithCleanup[G, DefaultA]
       ): step.Self =
         useAsyncEffectWhenDepsReadyBy(_ => deps)(_ => effect)
 
@@ -77,13 +73,13 @@ object UseEffectWhenDepsReady:
        * a cleanup callback. For multiple dependencies, use `(par1, par2, ...).tupled`. Dependencies
        * are passed unpacked to the effect bulding function.
        */
-      final def useAsyncEffectWhenDepsReadyBy[D](
-        deps: Ctx => Pot[D]
-      )(effect: Ctx => D => DefaultA[DefaultA[Unit]])(using
-        step: Step
+      final def useAsyncEffectWhenDepsReadyBy[G, D](deps: Ctx => Pot[D])(effect: Ctx => D => G)(
+        using
+        step: Step,
+        G:    EffectWithCleanup[G, DefaultA]
       ): step.Self =
         api.customBy { ctx =>
-          val hookInstance = asyncHook[D]
+          val hookInstance = asyncHook[G, D]
           hookInstance(WithPotDeps(deps(ctx), effect(ctx)))
         }
     }
@@ -95,8 +91,7 @@ object UseEffectWhenDepsReady:
       /**
        * Effect that runs when `Pot` dependencies transition into a `Ready` state. For multiple
        * dependencies, use `(par1, par2, ...).tupled`. Dependencies are passed unpacked to the
-       * effect bulding function. Returning a cleanup callback is supported, but when using an async
-       * effect with cleanup use `useAsyncEffectWhenDepsReady` instead.
+       * effect bulding function.
        */
       def useEffectWhenDepsReadyBy[D, A: UseEffectArg: Monoid](
         deps: CtxFn[Pot[D]]
@@ -110,10 +105,9 @@ object UseEffectWhenDepsReady:
        * a cleanup callback. For multiple dependencies, use `(par1, par2, ...).tupled`. Dependencies
        * are passed unpacked to the effect bulding function.
        */
-      def useAsyncEffectWhenDepsReadyBy[D](
-        deps: CtxFn[Pot[D]]
-      )(effect: CtxFn[D => DefaultA[DefaultA[Unit]]])(using
-        step: Step
+      def useAsyncEffectWhenDepsReadyBy[G, D](deps: CtxFn[Pot[D]])(effect: CtxFn[D => G])(using
+        step: Step,
+        G:    EffectWithCleanup[G, DefaultA]
       ): step.Self =
         useAsyncEffectWhenDepsReadyBy(step.squash(deps)(_))(step.squash(effect)(_))
     }

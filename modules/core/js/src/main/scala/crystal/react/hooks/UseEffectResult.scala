@@ -13,13 +13,12 @@ object UseEffectResult {
   def hook[D: Reusability, A] = CustomHook[WithDeps[D, DefaultA[A]]]
     .useState(Pot.pending[A])
     .useEffectWithDepsBy((props, _) => props.deps)((_, state) => _ => state.setState(Pot.pending))
-    .useAsyncEffectWithDepsBy((props, _) => props.deps)((props, state) =>
+    .useAsyncEffectWithDepsBy((props, _) => props.deps): (props, state) =>
       deps =>
         (for {
           a <- props.fromDeps(deps)
           _ <- state.setStateAsync(a.ready)
         } yield ()).handleErrorWith(t => state.setStateAsync(Pot.error(t)))
-    )
     .buildReturning((_, state) => state.value)
 
   object HooksApiExt {

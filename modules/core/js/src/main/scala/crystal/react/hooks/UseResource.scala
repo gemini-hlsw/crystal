@@ -13,7 +13,7 @@ import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 object UseResource {
   def hook[D: Reusability, A] = CustomHook[WithDeps[D, Resource[DefaultA, A]]]
     .useState(Pot.pending[A])
-    .useAsyncEffectWithDepsBy((props, _) => props.deps)((props, state) =>
+    .useAsyncEffectWithDepsBy((props, _) => props.deps): (props, state) =>
       deps =>
         (for {
           resource      <- props.fromDeps(deps).allocated
@@ -21,7 +21,6 @@ object UseResource {
           _             <- state.setStateAsync(value.ready)
         } yield close)
           .handleErrorWith(t => state.setStateAsync(Pot.error(t)).as(DefaultA.delay(())))
-    )
     .buildReturning((_, state) => state.value)
 
   object HooksApiExt {

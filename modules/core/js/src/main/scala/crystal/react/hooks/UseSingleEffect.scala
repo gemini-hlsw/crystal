@@ -50,25 +50,19 @@ class UseSingleEffect[F[_]](
 
   // There's no need to clean up the fiber reference once the effect completes.
   // Worst case scenario, cancel will be called on it, which will do nothing.
-  // def submit(effect: F[F[Unit]]): F[Unit] = switchTo(effect)
-
-  // @targetName("submitNoCleanup")
-  // def submit(effect: F[Unit]): F[Unit] = switchTo(effect.as(F.unit))
-
   def submit[G](effect: G)(using EffectWithCleanup[G, F]) =
     switchTo(effect.normalize)
 }
 
 object UseSingleEffect {
   val hook = CustomHook[Option[FiniteDuration]]
-    .useMemoBy(_ => ())(debounce =>
+    .useMemoBy(_ => ()): debounce =>
       _ =>
         new UseSingleEffect(
           Ref.unsafe[DefaultA, Option[Deferred[DefaultA, UnitFiber[DefaultA]]]](none),
           Ref.unsafe[DefaultA, Option[DefaultA[Unit]]](none),
           debounce
         )
-    )
     .useEffectBy((_, singleEffect) => Callback(singleEffect.cancel)) // Cleanup on unmount
     .buildReturning((_, singleEffect) => singleEffect)
 

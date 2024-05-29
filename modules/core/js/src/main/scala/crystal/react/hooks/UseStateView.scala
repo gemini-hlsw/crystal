@@ -12,12 +12,11 @@ object UseStateView {
     CustomHook[A]
       .useStateBy(initialValue => initialValue)
       .useStateCallbackBy((_, state) => state)
-      .buildReturning { (_, state, delayedCallback) =>
+      .buildReturning: (_, state, delayedCallback) =>
         View[A](
           state.value,
           (f, cb) => delayedCallback(cb) >> state.modState(f)
         )
-      }
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {

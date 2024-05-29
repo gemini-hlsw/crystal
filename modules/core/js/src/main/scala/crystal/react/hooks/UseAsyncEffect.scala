@@ -4,10 +4,10 @@
 package crystal.react.hooks
 
 import crystal.react.*
+import crystal.react.reuse.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
-import crystal.react.reuse.*
 
 object UseAsyncEffect {
   def hook[G, D: Reusability](using EffectWithCleanup[G, DefaultA]) =
@@ -18,15 +18,10 @@ object UseAsyncEffect {
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
-      // TODO UPDATE SCALADOCS!!!
-      // TODO UPDATE SCALADOCS!!!
-      // TODO UPDATE SCALADOCS!!!
-      // TODO UPDATE SCALADOCS!!!
-      // TODO UPDATE SCALADOCS!!!
 
       /**
-       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-       * without a cleanup callback, just use the regular `useEffect` hook.
+       * Run async effect and cancel previously running instances, thus avoiding race conditions.
+       * Allows returning a cleanup effect.
        */
       final def useAsyncEffectWithDeps[G, D: Reusability](deps: => D)(effect: D => G)(using
         step: Step,
@@ -35,8 +30,8 @@ object UseAsyncEffect {
         useAsyncEffectWithDepsBy(_ => deps)(_ => effect)
 
       /**
-       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-       * without a cleanup callback, just use the regular `useEffect` hook.
+       * Run async effect and cancel previously running instances, thus avoiding race conditions.
+       * Allows returning a cleanup effect.
        */
       final def useAsyncEffect[G](effect: G)(using
         step: Step,
@@ -45,8 +40,8 @@ object UseAsyncEffect {
         useAsyncEffectBy(_ => effect)
 
       /**
-       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-       * without a cleanup callback, just use the regular `useEffect` hook.
+       * Run async effect and cancel previously running instances, thus avoiding race conditions.
+       * Allows returning a cleanup effect.
        */
       final def useAsyncEffectOnMount[G](effect: G)(using
         step: Step,
@@ -55,8 +50,8 @@ object UseAsyncEffect {
         useAsyncEffectOnMountBy(_ => effect)
 
       /**
-       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-       * without a cleanup callback, just use the regular `useEffect` hook.
+       * Run async effect and cancel previously running instances, thus avoiding race conditions.
+       * Allows returning a cleanup effect.
        */
       final def useAsyncEffectWithDepsBy[G, D: Reusability](deps: Ctx => D)(effect: Ctx => D => G)(
         using
@@ -69,8 +64,8 @@ object UseAsyncEffect {
         }
 
       /**
-       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-       * without a cleanup callback, just use the regular `useEffect` hook.
+       * Run async effect and cancel previously running instances, thus avoiding race conditions.
+       * Allows returning a cleanup effect.
        */
       final def useAsyncEffectBy[G](effect: Ctx => G)(using
         step: Step,
@@ -79,8 +74,8 @@ object UseAsyncEffect {
         useAsyncEffectWithDepsBy(_ => NeverReuse)(ctx => (_: Reuse[Unit]) => effect(ctx))
 
       /**
-       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-       * without a cleanup callback, just use the regular `useEffect` hook.
+       * Run async effect and cancel previously running instances, thus avoiding race conditions.
+       * Allows returning a cleanup effect.
        */
       final def useAsyncEffectOnMountBy[G](effect: Ctx => G)(using
         step: Step,
@@ -94,8 +89,8 @@ object UseAsyncEffect {
     ) extends Primary[Ctx, Step](api) {
 
       /**
-       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-       * without a cleanup callback, just use the regular `useEffect` hook.
+       * Run async effect and cancel previously running instances, thus avoiding race conditions.
+       * Allows returning a cleanup effect.
        */
       def useAsyncEffectWithDepsBy[G, D: Reusability](deps: CtxFn[D])(effect: CtxFn[D => G])(using
         step: Step,
@@ -104,8 +99,8 @@ object UseAsyncEffect {
         useAsyncEffectWithDepsBy(step.squash(deps)(_))(step.squash(effect)(_))
 
       /**
-       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-       * without a cleanup callback, just use the regular `useEffect` hook.
+       * Run async effect and cancel previously running instances, thus avoiding race conditions.
+       * Allows returning a cleanup effect.
        */
       def useAsyncEffectBy[G](
         effect: CtxFn[G]
@@ -113,8 +108,8 @@ object UseAsyncEffect {
         useAsyncEffectBy(step.squash(effect)(_))
 
       /**
-       * Simulates `useEffect` with cleanup callback for async effect. To declare an async effect
-       * without a cleanup callback, just use the regular `useEffect` hook.
+       * Run async effect and cancel previously running instances, thus avoiding race conditions.
+       * Allows returning a cleanup effect.
        */
       def useAsyncEffectOnMountBy[G](effect: CtxFn[G])(using
         step: Step,

@@ -3,8 +3,8 @@
 
 package crystal.react.hooks
 
-import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 import cats.Applicative
+import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 // Typeclass for normalizing effects into an effect that returns a cleanup effect.
 opaque type EffectWithCleanup[G, F[_]] = G => F[F[Unit]]
