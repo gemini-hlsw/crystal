@@ -62,7 +62,7 @@ object UseSingleEffect {
         Ref.unsafe[DefaultA, Option[Deferred[DefaultA, UnitFiber[DefaultA]]]](none),
         Ref.unsafe[DefaultA, Option[DefaultA[Unit]]](none)
       )
-    .useEffectBy((_, singleEffect) => CallbackTo(singleEffect.cancel)) // Cleanup on unmount
+    .useEffectOnMountBy((_, singleEffect) => CallbackTo(singleEffect.cancel)) // Cleanup on unmount
     .buildReturning((_, singleEffect) => singleEffect)
 
   object HooksApiExt {
