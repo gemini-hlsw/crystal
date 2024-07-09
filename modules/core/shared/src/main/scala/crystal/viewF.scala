@@ -112,7 +112,7 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, A => F[Unit]) => F[U
 
   def mapValue[B, C](f: ViewF[F, B] => C)(using ev: A =:= Option[B]): Option[C] =
     // _.get is safe here since it's only being called when the value is defined.
-    // The zoom getter function is stored to use in callbacks, se we have to pass _.get
+    // The zoom getter function is stored to use in callbacks, so we have to pass _.get
     // instead of capturing the value here. Otherwise, callbacks see a stale value.
     get.map(_ => f(zoom(_.get)(f => a1 => ev.flip(a1.map(f)))))
 
@@ -122,7 +122,7 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, A => F[Unit]) => F[U
   @targetName("mapValuePot")
   def mapValue[B, C](f: ViewF[F, B] => C)(using ev: A =:= Pot[B]): Pot[C] =
     // _.get is safe here since it's only being called when the value is defined.
-    // The zoom getter function is stored to use in callbacks, se we have to pass _.get
+    // The zoom getter function is stored to use in callbacks, so we have to pass _.get
     // instead of capturing the value here. Otherwise, callbacks see a stale value.
     get.map(_ => f(zoom(_.toOption.get)(f => a1 => ev.flip(a1.map(f)))))
 
