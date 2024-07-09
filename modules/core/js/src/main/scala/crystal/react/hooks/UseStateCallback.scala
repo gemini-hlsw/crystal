@@ -22,8 +22,10 @@ object UseStateCallback {
         else
           delayedCallbacks.set(Queue.empty) >>
             DefaultS.runAll(cbs.toList.map(_(state.value))*)
-      .buildReturning: (_, delayedCallbacks) =>
+      .useCallbackBy: (_, delayedCallbacks) =>
         (cb: A => DefaultS[Unit]) => delayedCallbacks.mod(_.enqueue(cb))
+      .buildReturning: (_, _, onNextStateChange) =>
+        onNextStateChange
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -33,7 +35,7 @@ object UseStateCallback {
        */
       final def useStateCallback[A](state: => Hooks.UseState[A])(using
         step: Step
-      ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
+      ): step.Next[Reusable[(A => DefaultS[Unit]) => DefaultS[Unit]]] =
         useStateCallbackBy(_ => state)
 
       /**
@@ -41,7 +43,7 @@ object UseStateCallback {
        */
       final def useStateCallbackBy[A](state: Ctx => Hooks.UseState[A])(using
         step: Step
-      ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
+      ): step.Next[Reusable[(A => DefaultS[Unit]) => DefaultS[Unit]]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
           hookInstance(state(ctx))
@@ -57,7 +59,7 @@ object UseStateCallback {
        */
       def useStateCallbackBy[A](state: CtxFn[Hooks.UseState[A]])(using
         step: Step
-      ): step.Next[(A => DefaultS[Unit]) => DefaultS[Unit]] =
+      ): step.Next[Reusable[(A => DefaultS[Unit]) => DefaultS[Unit]]] =
         useStateCallbackBy(step.squash(state)(_))
     }
   }

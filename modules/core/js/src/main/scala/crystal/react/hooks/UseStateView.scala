@@ -6,17 +6,19 @@ package crystal.react.hooks
 import crystal.react.View
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
+import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 object UseStateView {
   def hook[A]: CustomHook[A, View[A]] =
     CustomHook[A]
       .useStateBy(initialValue => initialValue)
       .useStateCallbackBy((_, state) => state)
-      .buildReturning: (_, state, delayedCallback) =>
-        View[A](
-          state.value,
-          (f, cb) => delayedCallback(cb) >> state.modState(f)
-        )
+      .useCallbackWithDepsBy((_, state, onNextStateChange) => (state.modState, onNextStateChange)):
+        (_, _, _) =>
+          (modState, onNextStateChange) =>
+            (f: A => A, cb: A => DefaultS[Unit]) => onNextStateChange(cb) >> modState(f)
+      .buildReturning: (_, state, _, modCB) =>
+        View[A](state.value, modCB)
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {

@@ -13,16 +13,17 @@ import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 object UseEffectStreamResource {
 
-  protected def hook[D: Reusability] = CustomHook[WithDeps[D, StreamResource[Unit]]]
-    .useAsyncEffectWithDepsBy(props => props.deps): props =>
-      deps =>
-        val executingResource: Resource[DefaultA, Unit] =
+  protected def hook[D: Reusability] =
+    CustomHook[WithDeps[D, StreamResource[Unit]]]
+      .useAsyncEffectWithDepsBy(props => props.deps): props =>
+        deps =>
           props
             .fromDeps(deps)
             .flatMap: stream =>
-              Resource.make(stream.compile.drain.start)(_.cancel).as(())
-        executingResource.allocated.map(_._2) // open the resource and return a close callback
-    .build
+              stream.compile.drain.background.void
+            .allocated
+            .map(_._2) // open the resource and return a close callback
+      .build
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
