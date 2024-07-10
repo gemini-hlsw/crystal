@@ -34,7 +34,7 @@ given [A: Cogen]: Cogen[PotOption[A]] =
   Cogen[Option[Option[Option[A]]]].contramap(_.toOptionTry.map(_.toOption))
 
 given viewFArb[A: Arbitrary]: Arbitrary[ViewF[Id, A]] = Arbitrary:
-  arbitrary[A].map(a => ViewF.apply[Id, A](a, (f, cb) => cb(f(a))))
+  arbitrary[A].map(a => ViewF.apply[Id, A](a, (f, cb) => cb(a, f(a))))
 
 given [A: Cogen]: Cogen[ViewF[Id, A]] =
   Cogen[A].contramap(_.get)

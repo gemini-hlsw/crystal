@@ -101,6 +101,16 @@ ScalaFnComponent
   // Previous `longRunningEffect` is cancelled immediately and new one is ran after 1 second
 ```
 
+### useShadowRef
+
+When passed a value, this hooks keeps the value in a ref with the latest value, and returning a read-only ref.
+
+This is useful when a stable callback (as those created by `useCallback`) wants to access a value that can change, but we don't want to redefine the callback in each render.
+
+``` scala
+  useShadowRef[A](value: Ctx => A): NonEmptyRef.Get[A]
+```
+
 ### useStateCallback
 
 Class components allow us to specify a callback when we modify state. The callback is executed when state is modified and is passed the new state value.

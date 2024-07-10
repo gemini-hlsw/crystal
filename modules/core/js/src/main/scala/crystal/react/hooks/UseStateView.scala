@@ -12,12 +12,15 @@ object UseStateView {
   def hook[A]: CustomHook[A, View[A]] =
     CustomHook[A]
       .useStateBy(initialValue => initialValue)
-      .useStateCallbackBy((_, state) => state)
-      .useCallbackWithDepsBy((_, state, onNextStateChange) => (state.modState, onNextStateChange)):
-        (_, _, _) =>
-          (modState, onNextStateChange) =>
-            (f: A => A, cb: A => DefaultS[Unit]) => onNextStateChange(cb) >> modState(f)
-      .buildReturning: (_, state, _, modCB) =>
+      .useShadowRef((_, state) => state.value)
+      .useStateCallbackBy((_, state, _) => state)
+      .useCallbackWithDepsBy((_, state, _, onNextStateChange) =>
+        (state.modState, onNextStateChange)
+      ): (initialValue, _, stateRef, _) =>
+        (modState, onNextStateChange) =>
+          (f: A => A, cb: (A, A) => DefaultS[Unit]) =>
+            stateRef.get >>= (previous => onNextStateChange(cb(previous, _)) >> modState(f))
+      .buildReturning: (_, state, _, _, modCB) =>
         View[A](state.value, modCB)
 
   object HooksApiExt {
