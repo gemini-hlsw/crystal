@@ -50,25 +50,25 @@ val syncToAsync: DefaultS ~> DefaultA = new FunctionK[DefaultS, DefaultA] { self
 
 def View[A](
   value: A,
-  modCB: (A => A, A => DefaultS[Unit]) => DefaultS[Unit]
+  modCB: (A => A, (Option[A], A) => DefaultS[Unit]) => DefaultS[Unit]
 ): View[A] = ViewF[DefaultS, A](value, modCB)
 
-def fromState = new FromStateView
+// def fromState = new FromStateView
 
-class FromStateView {
-  def apply[S]($ : StateAccess[DefaultS, DefaultA, S])(using
-    dispatch: UnsafeSync[DefaultS]
-  ): View[S] =
-    View[S](
-      dispatch.runSync($.state),
-      (f, cb) => $.modState(f, $.state.flatMap(cb))
-    )
-}
+// class FromStateView {
+//   def apply[S]($ : StateAccess[DefaultS, DefaultA, S])(using
+//     dispatch: UnsafeSync[DefaultS]
+//   ): View[S] =
+//     View[S](
+//       dispatch.runSync($.state),
+//       (f, cb) => $.modState(f, $.state.flatMap(cb))
+//     )
+// }
 
 object ReuseView {
   inline def apply[A: ClassTag: Reusability](
     value: A,
-    modCB: (A => A, A => DefaultS[Unit]) => DefaultS[Unit]
+    modCB: (A => A, (Option[A], A) => DefaultS[Unit]) => DefaultS[Unit]
   ): ReuseView[A] =
     View(value, modCB).reuseByValue
 
