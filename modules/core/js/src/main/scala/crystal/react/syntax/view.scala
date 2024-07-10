@@ -23,7 +23,7 @@ trait view {
   extension [F[_], A: ClassTag: Reusability](view: ViewF[F, A])
     def reuseByValue: Reuse[ViewF[F, A]] = Reuse.by(view.get)(view)
 
-  // extension (viewFModule: ViewF.type) def fromState: FromStateView = new FromStateView
+  extension (viewFModule: ViewF.type) def fromState: FromStateView = new FromStateView
 
   extension [F[_], A: ClassTag: Reusability](view: ViewOptF[F, A])
     def reuseByValue: Reuse[ViewOptF[F, A]] = Reuse.by(view.get)(view)
