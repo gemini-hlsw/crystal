@@ -19,13 +19,13 @@ import scala.annotation.targetName
 sealed abstract class ViewOps[F[_]: Monad, G[_], A] {
   val get: G[A]
 
-  val setCB: (A, (Option[G[A]], G[A]) => F[Unit]) => F[Unit] = (a, cb) => modCB(_ => a, cb)
+  val setCB: (A, (G[A], G[A]) => F[Unit]) => F[Unit] = (a, cb) => modCB(_ => a, cb)
 
   def setCB(v: A, cb: G[A] => F[Unit]): F[Unit] = setCB(v, (_, a) => cb(a))
 
   val set: A => F[Unit] = a => mod(_ => a)
 
-  val modCB: (A => A, (Option[G[A]], G[A]) => F[Unit]) => F[Unit]
+  val modCB: (A => A, (G[A], G[A]) => F[Unit]) => F[Unit]
 
   def modCB(f: A => A, cb: G[A] => F[Unit]): F[Unit] = modCB(f, (_, a) => cb(a))
 
@@ -38,7 +38,7 @@ sealed abstract class ViewOps[F[_]: Monad, G[_], A] {
 // but passes the modifier function to an external source of truth. Since we are defining no getter
 // from such source of truth, a View is defined in terms of a modifier function instead of a setter.
 // Also, Views remember their previous values.
-class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (Option[A], A) => F[Unit]) => F[Unit])
+class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (A, A) => F[Unit]) => F[Unit])
     extends ViewOps[F, Id, A] { self =>
   def modAndExtract[B](f: (A => (A, B)))(using F: Async[F]): F[B] =
     F.async { cb =>
@@ -58,8 +58,8 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (Option[A], A) => F[
   def zoom[B](getB: A => B)(modB: (B => B) => A => A): ViewF[F, B] =
     new ViewF(
       getB(get),
-      (f: B => B, cb: (Option[B], B) => F[Unit]) =>
-        modCB(modB(f), (previous, current) => cb(previous.map(getB), getB(current)))
+      (f: B => B, cb: (B, B) => F[Unit]) =>
+        modCB(modB(f), (previous, current) => cb(getB(previous), getB(current)))
     )
 
   def zoomOpt[B](
@@ -67,8 +67,8 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (Option[A], A) => F[
   )(modB: (B => B) => A => A): ViewOptF[F, B] =
     new ViewOptF(
       getB(get),
-      (f: B => B, cb: (Option[Option[B]], Option[B]) => F[Unit]) =>
-        modCB(modB(f), (previous, current) => cb(previous.map(getB), getB(current)))
+      (f: B => B, cb: (Option[B], Option[B]) => F[Unit]) =>
+        modCB(modB(f), (previous, current) => cb(getB(previous), getB(current)))
     ) {
       def modAndGet(f: B => B)(using Async[F]): F[Option[B]] =
         self.modAndGet(modB(f)).map(getB)
@@ -79,8 +79,8 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (Option[A], A) => F[
   )(modB: (B => B) => A => A): ViewListF[F, B] =
     new ViewListF(
       getB(get),
-      (f: B => B, cb: (Option[List[B]], List[B]) => F[Unit]) =>
-        modCB(modB(f), (previous, current) => cb(previous.map(getB), getB(current)))
+      (f: B => B, cb: (List[B], List[B]) => F[Unit]) =>
+        modCB(modB(f), (previous, current) => cb(getB(previous), getB(current)))
     ) {
       def modAndGet(f: B => B)(using Async[F]): F[List[B]] =
         self.modAndGet(modB(f)).map(getB)
@@ -104,7 +104,7 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (Option[A], A) => F[
   def zoom[B](traversal: Traversal[A, B]): ViewListF[F, B] =
     zoomList(traversal.getAll)(traversal.modify)
 
-  def withOnMod(f: (Option[A], A) => F[Unit]): ViewF[F, A] =
+  def withOnMod(f: (A, A) => F[Unit]): ViewF[F, A] =
     new ViewF[F, A](
       get,
       (modF, cb) =>
@@ -151,14 +151,14 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (Option[A], A) => F[
 object ViewF {
   def apply[F[_]: Monad, A](
     value: A,
-    modCB: (A => A, (Option[A], A) => F[Unit]) => F[Unit]
+    modCB: (A => A, (A, A) => F[Unit]) => F[Unit]
   ): ViewF[F, A] =
     new ViewF(value, modCB)
 }
 
 abstract class ViewOptF[F[_]: Monad, A](
   val get:   Option[A],
-  val modCB: (A => A, (Option[Option[A]], Option[A]) => F[Unit]) => F[Unit]
+  val modCB: (A => A, (Option[A], Option[A]) => F[Unit]) => F[Unit]
 ) extends ViewOps[F, Option, A] { self =>
   def as[B](iso: Iso[A, B]): ViewOptF[F, B] = zoom(iso.asLens)
 
@@ -175,8 +175,8 @@ abstract class ViewOptF[F[_]: Monad, A](
   def zoom[B](getB: A => B)(modB: (B => B) => A => A): ViewOptF[F, B] =
     new ViewOptF(
       get.map(getB),
-      (f: B => B, cb: (Option[Option[B]], Option[B]) => F[Unit]) =>
-        modCB(modB(f), (previous, current) => cb(previous.map(_.map(getB)), current.map(getB)))
+      (f: B => B, cb: (Option[B], Option[B]) => F[Unit]) =>
+        modCB(modB(f), (previous, current) => cb(previous.map(getB), current.map(getB)))
     ) {
       def modAndGet(f: B => B)(using Async[F]): F[Option[B]] =
         self.modAndGet(modB(f)).map(_.map(getB))
@@ -187,10 +187,10 @@ abstract class ViewOptF[F[_]: Monad, A](
   )(modB: (B => B) => A => A): ViewOptF[F, B] =
     new ViewOptF(
       get.flatMap(getB),
-      (f: B => B, cb: (Option[Option[B]], Option[B]) => F[Unit]) =>
+      (f: B => B, cb: (Option[B], Option[B]) => F[Unit]) =>
         modCB(
           modB(f),
-          (previous, current) => cb(previous.map(_.flatMap(getB)), current.flatMap(getB))
+          (previous, current) => cb(previous.flatMap(getB), current.flatMap(getB))
         )
     ) {
       def modAndGet(f: B => B)(using Async[F]): F[Option[B]] =
@@ -202,11 +202,10 @@ abstract class ViewOptF[F[_]: Monad, A](
   )(modB: (B => B) => A => A): ViewListF[F, B] =
     new ViewListF(
       get.map(getB).orEmpty,
-      (f: B => B, cb: (Option[List[B]], List[B]) => F[Unit]) =>
+      (f: B => B, cb: (List[B], List[B]) => F[Unit]) =>
         modCB(
           modB(f),
-          (previous, current) =>
-            cb(previous.map(_.toList.flatMap(getB)), current.toList.flatMap(getB))
+          (previous, current) => cb(previous.toList.flatMap(getB), current.toList.flatMap(getB))
         )
     ) {
       def modAndGet(f: B => B)(using Async[F]): F[List[B]] =
@@ -227,7 +226,7 @@ abstract class ViewOptF[F[_]: Monad, A](
   ): ViewListF[F, B] =
     zoomList(traversal.getAll)(traversal.modify)
 
-  def withOnMod(f: (Option[Option[A]], Option[A]) => F[Unit]): ViewOptF[F, A] =
+  def withOnMod(f: (Option[A], Option[A]) => F[Unit]): ViewOptF[F, A] =
     new ViewOptF[F, A](
       get,
       (modF, cb) =>
@@ -251,7 +250,10 @@ abstract class ViewOptF[F[_]: Monad, A](
         ViewF[F, A](
           a,
           (mod, cb) =>
-            modCB(mod, (previous, current) => current.foldMap(f => cb(previous.flatten, f)))
+            modCB(
+              mod,
+              (previous, current) => (previous, current).tupled.foldMap((p, c) => cb(p, c))
+            )
         )
       )
     )
@@ -264,7 +266,7 @@ abstract class ViewOptF[F[_]: Monad, A](
 
 abstract class ViewListF[F[_]: Monad, A](
   val get:   List[A],
-  val modCB: (A => A, (Option[List[A]], List[A]) => F[Unit]) => F[Unit]
+  val modCB: (A => A, (List[A], List[A]) => F[Unit]) => F[Unit]
 ) extends ViewOps[F, List, A] { self =>
   def as[B](iso: Iso[A, B]): ViewListF[F, B] = zoom(iso.asLens)
 
@@ -275,8 +277,8 @@ abstract class ViewListF[F[_]: Monad, A](
   def zoom[B](getB: A => B)(modB: (B => B) => A => A): ViewListF[F, B] =
     new ViewListF(
       get.map(getB),
-      (f: B => B, cb: (Option[List[B]], List[B]) => F[Unit]) =>
-        modCB(modB(f), (previous, current) => cb(previous.map(_.map(getB)), current.map(getB)))
+      (f: B => B, cb: (List[B], List[B]) => F[Unit]) =>
+        modCB(modB(f), (previous, current) => cb(previous.map(getB), current.map(getB)))
     ) {
       def modAndGet(f: B => B)(using Async[F]): F[List[B]] =
         self.modAndGet(modB(f)).map(_.map(getB))
@@ -287,10 +289,10 @@ abstract class ViewListF[F[_]: Monad, A](
   )(modB: (B => B) => A => A): ViewListF[F, B] =
     new ViewListF(
       get.flatMap(getB),
-      (f: B => B, cb: (Option[List[B]], List[B]) => F[Unit]) =>
+      (f: B => B, cb: (List[B], List[B]) => F[Unit]) =>
         modCB(
           modB(f),
-          (previous, current) => cb(previous.map(_.flatMap(getB)), current.flatMap(getB))
+          (previous, current) => cb(previous.flatMap(getB), current.flatMap(getB))
         )
     ) {
       def modAndGet(f: B => B)(using Async[F]): F[List[B]] =
@@ -302,10 +304,10 @@ abstract class ViewListF[F[_]: Monad, A](
   )(modB: (B => B) => A => A): ViewListF[F, B] =
     new ViewListF(
       get.flatMap(getB),
-      (f: B => B, cb: (Option[List[B]], List[B]) => F[Unit]) =>
+      (f: B => B, cb: (List[B], List[B]) => F[Unit]) =>
         modCB(
           modB(f),
-          (previous, current) => cb(previous.map(_.flatMap(getB)), current.flatMap(getB))
+          (previous, current) => cb(previous.flatMap(getB), current.flatMap(getB))
         )
     ) {
       def modAndGet(f: B => B)(using Async[F]): F[List[B]] =
@@ -326,7 +328,7 @@ abstract class ViewListF[F[_]: Monad, A](
   ): ViewListF[F, B] =
     zoomList(traversal.getAll)(traversal.modify)
 
-  def withOnMod(f: (Option[List[A]], List[A]) => F[Unit]): ViewListF[F, A] =
+  def withOnMod(f: (List[A], List[A]) => F[Unit]): ViewListF[F, A] =
     new ViewListF[F, A](
       get,
       (modF, cb) =>

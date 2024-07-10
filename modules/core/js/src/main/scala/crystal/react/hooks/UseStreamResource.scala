@@ -46,8 +46,9 @@ object UseStreamResource {
     state.value.map: a =>
       View[A](
         a,
-        (f: A => A, cb: A => DefaultS[Unit]) =>
-          state.modState(_.map(f)) >> delayedCallback(_.toOption.foldMap(cb))
+        (f: A => A, cb: (A, A) => DefaultS[Unit]) =>
+          state.modState(_.map(f)) // >> delayedCallback(_.toOption.foldMap(cb)) TODO!!!!
+          // INVERT LOGIC? USE A VIEW TO HOLD VALUE AND JUST RETURN THAT???
       )
 
   protected def buildReuseView[A: ClassTag: Reusability](

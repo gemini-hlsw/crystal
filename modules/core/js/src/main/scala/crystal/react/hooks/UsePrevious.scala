@@ -10,7 +10,7 @@ import japgolly.scalajs.react.hooks.Hooks
 import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 object UsePrevious {
-  def hook[A] =
+  def hook[A]: CustomHook[A, NonEmptyRef.Get[Option[A]]] =
     CustomHook[A]
       .useRefBy(identity) // current
       .useRef(none[A])    // previous
@@ -21,7 +21,7 @@ object UsePrevious {
           previousRef.set(currentRef.value.some) >>
             currentRef.set(value)
       .buildReturning: (_, _, previousRef) =>
-        previousRef.value
+        previousRef
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -29,7 +29,9 @@ object UsePrevious {
       /**
        * Given a value, remembers the previous value.
        */
-      final def usePrevious[A](value: Ctx => A)(using step: Step): step.Next[Option[A]] =
+      final def usePrevious[A](value: Ctx => A)(using
+        step: Step
+      ): step.Next[NonEmptyRef.Get[Option[A]]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
           hookInstance(value(ctx))
@@ -45,7 +47,7 @@ object UsePrevious {
        */
       def usePrevious[A](value: CtxFn[A])(using
         step: Step
-      ): step.Next[Option[A]] =
+      ): step.Next[NonEmptyRef.Get[Option[A]]] =
         usePrevious(step.squash(value)(_))
     }
   }

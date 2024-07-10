@@ -54,7 +54,7 @@ given [F[_]: Monad]: InvariantSemigroupal[ViewF[F, *]] with
                   (prevA, newA) =>
                     fb.modCB( // Modify underlying b value
                       b => f(oldA, b)._2,
-                      (prevB, newB) => cb((prevA, prevB).tupled, (newA, newB))
+                      (prevB, newB) => cb((prevA, prevB), (newA, newB))
                     )
                 )
             )
