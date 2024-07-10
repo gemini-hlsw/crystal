@@ -386,7 +386,16 @@ extension [F[_]: Monad, A](rvo: Reuse[ViewOptF[F, A]])
   def mapValue[B](f: Reuse[ViewF[F, A]] => B)(using ev: Monoid[F[Unit]]): Option[B] =
     get.map(a =>
       f(
-        rvo.map(vo => ViewF[F, A](a, (mod, cb) => vo.modCB(mod, _.foldMap(cb))))
+        rvo.map(vo =>
+          ViewF[F, A](
+            a,
+            (mod, cb) =>
+              vo.modCB(
+                mod,
+                (previous, current) => (previous, current).tupled.foldMap((p, c) => cb(p, c))
+              )
+          )
+        )
       )
     )
 

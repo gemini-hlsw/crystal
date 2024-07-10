@@ -23,14 +23,14 @@ trait view {
   extension [F[_], A: ClassTag: Reusability](view: ViewF[F, A])
     def reuseByValue: Reuse[ViewF[F, A]] = Reuse.by(view.get)(view)
 
-  extension (viewFModule: ViewF.type) def fromState: FromStateView = new FromStateView
+  // extension (viewFModule: ViewF.type) def fromState: FromStateView = new FromStateView
 
   extension [F[_], A: ClassTag: Reusability](view: ViewOptF[F, A])
     def reuseByValue: Reuse[ViewOptF[F, A]] = Reuse.by(view.get)(view)
 
   extension [F[_]: Monad, A](optView: Option[ViewF[F, A]])
     def toViewOpt: ViewOptF[F, A] =
-      optView.fold(new ViewOptF[F, A](none, (_, cb) => cb(none)) {
+      optView.fold(new ViewOptF[F, A](none, (_, cb) => cb(none, none)) {
         override def modAndGet(f: A => A)(using F: Async[F]): F[Option[A]] = none.pure[F]
       })(_.asViewOpt)
 

@@ -4,12 +4,12 @@
 package crystal.react.hooks
 
 import cats.effect.Resource
-import cats.syntax.all.*
 import crystal.*
 import crystal.react.*
+import crystal.react.reuse.Reuse
+import crystal.react.syntax.pot.given
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
-import japgolly.scalajs.react.hooks.Hooks
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
@@ -22,55 +22,45 @@ object UseStreamResource {
   // ReadyNone = Stream is mounted but no value received yet
   // ReadySome(a) = a is the last value received
 
-  protected def hookBase[D: Reusability, A] =
+  private def buildStreamResource[D, A](
+    props:    WithDeps[D, StreamResource[A]],
+    setState: PotOption[A] => DefaultA[Unit]
+  ): D => Resource[DefaultA, fs2.Stream[DefaultA, Unit]] =
+    (deps: D) =>
+      Resource
+        .eval(setState(PotOption.pending))
+        .flatMap: _ =>
+          props
+            .fromDeps(deps)
+            .map: stream =>
+              fs2.Stream.eval(setState(PotOption.ReadyNone)) ++
+                stream
+                  .evalMap(v => setState(v.readySome))
+                  .handleErrorWith: t =>
+                    fs2.Stream.eval(setState(PotOption.error(t)))
+
+  def hook[D: Reusability, A] =
     CustomHook[WithDeps[D, StreamResource[A]]]
       .useState(PotOption.pending[A])
       .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>
-        deps =>
-          Resource
-            .eval(state.setStateAsync(PotOption.pending))
-            .flatMap: _ =>
-              props
-                .fromDeps(deps)
-                .map: stream =>
-                  fs2.Stream.eval(state.setStateAsync(PotOption.ReadyNone)) ++
-                    stream
-                      .evalMap(v => state.setStateAsync(v.readySome))
-                      .handleErrorWith: t =>
-                        fs2.Stream.eval(state.setStateAsync(PotOption.error(t)))
-
-  protected def buildView[A](
-    state:           Hooks.UseState[PotOption[A]],
-    delayedCallback: (PotOption[A] => DefaultS[Unit]) => DefaultS[Unit]
-  ): PotOption[View[A]] =
-    state.value.map: a =>
-      View[A](
-        a,
-        (f: A => A, cb: A => DefaultS[Unit]) =>
-          state.modState(_.map(f)) >> delayedCallback(_.toOption.foldMap(cb))
-      )
-
-  protected def buildReuseView[A: ClassTag: Reusability](
-    state:           Hooks.UseState[PotOption[A]],
-    delayedCallback: (PotOption[A] => DefaultS[Unit]) => DefaultS[Unit]
-  ): PotOption[ReuseView[A]] =
-    buildView(state, delayedCallback).map(_.reuseByValue)
-
-  def hook[D: Reusability, A] =
-    hookBase[D, A]
+        buildStreamResource(props, state.setStateAsync)
       .buildReturning((_, state) => state.value)
 
   def hookView[D: Reusability, A] =
-    hookBase[D, A]
-      .useStateCallbackBy((_, state) => state)
-      .buildReturning: (_, state, delayedCallback) =>
-        buildView[A](state, delayedCallback)
+    CustomHook[WithDeps[D, StreamResource[A]]]
+      .useStateView(PotOption.pending[A])
+      .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>
+        buildStreamResource(props, state.set(_).to[DefaultA])
+      .buildReturning: (_, state) =>
+        state.toPotOptionView
 
   def hookReuseView[D: Reusability, A: ClassTag: Reusability] =
-    hookBase[D, A]
-      .useStateCallbackBy((_, state) => state)
-      .buildReturning: (_, state, delayedCallback) =>
-        buildReuseView(state, delayedCallback)
+    CustomHook[WithDeps[D, StreamResource[A]]]
+      .useStateViewWithReuse(PotOption.pending[A])
+      .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>
+        buildStreamResource(props, state.set(_).to[DefaultA])
+      .buildReturning: (_, state) =>
+        state.map(_.toPotOptionView)
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -106,7 +96,7 @@ object UseStreamResource {
         deps:   => D
       )(
         stream: D => fs2.Stream[DefaultA, A]
-      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuse(deps)(deps => Resource.pure(stream(deps)))
 
       // END PLAIN METHODS
@@ -142,7 +132,7 @@ object UseStreamResource {
        */
       final def useStreamViewWithReuseOnMount[A: ClassTag: Reusability](
         stream: fs2.Stream[DefaultA, A]
-      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseOnMount(Resource.pure(stream))
 
       // END PLAIN "ON MOUNT" METHODS
@@ -178,7 +168,7 @@ object UseStreamResource {
         deps:   Ctx => D
       )(
         stream: Ctx => D => fs2.Stream[DefaultA, A]
-      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseBy(deps)(ctx => deps => Resource.pure(stream(ctx)(deps)))
 
       // END "BY" METHODS
@@ -214,7 +204,7 @@ object UseStreamResource {
         stream: Ctx => fs2.Stream[DefaultA, A]
       )(using
         step:   Step
-      ): step.Next[PotOption[ReuseView[A]]] =
+      ): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseOnMountBy(ctx => Resource.pure(stream(ctx)))
 
       // END "BY" "ON MOUNT" METHODS
@@ -257,7 +247,7 @@ object UseStreamResource {
         deps:           => D
       )(
         streamResource: D => StreamResource[A]
-      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseBy(_ => deps)(_ => streamResource)
 
       // END PLAIN METHODS
@@ -296,7 +286,7 @@ object UseStreamResource {
        */
       final def useStreamResourceViewWithReuseOnMount[A: ClassTag: Reusability](
         streamResource: StreamResource[A]
-      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseOnMountBy(_ => streamResource)
 
       // END PLAIN "ON MOUNT" METHODS
@@ -341,7 +331,7 @@ object UseStreamResource {
         deps:           Ctx => D
       )(
         streamResource: Ctx => D => StreamResource[A]
-      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         api.customBy { ctx =>
           val hookInstance = hookReuseView[D, A]
           hookInstance(WithDeps(deps(ctx), streamResource(ctx)))
@@ -383,7 +373,7 @@ object UseStreamResource {
         streamResource: Ctx => StreamResource[A]
       )(using
         step:           Step
-      ): step.Next[PotOption[ReuseView[A]]] = // () has Reusability = always.
+      ): step.Next[Reuse[PotOption[View[A]]]] = // () has Reusability = always.
         useStreamResourceViewWithReuseBy(_ => ())(ctx => _ => streamResource(ctx))
 
       // END "BY" "ON MOUNT" METHODS
@@ -429,7 +419,7 @@ object UseStreamResource {
         deps:   CtxFn[D]
       )(
         stream: CtxFn[D => fs2.Stream[DefaultA, A]]
-      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseBy(step.squash(deps)(_))(ctx =>
           deps => Resource.pure(step.squash(stream)(ctx)(deps))
         )
@@ -471,7 +461,7 @@ object UseStreamResource {
         stream: CtxFn[fs2.Stream[DefaultA, A]]
       )(using
         step:   Step
-      ): step.Next[PotOption[ReuseView[A]]] =
+      ): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseOnMountBy((ctx: Ctx) =>
           Resource.pure[DefaultA, fs2.Stream[DefaultA, A]](step.squash(stream)(ctx))
         )
@@ -516,7 +506,7 @@ object UseStreamResource {
         deps:           CtxFn[D]
       )(
         streamResource: CtxFn[D => StreamResource[A]]
-      )(using step: Step): step.Next[PotOption[ReuseView[A]]] =
+      )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseBy(step.squash(deps)(_))(step.squash(streamResource)(_))
 
       // END "BY" METHODS
@@ -555,7 +545,7 @@ object UseStreamResource {
         streamResource: CtxFn[StreamResource[A]]
       )(using
         step:           Step
-      ): step.Next[PotOption[ReuseView[A]]] =
+      ): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseOnMountBy(step.squash(streamResource)(_))
 
       // END "BY" "ON MOUNT" METHODS

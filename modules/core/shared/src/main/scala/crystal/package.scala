@@ -17,8 +17,14 @@ extension [F[_]: Monad](f: F[Unit])
   def when(cond: F[Boolean]): F[Unit] =
     cond.flatMap(f.whenA)
 
-def refModCB[F[_]: FlatMap, A](ref: Ref[F, A]): (A => A, A => F[Unit]) => F[Unit] =
-  (f, cb) => ref.modify(f >>> (a => (a, a))) >>= cb
+def refModCB[F[_]: FlatMap, A](ref: Ref[F, A]): (A => A, (A, A) => F[Unit]) => F[Unit] =
+  (f, cb) =>
+    ref
+      .modify[(A, A)]: previous =>
+        val current = f(previous)
+        (current, (previous, current))
+      .flatMap: (previous, current) =>
+        cb(previous, current)
 
 extension [F[_]: Applicative](opt: Option[F[Unit]])
   def orUnit: F[Unit] =
@@ -51,10 +57,10 @@ given [F[_]: Monad]: InvariantSemigroupal[ViewF[F, *]] with
               oldB =>
                 fa.modCB( // Modify underlying a value
                   a => f(a, oldB)._1,
-                  newA =>
+                  (prevA, newA) =>
                     fb.modCB( // Modify underlying b value
                       b => f(oldA, b)._2,
-                      newB => cb((newA, newB))
+                      (prevB, newB) => cb((prevA, prevB), (newA, newB))
                     )
                 )
             )
