@@ -14,7 +14,7 @@ export UseSingleEffect.syntax.*, UseSerialState.syntax.*, UseStateCallback.synta
   UseStateView.syntax.*, UseStateViewWithReuse.syntax.*, UseSerialStateView.syntax.*,
   UseAsyncEffect.syntax.*, UseEffectResult.syntax.*, UseResource.syntax.*,
   UseStreamResource.syntax.*, UseEffectWhenDepsReady.syntax.*, UseEffectStreamResource.syntax.*,
-  UsePrevious.syntax.*, UseSnapshot.syntax.*
+  UsePrevious.syntax.*, UseSnapshot.syntax.*, UseShadowRef.syntax.*
 
 type UnitFiber[F[_]] = Fiber[F, Throwable, Unit]
 

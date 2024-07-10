@@ -12,14 +12,14 @@ object UseStateView {
   def hook[A]: CustomHook[A, View[A]] =
     CustomHook[A]
       .useStateBy(initialValue => initialValue)
-      .usePrevious((_, state) => state.value)
+      .useSnapshot((_, state) => state.value)
       .useStateCallbackBy((_, state, _) => state)
       .useCallbackWithDepsBy((_, state, _, onNextStateChange) =>
         (state.modState, onNextStateChange)
-      ): (initialValue, _, previous, _) =>
+      ): (initialValue, _, snapshot, _) =>
         (modState, onNextStateChange) =>
           (f: A => A, cb: (A, A) => DefaultS[Unit]) =>
-            previous.get >>= (previous =>
+            snapshot.get >>= (previous =>
               onNextStateChange(cb(previous.getOrElse(initialValue), _)) >> modState(f)
             )
       .buildReturning: (_, state, _, _, modCB) =>
