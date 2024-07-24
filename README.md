@@ -242,10 +242,15 @@ Stores the result `A` of an effect in state. The state is provided as `Pot[A]`, 
 
 Note that all versions either have dependencies or are executed `onMount`. It doesn't make sense to execute the effect on each render since its completion will alter state and force a rerender, which would provoke a render loop. The naming keeps the `WithDeps`, even though it's redundant, for consistency with the `useEffect` family of hooks.
 
+Also note that when dependencies change, the hook value will revert to `Pending` until the new effect completes. If this is undesireable, there are `useEffectKeepResult*` variants which will instead keep the hook value as `Ready(oldValue)` until the new effect completes.
+
 
 ``` scala
   useEffectResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
   useEffectResultWithDepsBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+
+  useEffectKeepResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
+  useEffectKeepResultWithDepsBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
 
   useEffectResultOnMount[A](effect: IO[A]): Pot[A]
   useEffectResultOnMountBy[A](effect: Ctx => IO[A]): Pot[A]
