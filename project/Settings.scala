@@ -11,9 +11,10 @@ object Settings {
     val disciplineMUnit = "2.0.0"
     val fs2             = "3.10.2"
     val log4Cats        = "2.7.0"
-    val lucumaReact     = "0.69.1"
+    val lucumaReact     = "0.71.0"
     val monocle         = "3.3.0"
-    val mUnit           = "1.0.0"
+    val mUnit           = "1.0.1"
+    val mUnitScalacheck = "1.0.0"
     val mUnitCatsEffect = "2.0.0"
     val scalaCheck      = "1.18.0"
     val scalajsReact    = "3.0.0-beta6"
@@ -91,7 +92,7 @@ object Settings {
     val MUnit = Def.setting(
       Seq[ModuleID](
         "org.scalameta" %%% "munit"             % mUnit,
-        "org.scalameta" %%% "munit-scalacheck"  % mUnit,
+        "org.scalameta" %%% "munit-scalacheck"  % mUnitScalacheck,
         "org.typelevel" %%% "munit-cats-effect" % mUnitCatsEffect
       )
     )
