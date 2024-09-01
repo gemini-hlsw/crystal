@@ -7,14 +7,13 @@ import cats.effect.Fiber
 import cats.effect.Resource
 import crystal.Pot
 import crystal.react.reuse.*
-import japgolly.scalajs.react.*
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 export UseSingleEffect.syntax.*, UseSerialState.syntax.*, UseStateCallback.syntax.*,
   UseStateView.syntax.*, UseStateViewWithReuse.syntax.*, UseSerialStateView.syntax.*,
   UseAsyncEffect.syntax.*, UseEffectResult.syntax.*, UseResource.syntax.*,
   UseStreamResource.syntax.*, UseEffectWhenDepsReady.syntax.*, UseEffectStreamResource.syntax.*,
-  UseShadowRef.syntax.*
+  UseShadowRef.syntax.*, UseThrottlingStateView.syntax.*
 
 type UnitFiber[F[_]] = Fiber[F, Throwable, Unit]
 
