@@ -3,7 +3,6 @@
 
 package crystal
 
-import cats.Eq
 import cats.Id
 import cats.Invariant
 import cats.laws.discipline.InvariantSemigroupalTests

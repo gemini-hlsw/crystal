@@ -55,6 +55,14 @@ It provides several `zoom` functions for drilling down its properties. It also a
 
 `ViewOpt[A]` and `ViewList[A]` are variants that hold a value known to be an `Option[A]` or `List[A]` respectively. They are returned when `zoom`ing using `Optional`, `Prism` or `Traversal`.
 
+## ViewThrottler[A]
+
+A `ViewThrowttler[A]` creates two `View[A]` from a given `View[A]`:
+  - A `throttledView`, which can be paused. While paused, it accumulates updates and applies them all at once upon timeout. The callback is called only once and only to the function provided in the last update during the pause. If unpaused, it acts as a normal `ViewF`.
+  - A `throttlerView`, which will pause the `throttledView` whenever it is modified.
+
+ This is particularly useful for values that can be both updated from a UI and from a server. The `throttlerView` should be used in the UI, while the `throttledView` should be used for the server updates. This way, the server updates will pause whenever the user changes a value. If the server sends updates for every changed value, the throttling will avoid the UI from glitching between old and new values when the UI is updated quickly.
+
 ## Reuse[A]
 
 A `Reuse[A]` wraps a value of type `A` and a hidden value of another type `B` such that there is a implicit `Reusability[B]`.
@@ -156,6 +164,10 @@ Similar to `useStateView` but returns a `Reuse[View[A]]`. The resulting `View` i
 
   useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: Ctx => A): Reuse[View[A]]
 ```
+
+### useThrottlingStateView
+
+Same as `useStateView` but provides 2 `View`s over the same value, See [`ViewThrottler[A]`](#viewthrottlera).
 
 ### useSerialState
 

@@ -5,10 +5,8 @@ package crystal
 
 import cats.Applicative
 import cats.Eq
-import cats.FlatMap
 import cats.InvariantSemigroupal
 import cats.Monad
-import cats.effect.Ref
 import cats.syntax.all.*
 
 export syntax.*
@@ -16,15 +14,6 @@ export syntax.*
 extension [F[_]: Monad](f: F[Unit])
   def when(cond: F[Boolean]): F[Unit] =
     cond.flatMap(f.whenA)
-
-def refModCB[F[_]: FlatMap, A](ref: Ref[F, A]): (A => A, (A, A) => F[Unit]) => F[Unit] =
-  (f, cb) =>
-    ref
-      .modify[(A, A)]: previous =>
-        val current = f(previous)
-        (current, (previous, current))
-      .flatMap: (previous, current) =>
-        cb(previous, current)
 
 extension [F[_]: Applicative](opt: Option[F[Unit]])
   def orUnit: F[Unit] =

@@ -14,6 +14,7 @@ import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 import japgolly.scalajs.react.util.Effect.UnsafeSync
 import japgolly.scalajs.react.vdom.VdomNode
 
+import scala.concurrent.duration.FiniteDuration
 import scala.reflect.ClassTag
 
 type SetState[F[_], A] = A => F[Unit]
@@ -41,6 +42,9 @@ type ReuseViewListF[F[_], A] = Reuse[ViewListF[F, A]]
 type ReuseView[A]     = Reuse[View[A]]
 type ReuseViewOpt[A]  = Reuse[ViewOpt[A]]
 type ReuseViewList[A] = Reuse[ViewList[A]]
+
+type ViewThrottler[A]  = ViewThrottlerF[DefaultS, DefaultA, A]
+type ThrottlingView[A] = ThrottlingViewF[DefaultS, DefaultA, A]
 
 export crystal.react.syntax.all.*, crystal.react.syntax.all.given
 
@@ -86,3 +90,6 @@ class FromStateReuseView {
         $.state >>= (oldState => $.modState(f, $.state.flatMap(newState => cb(oldState, newState))))
     )
 }
+
+def ViewThrottler[A](timeout: FiniteDuration): DefaultA[ViewThrottler[A]] =
+  ViewThrottlerF[DefaultS, DefaultA, A](timeout, syncToAsync, _.runAsyncAndForget)
