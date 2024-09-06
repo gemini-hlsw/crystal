@@ -3,9 +3,9 @@
 
 package crystal
 
-import cats.Applicative
 import cats.effect.Ref
 import cats.effect.Temporal
+import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import cats.~>
 
@@ -29,31 +29,38 @@ import scala.concurrent.duration.FiniteDuration
  */
 final class ViewThrottlerF[F[_], G[_], A] private (
   waitUntil:     Ref[G, FiniteDuration],
-  nextUpdate:    Ref[G, (A => A, (A, A) => G[Unit])],
+  nextUpdate:    Ref[G, Option[ViewThrottlerF.ModCBType[G, A]]],
   timeout:       FiniteDuration,
   syncToAsync:   F ~> G,
   dispatchAsync: G[Unit] => F[Unit]
 )(using G: Temporal[G]) {
 
-  private def curb: F[Unit] =
+  private def throttle: F[Unit] =
     dispatchAsync:
       G.monotonic.flatMap(now => waitUntil.set(now + timeout))
 
   private def throttlerView(view: ViewF[F, A]): ViewF[F, A] =
-    view.withOnMod(_ => curb) // todo try to curb before modding?? maybe not necessary
+    view.withOnMod(_ => throttle)
 
   private def attemptSet(modCB: (A => A, (A, A) => G[Unit]) => G[Unit]): G[Unit] =
     (waitUntil.get, G.monotonic).flatMapN: (waitUntil, now) =>
       if (waitUntil > now)
-        G.sleep(waitUntil - now) >> attemptSet(modCB)
+        (G.sleep(waitUntil - now) >> attemptSet(modCB)).start.void
       else
-        nextUpdate.flatModify((mod, cb) => (ViewThrottlerF.initialValue[G, A], modCB(mod, cb)))
+        nextUpdate
+          .flatModify: accumModCb =>
+            (none, accumModCb.map((mod, cb) => modCB(mod, cb)).getOrElse(G.unit))
+          .flatTap(_ => G.unit)
 
   private def throttledView(view: ViewF[F, A]): ViewF[G, A] =
     new ViewF[G, A](
       get = view.get,
-      modCB = (mod, cb) => // We only keep last CB
-        nextUpdate.update((oldMod, _) => (oldMod.andThen(mod), cb)) >>
+      modCB = (mod, cb) =>
+        nextUpdate.update: x =>
+          x match
+            case None            => (mod, cb).some
+            case Some(oldMod, _) => (oldMod.andThen(mod), cb).some // We only keep last CB
+        >>
           attemptSet: (newMod, newCB) =>
             syncToAsync(view.modCB(newMod, (oldA, newA) => dispatchAsync(newCB(oldA, newA))))
     )
@@ -63,14 +70,13 @@ final class ViewThrottlerF[F[_], G[_], A] private (
 }
 
 object ViewThrottlerF {
-  private inline def initialValue[F[_], A](using F: Applicative[F]): (A => A, (A, A) => F[Unit]) =
-    (identity, (_, _) => F.unit)
+  private type ModCBType[F[_], A] = (A => A, (A, A) => F[Unit])
 
   def apply[F[_], G[_], A](
     timeout:       FiniteDuration,
     syncToAsync:   F ~> G,
     dispatchAsync: G[Unit] => F[Unit]
   )(using G: Temporal[G]): G[ViewThrottlerF[F, G, A]] =
-    (G.monotonic.flatMap(G.ref(_)), G.ref(initialValue[G, A]))
+    (G.monotonic.flatMap(G.ref(_)), G.ref(none[ModCBType[G, A]]))
       .mapN(new ViewThrottlerF(_, _, timeout, syncToAsync, dispatchAsync))
 }
