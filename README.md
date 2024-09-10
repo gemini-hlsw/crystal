@@ -256,6 +256,8 @@ Note that all versions either have dependencies or are executed `onMount`. It do
 
 Also note that when dependencies change, the hook value will revert to `Pending` until the new effect completes. If this is undesireable, there are `useEffectKeepResult*` variants which will instead keep the hook value as `Ready(oldValue)` until the new effect completes.
 
+There are also `WhenDepsReady` versions, which will only execute the effect when dependencies are ready. If they change or transition to `Pending` or `Error`, then the result will revert to `Pending`. However, if the `KeepResult` version is used, it will retain the last value.
+
 
 ``` scala
   useEffectResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
@@ -266,6 +268,12 @@ Also note that when dependencies change, the hook value will revert to `Pending`
 
   useEffectResultOnMount[A](effect: IO[A]): Pot[A]
   useEffectResultOnMountBy[A](effect: Ctx => IO[A]): Pot[A]
+
+  useEffectResultWhenDepsReady[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
+  useEffectResultWhenDepsReadyBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+
+  useEffectKeepResultWhenDepsReady[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
+  useEffectKeepResultWhenDepsReadyBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
 ```
 
 #### Example:
