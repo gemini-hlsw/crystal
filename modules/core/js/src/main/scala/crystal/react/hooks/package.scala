@@ -5,6 +5,7 @@ package crystal.react.hooks
 
 import cats.effect.Fiber
 import cats.effect.Resource
+import cats.syntax.all.*
 import crystal.Pot
 import crystal.react.reuse.*
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
@@ -22,6 +23,14 @@ type StreamResource[A] = Resource[DefaultA, fs2.Stream[DefaultA, A]]
 protected[hooks] type NeverReuse = Reuse[Unit]
 protected[hooks] val NeverReuse: NeverReuse = ().reuseNever
 
-protected[hooks] final case class WithDeps[D, A](deps: D, fromDeps: D => A)
+protected[hooks] case class WithDeps[D, A](deps: D, fromDeps: D => A)
 
-protected[hooks] final case class WithPotDeps[D, A](deps: Pot[D], fromDeps: D => A)
+protected[hooks] enum WithPotDeps[D, A, R](
+  val deps:       Pot[D],
+  val fromDeps:   D => A,
+  val reuseValue: Option[R]
+):
+  case WhenReady[D, A](override val deps: Pot[D], override val fromDeps: D => A)
+      extends WithPotDeps[D, A, Unit](deps, fromDeps, deps.toOption.void)
+  case WhenReadyOrChange[D, A](override val deps: Pot[D], override val fromDeps: D => A)
+      extends WithPotDeps[D, A, D](deps, fromDeps, deps.toOption)

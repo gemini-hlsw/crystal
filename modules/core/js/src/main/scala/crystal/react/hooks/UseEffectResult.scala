@@ -11,13 +11,16 @@ import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 object UseEffectResult {
-  private case class Input[D, A](effect: WithPotDeps[D, DefaultA[A]], keep: Boolean):
+  private case class Input[D, A, R: Reusability](
+    effect: WithPotDeps[D, DefaultA[A], R],
+    keep:   Boolean
+  ):
     val depsOpt: Option[D] = effect.deps.toOption
 
-  private def hook[D: Reusability, A] =
-    CustomHook[Input[D, A]]
+  private def hook[D, A, R: Reusability] =
+    CustomHook[Input[D, A, R]]
       .useState(Pot.pending[A])
-      .useMemoBy((props, _) => props.depsOpt.void): (props, _) => // Memo Option[effect]
+      .useMemoBy((props, _) => props.effect.reuseValue): (props, _) => // Memo Option[effect]
         _ => props.depsOpt.map(props.effect.fromDeps)
       .useEffectWithDepsBy((_, _, effectOpt) => effectOpt): (props, state, _) => // Set to Pending
         _ => state.setState(Pot.pending).unless(props.keep).void
@@ -96,14 +99,24 @@ object UseEffectResult {
       ): step.Next[Pot[A]] =
         useEffectResultInternalWhenDepsReadyBy(deps.andThen(_.ready))(effect, keep)
 
-      private def useEffectResultInternalWhenDepsReadyBy[D: Reusability, A](
+      private def useEffectResultInternalWhenDepsReadyBy[D, A](
         deps: Ctx => Pot[D]
       )(effect: Ctx => D => DefaultA[A], keep: Boolean)(using
         step: Step
       ): step.Next[Pot[A]] =
         api.customBy { ctx =>
-          val hookInstance = hook[D, A]
-          hookInstance(Input(WithPotDeps(deps(ctx), effect(ctx)), keep))
+          val hookInstance = hook[D, A, Unit]
+          hookInstance(Input(WithPotDeps.WhenReady(deps(ctx), effect(ctx)), keep))
+        }
+
+      private def useEffectResultInternalWhenDepsReadyOrChangeBy[D: Reusability, A](
+        deps: Ctx => Pot[D]
+      )(effect: Ctx => D => DefaultA[A], keep: Boolean)(using
+        step: Step
+      ): step.Next[Pot[A]] =
+        api.customBy { ctx =>
+          val hookInstance = hook[D, A, D]
+          hookInstance(Input(WithPotDeps.WhenReadyOrChange(deps(ctx), effect(ctx)), keep))
         }
 
       /**
@@ -118,17 +131,32 @@ object UseEffectResult {
         useEffectResultInternalWithDepsBy(deps)(effect, keep = false)
 
       /**
-       * Runs an async effect when `Pot` dependencies transition into a `Ready` state and stores the
-       * result in a state, which is provided as a `Pot[A]`. When dependencies change, reverts to
-       * `Pending` while executing the new effect or while waiting for them to become `Ready` again.
-       * For multiple dependencies, use `(par1, par2, ...).tupled`.
+       * Runs an async effect whenever `Pot` dependencies transition into a `Ready` state (but not
+       * when they change once `Ready`) and stores the result in a state, which is provided as a
+       * `Pot[A]`. When dependencies change, reverts to `Pending` while executing the new effect or
+       * while waiting for them to become `Ready` again. For multiple dependencies, use `(par1,
+       * par2, ...).tupled`.
        */
-      final def useEffectResultWhenDepsReadyBy[D: Reusability, A](
+      final def useEffectResultWhenDepsReadyBy[D, A](
         deps: Ctx => Pot[D]
       )(effect: Ctx => D => DefaultA[A])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultInternalWhenDepsReadyBy(deps)(effect, keep = false)
+
+      /**
+       * Runs an async effect when `Pot` dependencies transition into a `Ready` state or change once
+       * `Ready` and stores the result in a state, which is provided as a `Pot[A]`. When
+       * dependencies change, reverts to `Pending` while executing the new effect or while waiting
+       * for them to become `Ready` again. For multiple dependencies, use `(par1, par2,
+       * ...).tupled`.
+       */
+      final def useEffectResultWhenDepsReadyOrChangeBy[D: Reusability, A](
+        deps: Ctx => Pot[D]
+      )(effect: Ctx => D => DefaultA[A])(using
+        step: Step
+      ): step.Next[Pot[A]] =
+        useEffectResultInternalWhenDepsReadyOrChangeBy(deps)(effect, keep = false)
 
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
@@ -142,17 +170,32 @@ object UseEffectResult {
         useEffectResultInternalWithDepsBy(deps)(effect, keep = true)
 
       /**
-       * Runs an async effect when `Pot` dependencies transition into a `Ready` state and stores the
-       * result in a state, which is provided as a `Pot[A]`. When dependencies change, keeps the old
-       * value while executing the new effect or while waiting for them to become `Ready` again. For
-       * multiple dependencies, use `(par1, par2, ...).tupled`.
+       * Runs an async effect whenever `Pot` dependencies transition into a `Ready` state (but not
+       * when they change once `Ready`) and stores the result in a state, which is provided as a
+       * `Pot[A]`. When dependencies change, keeps the old value while executing the new effect or
+       * while waiting for them to become `Ready` again. For multiple dependencies, use `(par1,
+       * par2, ...).tupled`.
        */
-      final def useEffectKeepResultWhenDepsReadyBy[D: Reusability, A](
+      final def useEffectKeepResultWhenDepsReadyBy[D, A](
         deps: Ctx => Pot[D]
       )(effect: Ctx => D => DefaultA[A])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultInternalWhenDepsReadyBy(deps)(effect, keep = true)
+
+      /**
+       * Runs an async effect whenever `Pot` dependencies transition into a `Ready` state or change
+       * once `Ready` and stores the result in a state, which is provided as a `Pot[A]`. When
+       * dependencies change, keeps the old value while executing the new effect or while waiting
+       * for them to become `Ready` again. For multiple dependencies, use `(par1, par2,
+       * ...).tupled`.
+       */
+      final def useEffectKeepResultWhenDepsReadyOrChangeBy[D: Reusability, A](
+        deps: Ctx => Pot[D]
+      )(effect: Ctx => D => DefaultA[A])(using
+        step: Step
+      ): step.Next[Pot[A]] =
+        useEffectResultInternalWhenDepsReadyOrChangeBy(deps)(effect, keep = true)
 
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
@@ -179,17 +222,32 @@ object UseEffectResult {
         useEffectResultWithDepsBy(step.squash(deps)(_))(step.squash(effect)(_))
 
       /**
-       * Runs an async effect when `Pot` dependencies transition into a `Ready` state and stores the
-       * result in a state, which is provided as a `Pot[A]`. When dependencies change, reverts to
-       * `Pending` while executing the new effect or while waiting for them to become `Ready` again.
-       * For multiple dependencies, use `(par1, par2, ...).tupled`.
+       * Runs an async effect whenever `Pot` dependencies transition into a `Ready` state (but not
+       * when they change once `Ready`) and stores the result in a state, which is provided as a
+       * `Pot[A]`. When dependencies change, reverts to `Pending` while executing the new effect or
+       * while waiting for them to become `Ready` again. For multiple dependencies, use `(par1,
+       * par2, ...).tupled`.
        */
-      def useEffectResultWhenDepsReadyBy[D: Reusability, A](
+      def useEffectResultWhenDepsReadyBy[D, A](
         deps: CtxFn[Pot[D]]
       )(effect: CtxFn[D => DefaultA[A]])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectResultWhenDepsReadyBy(step.squash(deps)(_))(step.squash(effect)(_))
+
+      /**
+       * Runs an async effect when `Pot` dependencies transition into a `Ready` state or change once
+       * `Ready` and stores the result in a state, which is provided as a `Pot[A]`. When
+       * dependencies change, reverts to `Pending` while executing the new effect or while waiting
+       * for them to become `Ready` again. For multiple dependencies, use `(par1, par2,
+       * ...).tupled`.
+       */
+      def useEffectResultWhenDepsReadyOrChangeBy[D: Reusability, A](
+        deps: CtxFn[Pot[D]]
+      )(effect: CtxFn[D => DefaultA[A]])(using
+        step: Step
+      ): step.Next[Pot[A]] =
+        useEffectResultWhenDepsReadyOrChangeBy(step.squash(deps)(_))(step.squash(effect)(_))
 
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
@@ -203,17 +261,32 @@ object UseEffectResult {
         useEffectKeepResultWithDepsBy(step.squash(deps)(_))(step.squash(effect)(_))
 
       /**
-       * Runs an async effect when `Pot` dependencies transition into a `Ready` state and stores the
-       * result in a state, which is provided as a `Pot[A]`. When dependencies change, keeps the old
-       * value while executing the new effect or while waiting for them to become `Ready` again. For
-       * multiple dependencies, use `(par1, par2, ...).tupled`.
+       * Runs an async effect whenever `Pot` dependencies transition into a `Ready` state (but not
+       * when they change once `Ready`) and stores the result in a state, which is provided as a
+       * `Pot[A]`. When dependencies change, keeps the old value while executing the new effect or
+       * while waiting for them to become `Ready` again. For multiple dependencies, use `(par1,
+       * par2, ...).tupled`.
        */
-      def useEffectKeepResultWhenDepsReadysBy[D: Reusability, A](
+      def useEffectKeepResultWhenDepsReadyBy[D, A](
         deps: CtxFn[Pot[D]]
       )(effect: CtxFn[D => DefaultA[A]])(using
         step: Step
       ): step.Next[Pot[A]] =
         useEffectKeepResultWhenDepsReadyBy(step.squash(deps)(_))(step.squash(effect)(_))
+
+      /**
+       * Runs an async effect when `Pot` dependencies transition into a `Ready` state or change once
+       * `Ready` and stores the result in a state, which is provided as a `Pot[A]`. When
+       * dependencies change, keeps the old value while executing the new effect or while waiting
+       * for them to become `Ready` again. For multiple dependencies, use `(par1, par2,
+       * ...).tupled`.
+       */
+      def useEffectKeepResultWhenDepsReadyOrChangeBy[D: Reusability, A](
+        deps: CtxFn[Pot[D]]
+      )(effect: CtxFn[D => DefaultA[A]])(using
+        step: Step
+      ): step.Next[Pot[A]] =
+        useEffectKeepResultWhenDepsReadyOrChangeBy(step.squash(deps)(_))(step.squash(effect)(_))
 
       /**
        * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
