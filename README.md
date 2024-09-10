@@ -204,7 +204,7 @@ Version of `useSerialState` that returns a `Reuse[View[A]]`.
 
 ### useEffectWhenDepsReady
 
-Version of `useEffect` applicable only when there's a unique dependency of type `Pot[A]`. It will trigger the effect only when the dependency transitions to a `Ready` state, whether it was from `Pending` or `Error`. 
+Version of `useEffect` applicable only when there's a unique dependency of type `Pot[A]`. It will trigger the effect only when the dependency transitions to a `Ready` state, whether it was from `Pending` or `Error`. There are also `WhenDepsReadyOrChange` versions, which will also trigger if the dependencies change value once in `Ready` state.
 
 Note that multiple `Pot` dependencies can be combined into one with `.tupled`.
 
@@ -212,11 +212,20 @@ Note that multiple `Pot` dependencies can be combined into one with `.tupled`.
   useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => Callback)
   useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => Callback)
 
+  useEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => Callback)
+  useEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => Callback)
+
   useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[Unit])
   useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
 
+  useEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => IO[Unit])
+  useEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
+
   useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => CallbackTo[Callback]) // return cleanup
   useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx =>D => CallbackTo[Callback]) // return cleanup
+
+  useEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => CallbackTo[Callback]) // return cleanup
+  useEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx =>D => CallbackTo[Callback]) // return cleanup
 ```
 
 ### useAsyncEffect
@@ -245,6 +254,11 @@ Also allows returning a cleanup effect, which `useEffect` only supports when use
   useAsyncEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[IO[Unit]]) // return a cleanup effect
   useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
   useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) // return a cleanup effect
+
+  useAsyncEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => IO[Unit])
+  useAsyncEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => IO[IO[Unit]]) // return a cleanup effect
+  useAsyncEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
+  useAsyncEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) // return a cleanup effect
 ```
 
 
@@ -256,7 +270,9 @@ Note that all versions either have dependencies or are executed `onMount`. It do
 
 Also note that when dependencies change, the hook value will revert to `Pending` until the new effect completes. If this is undesireable, there are `useEffectKeepResult*` variants which will instead keep the hook value as `Ready(oldValue)` until the new effect completes.
 
-There are also `WhenDepsReady` versions, which will only execute the effect when dependencies are ready. If they change or transition to `Pending` or `Error`, then the result will revert to `Pending`. However, if the `KeepResult` version is used, it will retain the last value.
+There are also `WhenDepsReady` versions, which will only execute the effect when dependencies transition to `Ready`. If they transition to `Pending` or `Error`, then the result will revert to `Pending`. However, if the `KeepResult` version is used, it will retain the last value.
+
+Furthermore, there are also `WhenDepsReadyOrChange` versions, which will only execute the effect when dependencies transition to `Ready` or change value once `Ready`. If they change or transition to `Pending` or `Error`, then the result will revert to `Pending`. However, if the `KeepResult` version is used, it will retain the last value.
 
 
 ``` scala
@@ -272,8 +288,14 @@ There are also `WhenDepsReady` versions, which will only execute the effect when
   useEffectResultWhenDepsReady[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
   useEffectResultWhenDepsReadyBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
 
+  useEffectResultWhenDepsReadyOrChange[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
+  useEffectResultWhenDepsReadyOrChangeBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+
   useEffectKeepResultWhenDepsReady[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
   useEffectKeepResultWhenDepsReadyBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+
+  useEffectKeepResultWhenDepsReadyOrChange[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
+  useEffectKeepResultWhenDepsReadyOrChangeBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
 ```
 
 #### Example:
