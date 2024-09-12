@@ -373,6 +373,8 @@ In other words, when mounting or depdency change, the resource is allocated and 
 
 Upon unmount or dependency change, the evaluating fiber is cancelled and the resource closed.
 
+The resource is also closed if the stream terminates.
+
 ``` scala
   useStreamResource[D: Reusability, A](deps: => D)(streamResource: D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
   useStreamResourceBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
@@ -417,7 +419,7 @@ Like the `useEffect` family of hooks, this hook doesn't add any new parameters t
 
 ### useEffectStreamResource
 
-Given a `Resource[IO, fs2.Stream[IO, Unit]]`, opens the resource and executes and drains the stream upon mount or dependency change. If still running, execution is cancelled and the resource closed upon unmount or dependency change.
+Given a `Resource[IO, fs2.Stream[IO, Unit]]`, opens the resource and executes and drains the stream upon mount or dependency change. If still running, execution is cancelled and the resource closed upon unmount or dependency change. The resource is also closed if the stream terminates.
 
 Like the `useEffect` family of hooks, this hook doesn't add any new parameters to the context.
 

@@ -4,6 +4,7 @@
 package crystal.react.hooks
 
 import cats.effect.Resource
+import cats.effect.kernel.Deferred
 import cats.syntax.all.*
 import crystal.*
 import crystal.react.*
@@ -17,12 +18,15 @@ object UseEffectStreamResource {
     CustomHook[WithDeps[D, StreamResource[Unit]]]
       .useAsyncEffectWithDepsBy(props => props.deps): props =>
         deps =>
-          props
-            .fromDeps(deps)
-            .flatMap: stream =>
-              stream.compile.drain.background.void
-            .allocated
-            .map(_._2) // open the resource and return a close callback
+          for
+            latch      <- Deferred[DefaultA, Unit]   // Latch for stream termination.
+            (_, close) <- props
+                            .fromDeps(deps)
+                            .flatMap: stream =>
+                              (stream.compile.drain >> latch.complete(())).background.void
+                            .allocated
+            supervisor <- (latch.get >> close).start // Close the resource if the stream terminates.
+          yield supervisor.cancel >> close // Cleanup closes resource and cancels the supervisor.
       .build
 
   object HooksApiExt {
