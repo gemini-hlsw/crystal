@@ -4,13 +4,13 @@
 package crystal.react.hooks
 
 import cats.effect.Resource
+import cats.effect.kernel.Deferred
 import cats.syntax.all.*
 import crystal.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
-import cats.effect.kernel.Deferred
 
 object UseEffectStreamResource {
 
