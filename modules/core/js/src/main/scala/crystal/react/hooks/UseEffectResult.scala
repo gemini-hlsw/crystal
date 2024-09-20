@@ -97,7 +97,7 @@ object UseEffectResult {
       )(effect: Ctx => D => DefaultA[A], keep: Boolean)(using
         step: Step
       ): step.Next[Pot[A]] =
-        useEffectResultInternalWhenDepsReadyBy(deps.andThen(_.ready))(effect, keep)
+        useEffectResultInternalWhenDepsReadyOrChangeBy(deps.andThen(_.ready))(effect, keep)
 
       private def useEffectResultInternalWhenDepsReadyBy[D, A](
         deps: Ctx => Pot[D]
