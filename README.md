@@ -353,7 +353,7 @@ The resulting `PotOption[A]` takes one of these values:
 
 ### useStreamView
 
-Like `useStream` but returns a `PotOption[View[A]]`, allowing local modifications to the state once it's `Ready`.
+Like `useStream` but returns a `PotOption[View[A]]`, allowing local modifications to the state once it's `ReadySome`.
 
 In other words, the state will be modified on every new value produced by the stream, and also on every invocation to `set` or `mod` on the `View`.
 
@@ -369,7 +369,7 @@ In other words, the state will be modified on every new value produced by the st
 
 Given a `Resource[IO, fs2.Stream[IO, A]]`, combines `useResource` and `useStream` on it.
 
-In other words, when mounting or depdency change, the resource is allocated and the resulting stream starts being evaluated.
+In other words, when mounting or depedency change, the resource is allocated and the resulting stream starts being evaluated.
 
 Upon unmount or dependency change, the evaluating fiber is cancelled and the resource closed.
 
