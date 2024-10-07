@@ -26,7 +26,10 @@ object UseEffectStreamResource {
                               (stream.compile.drain >> latch.complete(())).background.void
                             .allocated
             supervisor <- (latch.get >> close).start // Close the resource if the stream terminates.
-          yield supervisor.cancel >> close // Cleanup closes resource and cancels the supervisor.
+          yield
+          // Cleanup closes resource and cancels the supervisor, unless resource is already closed.
+          (supervisor.cancel >> close).when:
+            latch.tryGet.map(_.isEmpty)
       .build
 
   object HooksApiExt {
