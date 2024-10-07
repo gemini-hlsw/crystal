@@ -17,11 +17,6 @@ import scala.reflect.ClassTag
 
 object UseStreamResource {
 
-  // Returns PotOption[A]
-  // Pending = Stream hasn't been mounted yet
-  // ReadyNone = Stream is mounted but no value received yet
-  // ReadySome(a) = a is the last value received
-
   private def buildStreamResource[D, A](
     props:    WithDeps[D, StreamResource[A]],
     setState: PotOption[A] => DefaultA[Unit]
@@ -69,8 +64,12 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
-       * pulled values as a `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be
-       * cancelled on unmount or deps change.
+       * pulled values as a `PotOption[A]`. Will rerender when the `PotOption` state changes. The
+       * fiber will be cancelled on unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStream[D: Reusability, A](deps: => D)(
         stream: D => fs2.Stream[DefaultA, A]
@@ -79,8 +78,13 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
-       * pulled values as a `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be
-       * cancelled on unmount or deps change.
+       * pulled values as a `PotOption[View[A]]` so that the value can also be changed locally. Will
+       * rerender when the `PotOption` state changes. The fiber will be cancelled on unmount or deps
+       * change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamView[D: Reusability, A](deps: => D)(
         stream: D => fs2.Stream[DefaultA, A]
@@ -89,8 +93,13 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
-       * pulled values as a `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be
-       * cancelled on unmount or deps change.
+       * pulled values as a `Reuse[PotOption[View[A]]` so that the value can also be changed
+       * locally, reusable by value. Will rerender when the `PotOption` state changes. The fiber
+       * will be cancelled on unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewWithReuse[D: Reusability, A: ClassTag: Reusability](
         deps:   => D
@@ -105,8 +114,12 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
-       * `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be cancelled on
-       * unmount.
+       * `PotOption[A]`. Will rerender when the `PotOption` state changes. The fiber will be
+       * cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamOnMount[A](
         stream: fs2.Stream[DefaultA, A]
@@ -115,8 +128,12 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
-       * `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be cancelled on
-       * unmount.
+       * `PotOption[View[A]]` so that the value can also be changed locally. Will rerender when the
+       * `PotOption` state changes. The fiber will be cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewOnMount[A](
         stream: fs2.Stream[DefaultA, A]
@@ -127,8 +144,13 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
-       * `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be cancelled on
+       * `Reuse[PotOption[View[A]]` so that the value can also be changed locally, reusable by
+       * value. Will rerender when the `PotOption` state changes. The fiber will be cancelled on
        * unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewWithReuseOnMount[A: ClassTag: Reusability](
         stream: fs2.Stream[DefaultA, A]
@@ -141,8 +163,12 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
-       * pulled values as a `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be
-       * cancelled on unmount or deps change.
+       * pulled values as a `PotOption[A]`. Will rerender when the `PotOption` state changes. The
+       * fiber will be cancelled on unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamBy[D: Reusability, A](deps: Ctx => D)(
         stream: Ctx => D => fs2.Stream[DefaultA, A]
@@ -151,8 +177,13 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
-       * pulled values as a `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be
-       * cancelled on unmount or deps change.
+       * pulled values as a `PotOption[View[A]]` so that the value can also be changed locally. Will
+       * rerender when the `PotOption` state changes. The fiber will be cancelled on unmount or deps
+       * change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewBy[D: Reusability, A](deps: Ctx => D)(
         stream: Ctx => D => fs2.Stream[DefaultA, A]
@@ -161,8 +192,13 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
-       * pulled values as a `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be
-       * cancelled on unmount or deps change.
+       * pulled values as a `Reuse[PotOption[View[A]]` so that the value can also be changed
+       * locally, reusable by value. Will rerender when the `PotOption` state changes. The fiber
+       * will be cancelled on unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
         deps:   Ctx => D
@@ -177,8 +213,12 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
-       * `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be cancelled on
-       * unmount.
+       * `PotOption[A]`. Will rerender when the `PotOption` state changes. The fiber will be
+       * cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamOnMountBy[A](
         stream: Ctx => fs2.Stream[DefaultA, A]
@@ -187,8 +227,12 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
-       * `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be cancelled on
-       * unmount.
+       * `PotOption[View[A]]` so that the value can also be changed locally. Will rerender when the
+       * `PotOption` state changes. The fiber will be cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewOnMountBy[A](
         stream: Ctx => fs2.Stream[DefaultA, A]
@@ -197,8 +241,13 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
-       * `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be cancelled on
+       * `Reuse[PotOption[View[A]]` so that the value can also be changed locally, reusable by
+       * value. Will rerender when the `PotOption` state changes. The fiber will be cancelled on
        * unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewWithReuseOnMountBy[A: ClassTag: Reusability](
         stream: Ctx => fs2.Stream[DefaultA, A]
@@ -217,9 +266,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and
-       * drain the stream by creating a fiber. Provides pulled values as a `Pot[View[A]]` so that
-       * the value can also be changed locally. Will rerender when the `Pot` state changes. The
-       * fiber will be cancelled and the resource closed on unmount or deps change.
+       * drain the stream by creating a fiber. Provides pulled values as a `PotOption[A]`. Will
+       * rerender when the `PotOption` state changes. The fiber will be cancelled on unmount or deps
+       * change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResource[D: Reusability, A](deps: => D)(
         streamResource: D => StreamResource[A]
@@ -228,9 +281,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and
-       * drain the stream by creating a fiber. Provides pulled values as a `Pot[View[A]]` so that
-       * the value can also be changed locally. Will rerender when the `Pot` state changes. The
-       * fiber will be cancelled and the resource closed on unmount or deps change.
+       * drain the stream by creating a fiber. Provides pulled values as a `PotOption[View[A]]` so
+       * that the value can also be changed locally. Will rerender when the `PotOption` state
+       * changes. The fiber will be cancelled on unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceView[D: Reusability, A](deps: => D)(
         streamResource: D => StreamResource[A]
@@ -239,9 +296,14 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and
-       * drain the stream by creating a fiber. Provides pulled values as a `Pot[View[A]]` so that
-       * the value can also be changed locally. Will rerender when the `Pot` state changes. The
-       * fiber will be cancelled and the resource closed on unmount or deps change.
+       * drain the stream by creating a fiber. Provides pulled values as a
+       * `Reuse[PotOption[View[A]]` so that the value can also be changed locally, reusable by
+       * value. Will rerender when the `PotOption` state changes. The fiber will be cancelled on
+       * unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewWithReuse[D: Reusability, A: ClassTag: Reusability](
         deps:           => D
@@ -256,9 +318,12 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
-       * fiber. Provides pulled values as a `Pot[View[A]]` so that the value can also be changed
-       * locally. Will rerender when the `Pot` state changes. The fiber will be cancelled and the
-       * resource closed on unmount.
+       * fiber. Provides pulled values as a `PotOption[A]`. Will rerender when the `PotOption` state
+       * changes. The fiber will be cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceOnMount[A](
         streamResource: StreamResource[A]
@@ -267,9 +332,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
-       * fiber. Provides pulled values as a `Pot[View[A]]` so that the value can also be changed
-       * locally. Will rerender when the `Pot` state changes. The fiber will be cancelled and the
-       * resource closed on unmount.
+       * fiber. Provides pulled values as a `PotOption[View[A]]` so that the value can also be
+       * changed locally. Will rerender when the `PotOption` state changes. The fiber will be
+       * cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewOnMount[A](
         streamResource: StreamResource[A]
@@ -280,9 +349,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
-       * fiber. Provides pulled values as a `Pot[View[A]]` so that the value can also be changed
-       * locally. Will rerender when the `Pot` state changes. The fiber will be cancelled and the
-       * resource closed on unmount.
+       * fiber. Provides pulled values as a `Reuse[PotOption[View[A]]` so that the value can also be
+       * changed locally, reusable by value. Will rerender when the `PotOption` state changes. The
+       * fiber will be cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewWithReuseOnMount[A: ClassTag: Reusability](
         streamResource: StreamResource[A]
@@ -295,9 +368,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and
-       * drain the stream by creating a fiber. Provides pulled values as a `Pot[View[A]]` so that
-       * the value can also be changed locally. Will rerender when the `Pot` state changes. The
-       * fiber will be cancelled and the resource closed on unmount or deps change.
+       * drain the stream by creating a fiber. Provides pulled values as a `PotOption[A]`. Will
+       * rerender when the `PotOption` state changes. The fiber will be cancelled on unmount or deps
+       * change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceBy[D: Reusability, A](deps: Ctx => D)(
         streamResource: Ctx => D => StreamResource[A]
@@ -309,9 +386,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and
-       * drain the stream by creating a fiber. Provides pulled values as a `Pot[View[A]]` so that
-       * the value can also be changed locally. Will rerender when the `Pot` state changes. The
-       * fiber will be cancelled and the resource closed on unmount or deps change.
+       * drain the stream by creating a fiber. Provides pulled values as a `PotOption[View[A]]` so
+       * that the value can also be changed locally. Will rerender when the `PotOption` state
+       * changes. The fiber will be cancelled on unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewBy[D: Reusability, A](deps: Ctx => D)(
         streamResource: Ctx => D => StreamResource[A]
@@ -323,9 +404,14 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and
-       * drain the stream by creating a fiber. Provides pulled values as a `Pot[View[A]]` so that
-       * the value can also be changed locally. Will rerender when the `Pot` state changes. The
-       * fiber will be cancelled and the resource closed on unmount or deps change.
+       * drain the stream by creating a fiber. Provides pulled values as a
+       * `Reuse[PotOption[View[A]]` so that the value can also be changed locally, reusable by
+       * value. Will rerender when the `PotOption` state changes. The fiber will be cancelled on
+       * unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
         deps:           Ctx => D
@@ -343,9 +429,12 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
-       * fiber. Provides pulled values as a `Pot[View[A]]` so that the value can also be changed
-       * locally. Will rerender when the `Pot` state changes. The fiber will be cancelled and the
-       * resource closed on unmount.
+       * fiber. Provides pulled values as a `PotOption[A]`. Will rerender when the `PotOption` state
+       * changes. The fiber will be cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceOnMountBy[A](
         streamResource: Ctx => StreamResource[A]
@@ -354,9 +443,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
-       * fiber. Provides pulled values as a `Pot[View[A]]` so that the value can also be changed
-       * locally. Will rerender when the `Pot` state changes. The fiber will be cancelled and the
-       * resource closed on unmount.
+       * fiber. Provides pulled values as a `PotOption[View[A]]` so that the value can also be
+       * changed locally. Will rerender when the `PotOption` state changes. The fiber will be
+       * cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewOnMountBy[A](
         streamResource: Ctx => StreamResource[A]
@@ -365,9 +458,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
-       * fiber. Provides pulled values as a `Pot[View[A]]` so that the value can also be changed
-       * locally. Will rerender when the `Pot` state changes. The fiber will be cancelled and the
-       * resource closed on unmount.
+       * fiber. Provides pulled values as a `Reuse[PotOption[View[A]]` so that the value can also be
+       * changed locally, reusable by value. Will rerender when the `PotOption` state changes. The
+       * fiber will be cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewWithReuseOnMountBy[A: ClassTag: Reusability](
         streamResource: Ctx => StreamResource[A]
@@ -388,8 +485,12 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
-       * pulled values as a `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be
-       * cancelled on unmount or deps change.
+       * pulled values as a `PotOption[A]`. Will rerender when the `PotOption` state changes. The
+       * fiber will be cancelled on unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamBy[D: Reusability, A](deps: CtxFn[D])(
         stream: CtxFn[D => fs2.Stream[DefaultA, A]]
@@ -400,8 +501,13 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
-       * pulled values as a `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be
-       * cancelled on unmount or deps change.
+       * pulled values as a `PotOption[View[A]]` so that the value can also be changed locally. Will
+       * rerender when the `PotOption` state changes. The fiber will be cancelled on unmount or deps
+       * change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewBy[D: Reusability, A](deps: CtxFn[D])(
         stream: CtxFn[D => fs2.Stream[DefaultA, A]]
@@ -412,8 +518,13 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
-       * pulled values as a `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be
-       * cancelled on unmount or deps change.
+       * pulled values as a `Reuse[PotOption[View[A]]` so that the value can also be changed
+       * locally, reusable by value. Will rerender when the `PotOption` state changes. The fiber
+       * will be cancelled on unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
         deps:   CtxFn[D]
@@ -430,8 +541,12 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
-       * `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be cancelled on
-       * unmount.
+       * `PotOption[A]`. Will rerender when the `PotOption` state changes. The fiber will be
+       * cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamOnMountBy[A](
         stream: CtxFn[fs2.Stream[DefaultA, A]]
@@ -442,8 +557,12 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
-       * `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be cancelled on
-       * unmount.
+       * `PotOption[View[A]]` so that the value can also be changed locally. Will rerender when the
+       * `PotOption` state changes. The fiber will be cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewOnMountBy[A](
         stream: CtxFn[fs2.Stream[DefaultA, A]]
@@ -454,8 +573,13 @@ object UseStreamResource {
 
       /**
        * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
-       * `Pot[A]`. Will rerender when the `Pot` state changes. The fiber will be cancelled on
+       * `Reuse[PotOption[View[A]]` so that the value can also be changed locally, reusable by
+       * value. Will rerender when the `PotOption` state changes. The fiber will be cancelled on
        * unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamViewWithReuseOnMountBy[A: ClassTag: Reusability](
         stream: CtxFn[fs2.Stream[DefaultA, A]]
@@ -476,9 +600,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and
-       * drain the stream by creating a fiber. Provides pulled values as a `Pot[View[A]]` so that
-       * the value can also be changed locally. Will rerender when the `Pot` state changes. The
-       * fiber will be cancelled and the resource closed on unmount or deps change.
+       * drain the stream by creating a fiber. Provides pulled values as a `PotOption[A]`. Will
+       * rerender when the `PotOption` state changes. The fiber will be cancelled on unmount or deps
+       * change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceBy[D: Reusability, A](deps: CtxFn[D])(
         streamResource: CtxFn[D => StreamResource[A]]
@@ -487,9 +615,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and
-       * drain the stream by creating a fiber. Provides pulled values as a `Pot[View[A]]` so that
-       * the value can also be changed locally. Will rerender when the `Pot` state changes. The
-       * fiber will be cancelled and the resource closed on unmount or deps change.
+       * drain the stream by creating a fiber. Provides pulled values as a `PotOption[View[A]]` so
+       * that the value can also be changed locally. Will rerender when the `PotOption` state
+       * changes. The fiber will be cancelled on unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewBy[D: Reusability, A](deps: CtxFn[D])(
         streamResource: CtxFn[D => StreamResource[A]]
@@ -498,9 +630,14 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and
-       * drain the stream by creating a fiber. Provides pulled values as a `Pot[View[A]]` so that
-       * the value can also be changed locally. Will rerender when the `Pot` state changes. The
-       * fiber will be cancelled and the resource closed on unmount or deps change.
+       * drain the stream by creating a fiber. Provides pulled values as a
+       * `Reuse[PotOption[View[A]]` so that the value can also be changed locally, reusable by
+       * value. Will rerender when the `PotOption` state changes. The fiber will be cancelled on
+       * unmount or deps change.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
         deps:           CtxFn[D]
@@ -515,9 +652,12 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
-       * fiber. Provides pulled values as a `Pot[View[A]]` so that the value can also be changed
-       * locally. Will rerender when the `Pot` state changes. The fiber will be cancelled and the
-       * resource closed on unmount.
+       * fiber. Provides pulled values as a `PotOption[A]`. Will rerender when the `PotOption` state
+       * changes. The fiber will be cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceOnMountBy[A](
         streamResource: CtxFn[StreamResource[A]]
@@ -526,9 +666,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
-       * fiber. Provides pulled values as a `Pot[View[A]]` so that the value can also be changed
-       * locally. Will rerender when the `Pot` state changes. The fiber will be cancelled and the
-       * resource closed on unmount.
+       * fiber. Provides pulled values as a `PotOption[View[A]]` so that the value can also be
+       * changed locally. Will rerender when the `PotOption` state changes. The fiber will be
+       * cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewOnMountBy[A](
         streamResource: CtxFn[StreamResource[A]]
@@ -537,9 +681,13 @@ object UseStreamResource {
 
       /**
        * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
-       * fiber. Provides pulled values as a `Pot[View[A]]` so that the value can also be changed
-       * locally. Will rerender when the `Pot` state changes. The fiber will be cancelled and the
-       * resource closed on unmount.
+       * fiber. Provides pulled values as a `Reuse[PotOption[View[A]]` so that the value can also be
+       * changed locally, reusable by value. Will rerender when the `PotOption` state changes. The
+       * fiber will be cancelled on unmount.
+       *
+       * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+       * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+       * received.
        */
       final def useStreamResourceViewWithReuseOnMountBy[A: ClassTag: Reusability](
         streamResource: CtxFn[StreamResource[A]]
