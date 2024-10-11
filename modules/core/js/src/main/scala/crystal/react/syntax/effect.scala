@@ -124,11 +124,11 @@ trait effect {
 
   extension [A](self: NonEmptyRef.Set[A])
     inline def setIn[F[_]: Sync](a: A): F[Unit] = self.set(a).to[F]
-    inline def setAsync: A => DefaultA[Unit] = setIn[DefaultA](_)
+    inline def setAsync: A => DefaultA[Unit]    = setIn[DefaultA](_)
 
   extension [A](self: NonEmptyRef.Simple[A])
     inline def modIn[F[_]: Sync](f: A => A): F[Unit] = self.mod(f).to[F]
-    inline def modAsync: (A => A) => DefaultA[Unit] = modIn[DefaultA](_)
+    inline def modAsync: (A => A) => DefaultA[Unit]  = modIn[DefaultA](_)
 
   extension [S](self: UseSerialState[S])
     inline def setStateAsync: Reusable[S => DefaultA[Unit]] =
