@@ -50,7 +50,7 @@ trait Reuse[+A] {
   def addReuseByFrom[C](r:          Reuse[C]): Reuse[A] = addReuseBy(r.reuseBy)(using r.reusability)
 
   def replaceReuseBy[R: Reusability: ClassTag](r: R): Reuse[A] = Reuse.by(r)(value)
-  def replaceReuseByFrom[C](r: Reuse[C]): Reuse[A] =
+  def replaceReuseByFrom[C](r: Reuse[C]): Reuse[A]             =
     replaceReuseBy(r.reuseBy)(using r.reusability, r.classTag)
 
   def map[C](f: A => C): Reuse[C] = Reuse.by(reuseBy)(f(value))
