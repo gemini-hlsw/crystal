@@ -6,7 +6,10 @@ package crystal
 import scala.annotation.targetName
 import scala.util.Try
 
-trait syntax {
+trait syntax:
+  def pending[A]: Pot[A]          = Pot.Pending
+  def pendingOpt[A]: PotOption[A] = PotOption.Pending
+
   extension [A](a: A)
     def ready: Pot[A]           = Pot.Ready(a)
     def readySome: PotOption[A] = PotOption.ReadySome(a)
@@ -28,7 +31,5 @@ trait syntax {
     def toPot: Pot[A]             = Pot.fromTry[A](a)
     @targetName("tryToPotOption")
     def toPotOption: PotOption[A] = PotOption.fromTry(a)
-
-}
 
 object syntax extends syntax

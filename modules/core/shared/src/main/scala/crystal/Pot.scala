@@ -20,20 +20,18 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-sealed trait Pot[+A] {
+sealed trait Pot[+A]:
   def map[B](f: A => B): Pot[B] =
-    this match {
+    this match
       case Pot.Pending        => Pot.Pending
       case err @ Pot.Error(_) => err.valueCast[B]
       case Pot.Ready(a)       => Pot.Ready(f(a))
-    }
 
   def fold[B](fp: => B, fe: Throwable => B, fr: A => B): B =
-    this match {
+    this match
       case Pot.Pending  => fp
       case Pot.Error(t) => fe(t)
       case Pot.Ready(a) => fr(a)
-    }
 
   def isReady: Boolean = fold(false, _ => false, _ => true)
 
@@ -42,11 +40,10 @@ sealed trait Pot[+A] {
   def isError: Boolean = fold(false, _ => true, _ => false)
 
   def flatten[B](using ev: A <:< Pot[B]): Pot[B] =
-    this match {
+    this match
       case Pot.Pending        => Pot.Pending
       case err @ Pot.Error(_) => err.valueCast[B]
       case Pot.Ready(potB)    => ev(potB)
-    }
 
   def flatMap[B](f: A => Pot[B]): Pot[B] =
     map(f).flatten
@@ -59,24 +56,21 @@ sealed trait Pot[+A] {
   def toOption: Option[A] = fold(none, _ => none, _.some)
 
   def toOptionTry: Option[Try[A]] =
-    this match {
+    this match
       case Pot.Pending  => none
       case Pot.Error(t) => Failure(t).some
       case Pot.Ready(a) => Success(a).some
-    }
 
   def toOptionEither: Option[Either[Throwable, A]] = toOptionTry.map(_.toEither)
 
   def filter(f: A => Boolean): Pot[A] =
-    this match {
+    this match
       case Pot.Ready(a) if !f(a) => Pot.pending
       case _                     => this
-    }
 
   def filterNot(f: A => Boolean): Pot[A] = filter(a => !f(a))
-}
 
-object Pot {
+object Pot:
   case object Pending                  extends Pot[Nothing]
   final case class Error(t: Throwable) extends Pot[Nothing] {
     def valueCast[B]: Pot[B] = asInstanceOf[Pot[B]]
@@ -212,4 +206,3 @@ object Pot {
             case Pot.Ready(b) => Pot.Ready(f(Ior.both(a, b)))
             case _            => Pot.Ready(f(Ior.left(a)))
   }
-}
