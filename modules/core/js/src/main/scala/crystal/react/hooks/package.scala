@@ -12,7 +12,16 @@ import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 export UseSingleEffect.useSingleEffect, UseSerialState.useSerialState,
   UseStateCallback.useStateCallback, UseShadowRef.useShadowRef, UseStateView.useStateView,
-  UseStateViewWithReuse.useStateViewWithReuse, UseSerialStateView.useSerialStateView
+  UseStateViewWithReuse.useStateViewWithReuse, UseSerialStateView.useSerialStateView,
+  UseAsyncEffect.{useAsyncEffect, useAsyncEffectOnMount, useAsyncEffectWithDeps}, UseEffectResult.{
+  useEffectKeepResultWhenDepsReady,
+  useEffectKeepResultWhenDepsReadyOrChange,
+  useEffectKeepResultWithDeps,
+  useEffectResultOnMount,
+  useEffectResultWhenDepsReady,
+  useEffectResultWhenDepsReadyOrChange,
+  useEffectResultWithDeps
+}
 
 export UseSingleEffect.syntax.*, UseSerialState.syntax.*, UseStateCallback.syntax.*,
   UseStateView.syntax.*, UseStateViewWithReuse.syntax.*, UseSerialStateView.syntax.*,
