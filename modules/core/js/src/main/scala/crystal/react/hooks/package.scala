@@ -10,6 +10,10 @@ import crystal.Pot
 import crystal.react.reuse.*
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
+export UseSingleEffect.useSingleEffect, UseSerialState.useSerialState,
+  UseStateCallback.useStateCallback, UseShadowRef.useShadowRef, UseStateView.useStateView,
+  UseStateViewWithReuse.useStateViewWithReuse, UseSerialStateView.useSerialStateView
+
 export UseSingleEffect.syntax.*, UseSerialState.syntax.*, UseStateCallback.syntax.*,
   UseStateView.syntax.*, UseStateViewWithReuse.syntax.*, UseSerialStateView.syntax.*,
   UseAsyncEffect.syntax.*, UseEffectResult.syntax.*, UseResource.syntax.*,

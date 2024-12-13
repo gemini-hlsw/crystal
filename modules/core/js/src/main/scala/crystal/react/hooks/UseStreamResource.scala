@@ -34,14 +34,14 @@ object UseStreamResource {
                   .handleErrorWith: t =>
                     fs2.Stream.eval(setState(PotOption.error(t)))
 
-  def hook[D: Reusability, A] =
+  private def hook[D: Reusability, A] =
     CustomHook[WithDeps[D, StreamResource[A]]]
       .useState(PotOption.pending[A])
       .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>
         buildStreamResource(props, state.setStateAsync)
       .buildReturning((_, state) => state.value)
 
-  def hookView[D: Reusability, A] =
+  private def hookView[D: Reusability, A] =
     CustomHook[WithDeps[D, StreamResource[A]]]
       .useStateView(PotOption.pending[A])
       .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>
@@ -49,7 +49,7 @@ object UseStreamResource {
       .buildReturning: (_, state) =>
         state.toPotOptionView
 
-  def hookReuseView[D: Reusability, A: ClassTag: Reusability] =
+  private def hookReuseView[D: Reusability, A: ClassTag: Reusability] =
     CustomHook[WithDeps[D, StreamResource[A]]]
       .useStateViewWithReuse(PotOption.pending[A])
       .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>

@@ -7,14 +7,18 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.hooks.Hooks
 
-object UseShadowRef {
-  def hook[A]: CustomHook[A, NonEmptyRef.Get[A]] =
-    CustomHook[A]
-      .useRefBy(identity) // current
-      .useEffectBy: (value, currentRef) =>
-        currentRef.set(value)
-      .buildReturning: (_, currentRef) =>
-        currentRef
+object UseShadowRef:
+  /**
+   * Keeps a value in a ref. Useful for effectful get from a stable callback.
+   */
+  final def useShadowRef[A](value: => A): HookResult[NonEmptyRef.Get[A]] =
+    for
+      currentRef <- useRef(value)
+      _          <- useEffect(currentRef.set(value))
+    yield currentRef
+
+  private def hook[A]: CustomHook[A, NonEmptyRef.Get[A]] =
+    CustomHook.fromHookResult(useShadowRef(_))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -58,4 +62,3 @@ object UseShadowRef {
   }
 
   object syntax extends HooksApiExt
-}
