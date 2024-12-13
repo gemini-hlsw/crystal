@@ -10,7 +10,7 @@ import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 case class UseSerialState[A] protected[hooks] (
   private val state: Hooks.UseState[SerialState[A]]
-) {
+):
   lazy val value: Reusable[A] = Reusable.implicitly(state.value).map(_.value)
 
   val modState: Reusable[(A => A) => DefaultS[Unit]] =
@@ -18,12 +18,16 @@ case class UseSerialState[A] protected[hooks] (
 
   val setState: Reusable[A => DefaultS[Unit]] =
     state.modState.map(mod => a => mod(_.update(_ => a)))
-}
 
-object UseSerialState {
-  def hook[A] = CustomHook[A]
-    .useStateBy(initialValue => SerialState.initial(initialValue))
-    .buildReturning((_, serialState) => UseSerialState(serialState))
+object UseSerialState:
+  /** Creates component state that is reused while it's not updated. */
+  final def useSerialState[A](initialValue: => A): HookResult[UseSerialState[A]] =
+    useState(SerialState.initial(initialValue)).map(UseSerialState(_))
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[A]: CustomHook[A, UseSerialState[A]] =
+    CustomHook.fromHookResult(useSerialState(_))
 
   given [A]: Reusability[UseSerialState[A]] =
     Reusability.by(_.state.value)
@@ -74,4 +78,3 @@ object UseSerialState {
   }
 
   object syntax extends HooksApiExt
-}

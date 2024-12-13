@@ -15,18 +15,17 @@ import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 import scala.reflect.ClassTag
 
-object UseStreamResource {
+object UseStreamResource:
 
   private def buildStreamResource[D, A](
-    props:    WithDeps[D, StreamResource[A]],
-    setState: PotOption[A] => DefaultA[Unit]
+    streamResource: D => StreamResource[A],
+    setState:       PotOption[A] => DefaultA[Unit]
   ): D => Resource[DefaultA, fs2.Stream[DefaultA, Unit]] =
     (deps: D) =>
       Resource
         .eval(setState(PotOption.pending))
         .flatMap: _ =>
-          props
-            .fromDeps(deps)
+          streamResource(deps)
             .map: stream =>
               fs2.Stream.eval(setState(PotOption.ReadyNone)) ++
                 stream
@@ -34,28 +33,218 @@ object UseStreamResource {
                   .handleErrorWith: t =>
                     fs2.Stream.eval(setState(PotOption.error(t)))
 
-  def hook[D: Reusability, A] =
-    CustomHook[WithDeps[D, StreamResource[A]]]
-      .useState(PotOption.pending[A])
-      .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>
-        buildStreamResource(props, state.setStateAsync)
-      .buildReturning((_, state) => state.value)
+  // START useStreamResource
 
-  def hookView[D: Reusability, A] =
-    CustomHook[WithDeps[D, StreamResource[A]]]
-      .useStateView(PotOption.pending[A])
-      .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>
-        buildStreamResource(props, state.set(_).to[DefaultA])
-      .buildReturning: (_, state) =>
-        state.toPotOptionView
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and drain
+   * the stream by creating a fiber. Provides pulled values as a `PotOption[A]`. Will rerender when
+   * the `PotOption` state changes. The fiber will be cancelled on unmount or deps change.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final def useStreamResource[D: Reusability, A](deps: => D)(
+    streamResource: D => StreamResource[A]
+  ): HookResult[PotOption[A]] =
+    for
+      state <- useState(PotOption.pending[A])
+      _     <- useEffectStreamResourceWithDeps(deps):
+                 buildStreamResource(streamResource, state.setStateAsync)
+    yield state.value
 
-  def hookReuseView[D: Reusability, A: ClassTag: Reusability] =
-    CustomHook[WithDeps[D, StreamResource[A]]]
-      .useStateViewWithReuse(PotOption.pending[A])
-      .useEffectStreamResourceWithDepsBy((props, _) => props.deps): (props, state) =>
-        buildStreamResource(props, state.set(_).to[DefaultA])
-      .buildReturning: (_, state) =>
-        state.map(_.toPotOptionView)
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
+   * fiber. Provides pulled values as a `PotOption[A]`. Will rerender when the `PotOption` state
+   * changes. The fiber will be cancelled on unmount.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final inline def useStreamResourceOnMount[A](
+    streamResource: StreamResource[A]
+  ): HookResult[PotOption[A]] =
+    useStreamResource(())(_ => streamResource)
+
+  /**
+   * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
+   * pulled values as a `PotOption[A]`. Will rerender when the `PotOption` state changes. The fiber
+   * will be cancelled on unmount or deps change.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final inline def useStream[D: Reusability, A](deps: => D)(
+    stream: D => fs2.Stream[DefaultA, A]
+  ): HookResult[PotOption[A]] =
+    useStreamResource(deps)(deps => Resource.pure(stream(deps)))
+
+  /**
+   * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
+   * `PotOption[A]`. Will rerender when the `PotOption` state changes. The fiber will be cancelled
+   * on unmount.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final inline def useStreamOnMount[A](stream: fs2.Stream[DefaultA, A]): HookResult[PotOption[A]] =
+    useStreamResourceOnMount(Resource.pure(stream))
+
+  // END useStreamResource
+
+  // START useStreamResourceView
+
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and drain
+   * the stream by creating a fiber. Provides pulled values as a `PotOption[View[A]]` so that the
+   * value can also be changed locally. Will rerender when the `PotOption` state changes. The fiber
+   * will be cancelled on unmount or deps change.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final def useStreamResourceView[D: Reusability, A](deps: => D)(
+    streamResource: D => StreamResource[A]
+  ): HookResult[PotOption[View[A]]] =
+    for
+      state <- useStateView(PotOption.pending[A])
+      _     <- useEffectStreamResourceWithDeps(deps):
+                 buildStreamResource(streamResource, state.set(_).to[DefaultA])
+    yield state.toPotOptionView
+
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
+   * fiber. Provides pulled values as a `PotOption[View[A]]` so that the value can also be changed
+   * locally. Will rerender when the `PotOption` state changes. The fiber will be cancelled on
+   * unmount.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final inline def useStreamResourceViewOnMount[A](
+    streamResource: StreamResource[A]
+  ): HookResult[PotOption[View[A]]] =
+    useStreamResourceView(())(_ => streamResource)
+
+  /**
+   * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
+   * pulled values as a `PotOption[View[A]]` so that the value can also be changed locally. Will
+   * rerender when the `PotOption` state changes. The fiber will be cancelled on unmount or deps
+   * change.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final inline def useStreamView[D: Reusability, A](deps: => D)(
+    stream: D => fs2.Stream[DefaultA, A]
+  ): HookResult[PotOption[View[A]]] =
+    useStreamResourceView(deps)(deps => Resource.pure(stream(deps)))
+
+  /**
+   * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
+   * `PotOption[View[A]]` so that the value can also be changed locally. Will rerender when the
+   * `PotOption` state changes. The fiber will be cancelled on unmount.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final inline def useStreamViewOnMount[A](
+    stream: fs2.Stream[DefaultA, A]
+  ): HookResult[PotOption[View[A]]] =
+    useStreamResourceViewOnMount(Resource.pure(stream))
+
+  // END useStreamResourceView
+
+  // START useStreamResourceViewWithReuse
+
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, A]]` on mount or when dependencies change, and drain
+   * the stream by creating a fiber. Provides pulled values as a `Reuse[PotOption[View[A]]` so that
+   * the value can also be changed locally, reusable by value. Will rerender when the `PotOption`
+   * state changes. The fiber will be cancelled on unmount or deps change.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final def useStreamResourceViewWithReuse[D: Reusability, A: ClassTag: Reusability](
+    deps:           => D
+  )(
+    streamResource: D => StreamResource[A]
+  ): HookResult[Reuse[PotOption[View[A]]]] =
+    for
+      state <- useStateViewWithReuse(PotOption.pending[A])
+      _     <- useEffectStreamResourceWithDeps(deps):
+                 buildStreamResource(streamResource, state.set(_).to[DefaultA])
+    yield state.map(_.toPotOptionView)
+
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, A]]` on mount, and drain the stream by creating a
+   * fiber. Provides pulled values as a `Reuse[PotOption[View[A]]` so that the value can also be
+   * changed locally, reusable by value. Will rerender when the `PotOption` state changes. The fiber
+   * will be cancelled on unmount.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final inline def useStreamResourceViewWithReuseOnMount[A: ClassTag: Reusability](
+    streamResource: StreamResource[A]
+  ): HookResult[Reuse[PotOption[View[A]]]] =
+    useStreamResourceViewWithReuse(())(_ => streamResource)
+
+  /**
+   * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount or when deps change. Provides
+   * pulled values as a `Reuse[PotOption[View[A]]` so that the value can also be changed locally,
+   * reusable by value. Will rerender when the `PotOption` state changes. The fiber will be
+   * cancelled on unmount or deps change.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final inline def useStreamViewWithReuse[D: Reusability, A: ClassTag: Reusability](
+    deps:   => D
+  )(
+    stream: D => fs2.Stream[DefaultA, A]
+  ): HookResult[Reuse[PotOption[View[A]]]] =
+    useStreamResourceViewWithReuse(deps)(deps => Resource.pure(stream(deps)))
+
+  /**
+   * Drain a `fs2.Stream[Async, A]` by creating a fiber on mount. Provides pulled values as a
+   * `Reuse[PotOption[View[A]]` so that the value can also be changed locally, reusable by value.
+   * Will rerender when the `PotOption` state changes. The fiber will be cancelled on unmount.
+   *
+   * The value will be `Pending` when the stream hasn't been mounted yet, `ReadyNone` when the
+   * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
+   * received.
+   */
+  final inline def useStreamViewWithReuseOnMount[A: ClassTag: Reusability](
+    stream: fs2.Stream[DefaultA, A]
+  ): HookResult[Reuse[PotOption[View[A]]]] =
+    useStreamResourceViewWithReuseOnMount(Resource.pure(stream))
+
+  // END useStreamResourceViewWithReuse
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[D: Reusability, A]: CustomHook[WithDeps[D, StreamResource[A]], PotOption[A]] =
+    CustomHook.fromHookResult(input => useStreamResource(input.deps)(input.fromDeps))
+
+  private def hookView[D: Reusability, A]
+    : CustomHook[WithDeps[D, StreamResource[A]], PotOption[View[A]]] =
+    CustomHook.fromHookResult(input => useStreamResourceView(input.deps)(input.fromDeps))
+
+  private def hookReuseView[D: Reusability, A: ClassTag: Reusability]
+    : CustomHook[WithDeps[D, StreamResource[A]], Reuse[PotOption[View[A]]]] =
+    CustomHook.fromHookResult(input => useStreamResourceViewWithReuse(input.deps)(input.fromDeps))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -719,4 +908,3 @@ object UseStreamResource {
   }
 
   object syntax extends HooksApiExt
-}

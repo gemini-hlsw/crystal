@@ -13,18 +13,73 @@ import japgolly.scalajs.react.hooks.Hooks.UseEffectArg
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 object UseEffectWhenDepsReady:
+  // Provides functionality for all the flavors
+  private def hookBuilder[D, A: UseEffectArg: Monoid, R: Reusability](deps: => Pot[D])(
+    effect:  D => A,
+    reuseBy: Option[R]
+  ): HookResult[Unit] =
+    useEffectWithDeps(reuseBy): _ =>
+      deps.map(effect).toOption.orEmpty
 
-  def hook[D, A: UseEffectArg: Monoid, R: Reusability] =
-    CustomHook[WithPotDeps[D, A, R]]
-      .useEffectWithDepsBy(props => props.reuseValue): props =>
-        _ => props.deps.toOption.map(props.fromDeps).orEmpty
-      .build
+  /**
+   * Effect that runs whenever `Pot` dependencies transition into a `Ready` state (but not when they
+   * change once `Ready`). For multiple dependencies, use `(par1, par2, ...).tupled`. Dependencies
+   * are passed unpacked to the effect bulding function.
+   */
+  final inline def useEffectWhenDepsReady[D, A: UseEffectArg: Monoid](
+    deps: => Pot[D]
+  )(effect: D => A): HookResult[Unit] =
+    hookBuilder(deps)(effect, deps.toOption.void)
 
-  def asyncHook[G, D, R: Reusability](using EffectWithCleanup[G, DefaultA]) =
-    CustomHook[WithPotDeps[D, G, R]]
-      .useAsyncEffectWithDepsBy(props => props.reuseValue): props =>
-        _ => props.deps.toOption.map(props.fromDeps(_).normalize).orEmpty
-      .build
+  /**
+   * Effect that runs when `Pot` dependencies transition into a `Ready` state or change once
+   * `Ready`. For multiple dependencies, use `(par1, par2, ...).tupled`. Dependencies are passed
+   * unpacked to the effect bulding function.
+   */
+  final inline def useEffectWhenDepsReadyOrChange[D: Reusability, A: UseEffectArg: Monoid](
+    deps: => Pot[D]
+  )(effect: D => A): HookResult[Unit] =
+    hookBuilder(deps)(effect, deps.toOption)
+
+  // Provides functionality for all the flavors
+  private def asyncHookBuilder[D, G, R: Reusability](deps: => Pot[D])(
+    effect:  D => G,
+    reuseBy: Option[R]
+  )(using EffectWithCleanup[G, DefaultA]): HookResult[Unit] =
+    useAsyncEffectWithDeps(reuseBy): _ =>
+      deps.map(effect(_).normalize).toOption.orEmpty
+
+  /**
+   * Effect that runs whenever `Pot` dependencies transition into a `Ready` state (but not when they
+   * change once `Ready`). For multiple dependencies, use `(par1, par2, ...).tupled`. Dependencies
+   * are passed unpacked to the effect bulding function.
+   */
+  final inline def useAsyncEffectWhenDepsReady[D, G](
+    deps: => Pot[D]
+  )(effect: D => G)(using EffectWithCleanup[G, DefaultA]): HookResult[Unit] =
+    asyncHookBuilder(deps)(effect, deps.toOption.void)
+
+  /**
+   * Effect that runs when `Pot` dependencies transition into a `Ready` state or change once
+   * `Ready`. For multiple dependencies, use `(par1, par2, ...).tupled`. Dependencies are passed
+   * unpacked to the effect bulding function.
+   */
+  final inline def useAsyncEffectWhenDepsReadyOrChange[D: Reusability, G](
+    deps: => Pot[D]
+  )(effect: D => G)(using EffectWithCleanup[G, DefaultA]): HookResult[Unit] =
+    asyncHookBuilder(deps)(effect, deps.toOption)
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[D, A: UseEffectArg: Monoid, R: Reusability]
+    : CustomHook[WithPotDeps[D, A, R], Unit] =
+    CustomHook.fromHookResult(input => hookBuilder(input.deps)(input.fromDeps, input.reuseValue))
+
+  private def asyncHook[G, D, R: Reusability](using
+    EffectWithCleanup[G, DefaultA]
+  ): CustomHook[WithPotDeps[D, G, R], Unit] =
+    CustomHook.fromHookResult: input =>
+      asyncHookBuilder(input.deps)(input.fromDeps, input.reuseValue)
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {

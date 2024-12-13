@@ -10,11 +10,43 @@ import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
 object UseAsyncEffect {
-  def hook[G, D: Reusability](using EffectWithCleanup[G, DefaultA]) =
-    CustomHook[WithDeps[D, G]].useSingleEffect
-      .useEffectWithDepsBy((props, _) => props.deps): (props, dispatcher) =>
-        deps => dispatcher.submit(props.fromDeps(deps).normalize)
-      .build
+
+  /**
+   * Run async effect and cancel previously running instances, thus avoiding race conditions. Allows
+   * returning a cleanup effect.
+   */
+  final def useAsyncEffectWithDeps[G, D: Reusability](deps: => D)(effect: D => G)(using
+    G: EffectWithCleanup[G, DefaultA]
+  ): HookResult[Unit] =
+    // hookBuilder(WithDeps(deps, effect))
+    useSingleEffect.flatMap: dispatcher =>
+      useEffectWithDeps(deps): deps =>
+        dispatcher.submit(effect(deps).normalize)
+
+  /**
+   * Run async effect and cancel previously running instances, thus avoiding race conditions. Allows
+   * returning a cleanup effect.
+   */
+  final inline def useAsyncEffect[G](effect: => G)(using
+    G: EffectWithCleanup[G, DefaultA]
+  ): HookResult[Unit] =
+    useAsyncEffectWithDeps(NeverReuse)((_: Reuse[Unit]) => effect)
+
+  /**
+   * Run async effect and cancel previously running instances, thus avoiding race conditions. Allows
+   * returning a cleanup effect.
+   */
+  final inline def useAsyncEffectOnMount[G](effect: => G)(using
+    G: EffectWithCleanup[G, DefaultA]
+  ): HookResult[Unit] = // () has Reusability = always.
+    useAsyncEffectWithDeps(())((_: Unit) => effect)
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[G, D: Reusability](using
+    EffectWithCleanup[G, DefaultA]
+  ): CustomHook[WithDeps[D, G], Unit] =
+    CustomHook.fromHookResult(input => useAsyncEffectWithDeps(input.deps)(input.fromDeps))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {

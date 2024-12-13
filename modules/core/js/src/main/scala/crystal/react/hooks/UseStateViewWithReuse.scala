@@ -10,11 +10,17 @@ import japgolly.scalajs.react.hooks.CustomHook
 
 import scala.reflect.ClassTag
 
-object UseStateViewWithReuse {
-  def hook[A: ClassTag: Reusability]: CustomHook[A, ReuseView[A]] =
-    CustomHook[A]
-      .useStateViewBy(initialValue => initialValue)
-      .buildReturning((_, view) => view.reuseByValue)
+object UseStateViewWithReuse:
+  /** Creates component state as a View */
+  final def useStateViewWithReuse[A: ClassTag: Reusability](
+    initialValue: => A
+  ): HookResult[ReuseView[A]] =
+    useStateView(initialValue).map(_.reuseByValue)
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[A: ClassTag: Reusability]: CustomHook[A, ReuseView[A]] =
+    CustomHook.fromHookResult(useStateViewWithReuse(_))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -64,4 +70,3 @@ object UseStateViewWithReuse {
   }
 
   object syntax extends HooksApiExt
-}

@@ -11,13 +11,20 @@ import japgolly.scalajs.react.hooks.CustomHook
 
 import scala.concurrent.duration.FiniteDuration
 
-object UseThrottlingStateView {
-  def hook[A]: CustomHook[(A, FiniteDuration), Pot[ThrottlingView[A]]] =
-    CustomHook[(A, FiniteDuration)]
-      .useStateViewBy(props => props._1)
-      .useEffectResultOnMountBy((props, _) => ViewThrottler[A](props._2))
-      .buildReturning: (_, view, throttler) =>
-        throttler.map(_.throttle(view))
+object UseThrottlingStateView:
+  /** Creates component state as a `ThrottlingView`. See `ViewThrottler[A]`. */
+  final def useThrottlingStateView[A](
+    input: (A, FiniteDuration)
+  ): HookResult[Pot[ThrottlingView[A]]] =
+    for
+      view      <- useStateView(input._1)
+      throttler <- useEffectResultOnMount(ViewThrottler[A](input._2))
+    yield throttler.map(_.throttle(view))
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[A]: CustomHook[(A, FiniteDuration), Pot[ThrottlingView[A]]] =
+    CustomHook.fromHookResult(useThrottlingStateView(_))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -68,4 +75,3 @@ object UseThrottlingStateView {
   }
 
   object syntax extends HooksApiExt
-}

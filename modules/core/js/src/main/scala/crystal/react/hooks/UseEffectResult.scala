@@ -10,29 +10,105 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
-object UseEffectResult {
+object UseEffectResult:
   private case class Input[D, A, R: Reusability](
     effect: WithPotDeps[D, DefaultA[A], R],
     keep:   Boolean
   ):
     val depsOpt: Option[D] = effect.deps.toOption
 
-  private def hook[D, A, R: Reusability] =
-    CustomHook[Input[D, A, R]]
-      .useState(Pot.pending[A])
-      .useMemoBy((props, _) => props.effect.reuseValue): (props, _) => // Memo Option[effect]
-        _ => props.depsOpt.map(props.effect.fromDeps)
-      .useEffectWithDepsBy((_, _, effectOpt) => effectOpt): (props, state, _) => // Set to Pending
-        _ => state.setState(Pot.pending).unless(props.keep).void
-      .useAsyncEffectWithDepsBy((_, _, effectOpt) => effectOpt): (_, state, _) => // Run effect
-        _.value.foldMap: effect =>
-          (for
-            a <- effect
-            _ <- state.setStateAsync(a.ready)
-          yield ()).handleErrorWith: t =>
-            state.setStateAsync(Pot.error(t))
-      .buildReturning((_, state, _) => state.value)
+  // Provides functionality for all the flavors
+  private def hookBuilder[D, A, R: Reusability](
+    deps: Pot[D]
+  )(effect: D => DefaultA[A], keep: Boolean, reuseBy: Option[R]): HookResult[Pot[A]] =
+    for
+      state     <- useState(Pot.pending[A])
+      effectOpt <- useMemo(reuseBy): _ =>             // Memo Option[effect]
+                     deps.toOption.map(effect)
+      _         <- useEffectWithDeps(effectOpt): _ => // Set to Pending
+                     state.setState(Pot.pending).unless(keep).void
+      _         <- useAsyncEffectWithDeps(effectOpt): // Run effect
+                     _.value.foldMap: effect =>
+                       (for
+                         a <- effect
+                         _ <- state.setStateAsync(a.ready)
+                       yield ()).handleErrorWith: t =>
+                         state.setStateAsync(Pot.error(t))
+    yield state.value
 
+  /**
+   * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`. When
+   * dependencies change, reverts to `Pending` while executing the new effect.
+   */
+  final inline def useEffectResultWithDeps[D: Reusability, A](
+    deps: => D
+  )(effect: D => DefaultA[A]): HookResult[Pot[A]] =
+    hookBuilder(deps.ready)(effect, keep = false, deps.some)
+
+  /**
+   * Runs an async effect whenever `Pot` dependencies transition into a `Ready` state (but not when
+   * they change once `Ready`) and stores the result in a state, which is provided as a `Pot[A]`.
+   * When dependencies change, reverts to `Pending` while executing the new effect or while waiting
+   * for them to become `Ready` again. For multiple dependencies, use `(par1, par2, ...).tupled`.
+   */
+  final inline def useEffectResultWhenDepsReady[D, A](
+    deps: => Pot[D]
+  )(effect: D => DefaultA[A]): HookResult[Pot[A]] =
+    hookBuilder(deps)(effect, keep = false, deps.toOption.void)
+
+  /**
+   * Runs an async effect when `Pot` dependencies transition into a `Ready` state or change once
+   * `Ready` and stores the result in a state, which is provided as a `Pot[A]`. When dependencies
+   * change, reverts to `Pending` while executing the new effect or while waiting for them to become
+   * `Ready` again. For multiple dependencies, use `(par1, par2, ...).tupled`.
+   */
+  final inline def useEffectResultWhenDepsReadyOrChange[D: Reusability, A](
+    deps: => Pot[D]
+  )(effect: D => DefaultA[A]): HookResult[Pot[A]] =
+    hookBuilder(deps)(effect, keep = false, deps.toOption)
+
+  /**
+   * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`. When
+   * dependencies change, keeps the old value while executing the new effect.
+   */
+  final inline def useEffectKeepResultWithDeps[D: Reusability, A](
+    deps: => D
+  )(effect: D => DefaultA[A]): HookResult[Pot[A]] =
+    hookBuilder(deps.ready)(effect, keep = true, deps.some)
+
+  /**
+   * Runs an async effect whenever `Pot` dependencies transition into a `Ready` state (but not when
+   * they change once `Ready`) and stores the result in a state, which is provided as a `Pot[A]`.
+   * When dependencies change, keeps the old value while executing the new effect or while waiting
+   * for them to become `Ready` again. For multiple dependencies, use `(par1, par2, ...).tupled`.
+   */
+  final inline def useEffectKeepResultWhenDepsReady[D, A](
+    deps: => Pot[D]
+  )(effect: D => DefaultA[A]): HookResult[Pot[A]] =
+    hookBuilder(deps)(effect, keep = true, deps.toOption.void)
+
+  /**
+   * Runs an async effect whenever `Pot` dependencies transition into a `Ready` state or change once
+   * `Ready` and stores the result in a state, which is provided as a `Pot[A]`. When dependencies
+   * change, keeps the old value while executing the new effect or while waiting for them to become
+   * `Ready` again. For multiple dependencies, use `(par1, par2, ...).tupled`.
+   */
+  final inline def useEffectKeepResultWhenDepsReadyOrChange[D: Reusability, A](
+    deps: => Pot[D]
+  )(effect: D => DefaultA[A]): HookResult[Pot[A]] =
+    hookBuilder(deps)(effect, keep = true, deps.toOption)
+
+  /**
+   * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`.
+   */
+  final inline def useEffectResultOnMount[A](effect: => DefaultA[A]): HookResult[Pot[A]] =
+    useEffectResultWithDeps(())(_ => effect) // () has Reusability = always.
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[D, A, R: Reusability]: CustomHook[Input[D, A, R], Pot[A]] =
+    CustomHook.fromHookResult: input =>
+      hookBuilder(input.effect.deps)(input.effect.fromDeps, input.keep, input.effect.reuseValue)
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
 
@@ -313,4 +389,3 @@ object UseEffectResult {
   }
 
   object syntax extends HooksApiExt
-}

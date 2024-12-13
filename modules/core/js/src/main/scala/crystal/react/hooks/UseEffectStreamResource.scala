@@ -12,25 +12,98 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
-object UseEffectStreamResource {
+object UseEffectStreamResource:
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, Unit]]` on mount or when dependencies change, and
+   * drain the stream by creating a fiber. The fiber will be cancelled and the resource closed on
+   * unmount or deps change.
+   */
+  final def useEffectStreamResourceWithDeps[D: Reusability](deps: => D)(
+    effectStreamResource: D => StreamResource[Unit]
+  ): HookResult[Unit] =
+    useAsyncEffectWithDeps(deps): depsValue =>
+      for
+        latch      <- Deferred[DefaultA, Unit]   // Latch for stream termination.
+        (_, close) <- effectStreamResource(deps)
+                        .flatMap: stream =>
+                          (stream.compile.drain >> latch.complete(())).background.void
+                        .allocated
+        supervisor <- (latch.get >> close).start // Close the resource if the stream terminates.
+      yield
+      // Cleanup closes resource and cancels the supervisor, unless resource is already closed.
+      (supervisor.cancel >> close).when:
+        latch.tryGet.map(_.isEmpty)
 
-  protected def hook[D: Reusability] =
-    CustomHook[WithDeps[D, StreamResource[Unit]]]
-      .useAsyncEffectWithDepsBy(props => props.deps): props =>
-        deps =>
-          for
-            latch      <- Deferred[DefaultA, Unit]   // Latch for stream termination.
-            (_, close) <- props
-                            .fromDeps(deps)
-                            .flatMap: stream =>
-                              (stream.compile.drain >> latch.complete(())).background.void
-                            .allocated
-            supervisor <- (latch.get >> close).start // Close the resource if the stream terminates.
-          yield
-          // Cleanup closes resource and cancels the supervisor, unless resource is already closed.
-          (supervisor.cancel >> close).when:
-            latch.tryGet.map(_.isEmpty)
-      .build
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, Unit]]` on each render, and drain the stream by
+   * creating a fiber. If there was another fiber executing from the previous render, it will be
+   * cancelled and its resource closed.
+   */
+  final inline def useEffectStreamResource(
+    effectStreamResource: => StreamResource[Unit]
+  ): HookResult[Unit] =
+    useEffectStreamResourceWithDeps(NeverReuse)(_ => effectStreamResource)
+
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, Unit]]` on mount, and drain the stream by creating a
+   * fiber. The fiber will be cancelled and the resource closed on unmount.
+   */
+  final inline def useEffectStreamResourceOnMount(
+    effectStreamResource: => StreamResource[Unit]
+  ): HookResult[Unit] = // () has Reusability = always.
+    useEffectStreamResourceWithDeps(())(_ => effectStreamResource)
+
+  /**
+   * Open a `Resource[Async, fs.Stream[Async, Unit]]` when a `Pot` dependency becomes `Ready`, and
+   * drain the stream by creating a fiber. The fiber will be cancelled and the resource closed on
+   * unmount or if the dependency transitions to `Pending` or `Error`.
+   */
+  final def useEffectStreamResourceWhenDepsReady[D](
+    deps: => Pot[D]
+  )(effectStreamResource: D => StreamResource[Unit]): HookResult[Unit] =
+    useEffectStreamResourceWithDeps(deps.toOption.void)(_ =>
+      deps.toOption.map(effectStreamResource).orEmpty
+    )
+
+  /**
+   * Drain a `fs2.Stream[Async, Unit]` by creating a fiber on mount or when deps change.The fiber
+   * will be cancelled on unmount or deps change.
+   */
+  final inline def useEffectStreamWithDeps[D: Reusability](deps: => D)(
+    effectStream: D => fs2.Stream[DefaultA, Unit]
+  ): HookResult[Unit] =
+    useEffectStreamResourceWithDeps(deps)(deps => Resource.pure(effectStream(deps)))
+
+  /**
+   * Drain a `fs2.Stream[Async, Unit]` by creating a fiber on each render. If there was another
+   * fiber executing from the previous render, it will be cancelled.
+   */
+  final inline def useEffectStream(effectStream: fs2.Stream[DefaultA, Unit]): HookResult[Unit] =
+    useEffectStreamWithDeps(NeverReuse)(_ => effectStream)
+
+  /**
+   * Drain a `fs2.Stream[Async, Unit]` by creating a fiber when a `Pot` dependency becomes `Ready`.
+   * The fiber will be cancelled on unmount or if the dependency transitions to `Pending` or
+   * `Error`.
+   */
+  final inline def useEffectStreamWhenDepsReady[D](
+    deps: => Pot[D]
+  )(effectStream: D => fs2.Stream[DefaultA, Unit]): HookResult[Unit] =
+    useEffectStreamWithDeps(deps.toOption.void)(_ => deps.toOption.map(effectStream).orEmpty)
+
+  /**
+   * Drain a `fs2.Stream[Async, Unit]` by creating a fiber on mount. The fiber will be cancelled on
+   * unmount.
+   */
+  final inline def useEffectStreamOnMount(
+    effectStream: => fs2.Stream[DefaultA, Unit]
+  ): HookResult[Unit] =
+    useEffectStreamResourceOnMount(Resource.pure(effectStream))
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[D: Reusability]: CustomHook[WithDeps[D, StreamResource[Unit]], Unit] =
+    CustomHook.fromHookResult(input => useEffectStreamResourceWithDeps(input.deps)(input.fromDeps))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -312,4 +385,3 @@ object UseEffectStreamResource {
   }
 
   object syntax extends HooksApiExt
-}

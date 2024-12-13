@@ -10,18 +10,35 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 
-object UseResource {
-  def hook[D: Reusability, A] = CustomHook[WithDeps[D, Resource[DefaultA, A]]]
-    .useState(Pot.pending[A])
-    .useAsyncEffectWithDepsBy((props, _) => props.deps): (props, state) =>
-      deps =>
-        (for {
-          resource      <- props.fromDeps(deps).allocated
-          (value, close) = resource
-          _             <- state.setStateAsync(value.ready)
-        } yield close)
-          .handleErrorWith(t => state.setStateAsync(Pot.error(t)).as(DefaultA.delay(())))
-    .buildReturning((_, state) => state.value)
+object UseResource:
+  /**
+   * Open a `Resource[Async, A]` on mount or when dependencies change, and close it on unmount or
+   * when dependencies change. Provided as a `Pot[A]`. Will rerender when the `Pot` state changes.
+   */
+  final def useResource[D: Reusability, A](deps: => D)(
+    resource: D => Resource[DefaultA, A]
+  ): HookResult[Pot[A]] =
+    for
+      state <- useState(Pot.pending[A])
+      _     <- useAsyncEffectWithDeps(deps): deps =>
+                 (for
+                   (value, close) <- resource(deps).allocated
+                   _              <- state.setStateAsync(value.ready)
+                 yield close).handleErrorWith: t =>
+                   state.setStateAsync(Pot.error(t)).as(DefaultA.delay(()))
+    yield state.value
+
+  /**
+   * Open a `Resource[Async, A]` on mount and close it on unmount. Provided as a `Pot[A]`. Will
+   * rerender when the `Pot` state changes.
+   */
+  final inline def useResourceOnMount[A](resource: Resource[DefaultA, A]): HookResult[Pot[A]] =
+    useResource(())(_ => resource)
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[D: Reusability, A]: CustomHook[WithDeps[D, Resource[DefaultA, A]], Pot[A]] =
+    CustomHook.fromHookResult(input => useResource(input.deps)(input.fromDeps))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -114,4 +131,3 @@ object UseResource {
   }
 
   object syntax extends HooksApiExt
-}
