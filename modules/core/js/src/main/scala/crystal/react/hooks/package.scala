@@ -21,7 +21,7 @@ export UseSingleEffect.useSingleEffect, UseSerialState.useSerialState,
   useEffectResultWhenDepsReady,
   useEffectResultWhenDepsReadyOrChange,
   useEffectResultWithDeps
-}
+}, UseResource.{useResource, useResourceOnMount}
 
 export UseSingleEffect.syntax.*, UseSerialState.syntax.*, UseStateCallback.syntax.*,
   UseStateView.syntax.*, UseStateViewWithReuse.syntax.*, UseSerialStateView.syntax.*,
