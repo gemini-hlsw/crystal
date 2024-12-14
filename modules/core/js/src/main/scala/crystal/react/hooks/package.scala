@@ -21,7 +21,17 @@ export UseSingleEffect.useSingleEffect, UseSerialState.useSerialState,
   useEffectResultWhenDepsReady,
   useEffectResultWhenDepsReadyOrChange,
   useEffectResultWithDeps
-}, UseResource.{useResource, useResourceOnMount}
+}, UseResource.{useResource, useResourceOnMount}, UseThrottlingStateView.useThrottlingStateView,
+  UseEffectStreamResource.{
+  useEffectStream,
+  useEffectStreamOnMount,
+  useEffectStreamResource,
+  useEffectStreamResourceOnMount,
+  useEffectStreamResourceWhenDepsReady,
+  useEffectStreamResourceWithDeps,
+  useEffectStreamWhenDepsReady,
+  useEffectStreamWithDeps
+}
 
 export UseSingleEffect.syntax.*, UseSerialState.syntax.*, UseStateCallback.syntax.*,
   UseStateView.syntax.*, UseStateViewWithReuse.syntax.*, UseSerialStateView.syntax.*,

@@ -15,7 +15,7 @@ import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 import scala.reflect.ClassTag
 
-object UseStreamResource {
+object UseStreamResource:
 
   private def buildStreamResource[D, A](
     props:    WithDeps[D, StreamResource[A]],
@@ -719,4 +719,3 @@ object UseStreamResource {
   }
 
   object syntax extends HooksApiExt
-}
