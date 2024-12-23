@@ -17,8 +17,7 @@ import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 class UseSingleEffect[F[_]](
   latch:   Ref[F, Option[Deferred[F, UnitFiber[F]]]], // latch released as effect starts, holds fiber
   cleanup: Ref[F, Option[F[Unit]]]                    // cleanup of the currently running effect
-)(using F: Async[F], parF: Parallel[F], monoid: Monoid[F[Unit]]) {
-
+)(using F: Async[F], parF: Parallel[F], monoid: Monoid[F[Unit]]):
   private def endOldEffect(oldLatch: Deferred[F, UnitFiber[F]]): F[Unit] =
     // 1) We ensure the effect of the last call has started by waiting for the latch.
     oldLatch.get.flatMap: oldFiber =>
@@ -53,17 +52,30 @@ class UseSingleEffect[F[_]](
   // Worst case scenario, cancel will be called on it, which will do nothing.
   def submit[G](effect: G)(using EffectWithCleanup[G, F]) =
     switchTo(effect.normalize)
-}
 
-object UseSingleEffect {
-  val hook = CustomHook[Unit]
-    .useMemo(()): _ =>
-      new UseSingleEffect(
-        Ref.unsafe[DefaultA, Option[Deferred[DefaultA, UnitFiber[DefaultA]]]](none),
-        Ref.unsafe[DefaultA, Option[DefaultA[Unit]]](none)
-      )
-    .useEffectOnMountBy((_, singleEffect) => CallbackTo(singleEffect.cancel)) // Cleanup on unmount
-    .buildReturning((_, singleEffect) => singleEffect)
+object UseSingleEffect:
+  /**
+   * Provides a context in which to run a single effect at a time. When a new effect is submitted,
+   * the previous one is canceled. Also cancels the effect on unmount.
+   *
+   * A submitted effect can be explicitly canceled too.
+   */
+  final def useSingleEffect: HookResult[Reusable[UseSingleEffect[DefaultA]]] =
+    for
+      singleEffect <-
+        useMemo(()): _ =>
+          new UseSingleEffect(
+            Ref.unsafe[DefaultA, Option[Deferred[DefaultA, UnitFiber[DefaultA]]]](none),
+            Ref.unsafe[DefaultA, Option[DefaultA[Unit]]](none)
+          )
+      _            <-
+        useEffectOnMount(CallbackTo(singleEffect.cancel))
+    yield singleEffect
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private val hook: CustomHook[Unit, Reusable[UseSingleEffect[DefaultA]]] =
+    CustomHook.fromHookResult(useSingleEffect)
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -89,4 +101,3 @@ object UseSingleEffect {
   }
 
   object syntax extends HooksApiExt
-}

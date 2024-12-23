@@ -8,12 +8,16 @@ import crystal.react.reuse.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 
-object UseSerialStateView {
-  def hook[A]: CustomHook[A, ReuseView[A]] = CustomHook[A]
-    .useStateViewBy(initialValue => SerialState.initial(initialValue))
-    .buildReturning((_, serialStateView) =>
+object UseSerialStateView:
+  /** Creates component state as a View that is reused while it's not updated. */
+  final def useSerialStateView[A](initialValue: => A): HookResult[ReuseView[A]] =
+    useStateView(SerialState.initial(initialValue)).map: serialStateView =>
       Reuse.by(serialStateView.get.serial)(serialStateView.zoom(_.value)(mod => _.update(mod)))
-    )
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[A]: CustomHook[A, ReuseView[A]] =
+    CustomHook.fromHookResult(useSerialStateView(_))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -63,4 +67,3 @@ object UseSerialStateView {
   }
 
   object syntax extends HooksApiExt
-}

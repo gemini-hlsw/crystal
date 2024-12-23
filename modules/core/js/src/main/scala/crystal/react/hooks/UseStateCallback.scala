@@ -10,22 +10,31 @@ import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 import scala.collection.immutable.Queue
 
-object UseStateCallback {
-  def hook[A] =
-    CustomHook[Hooks.UseState[A]]
-      .useRef(Queue.empty[A => DefaultS[Unit]])
+object UseStateCallback:
+  /**
+   * Given a state, allows registering callbacks which are triggered when the state changes.
+   */
+  final def useStateCallback[A](
+    state: => Hooks.UseState[A]
+  ): HookResult[Reusable[(A => DefaultS[Unit]) => DefaultS[Unit]]] =
+    for
+      delayedCallbacks  <- useRef(Queue.empty[A => DefaultS[Unit]])
       // Credit to japgolly for this implementation; this is copied from StateSnapshot.
-      .useEffectBy: (state, delayedCallbacks) =>
-        val cbs = delayedCallbacks.value
-        if (cbs.isEmpty)
-          DefaultS.empty
-        else
-          delayedCallbacks.set(Queue.empty) >>
-            DefaultS.runAll(cbs.toList.map(_(state.value))*)
-      .useCallbackBy: (_, delayedCallbacks) =>
-        (cb: A => DefaultS[Unit]) => delayedCallbacks.mod(_.enqueue(cb))
-      .buildReturning: (_, _, onNextStateChange) =>
-        onNextStateChange
+      _                 <- useEffect:
+                             val cbs = delayedCallbacks.value
+                             if (cbs.isEmpty)
+                               DefaultS.empty
+                             else
+                               delayedCallbacks.set(Queue.empty) >>
+                                 DefaultS.runAll(cbs.toList.map(_(state.value))*)
+      onNextStateChange <- useCallback: (cb: A => DefaultS[Unit]) =>
+                             delayedCallbacks.mod(_.enqueue(cb))
+    yield onNextStateChange
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[A]: CustomHook[Hooks.UseState[A], Reusable[(A => Callback) => Callback]] =
+    CustomHook.fromHookResult(useStateCallback(_))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -81,4 +90,3 @@ object UseStateCallback {
   }
 
   object syntax extends HooksApiExt
-}

@@ -8,20 +8,23 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
-object UseStateView {
-  def hook[A]: CustomHook[A, View[A]] =
-    CustomHook[A]
-      .useStateBy(initialValue => initialValue)
-      .useShadowRef((_, state) => state.value)
-      .useStateCallbackBy((_, state, _) => state)
-      .useCallbackWithDepsBy((_, state, _, onNextStateChange) =>
-        (state.modState, onNextStateChange)
-      ): (initialValue, _, stateRef, _) =>
-        (modState, onNextStateChange) =>
+object UseStateView:
+  /** Creates component state as a View */
+  final def useStateView[A](initialValue: => A): HookResult[View[A]] =
+    for
+      state             <- useState(initialValue)
+      stateRef          <- useShadowRef(state.value)
+      onNextStateChange <- useStateCallback(state)
+      modCB             <-
+        useCallbackWithDeps((state.modState, onNextStateChange)): (modState, onNextStateChange) =>
           (f: A => A, cb: (A, A) => DefaultS[Unit]) =>
             stateRef.get >>= (previous => onNextStateChange(cb(previous, _)) >> modState(f))
-      .buildReturning: (_, state, _, _, modCB) =>
-        View[A](state.value, modCB)
+    yield View[A](state.value, modCB)
+
+  // *** The rest is to support builder-style hooks *** //
+
+  private def hook[A]: CustomHook[A, View[A]] =
+    CustomHook.fromHookResult(useStateView(_))
 
   object HooksApiExt {
     sealed class Primary[Ctx, Step <: HooksApi.AbstractStep](api: HooksApi.Primary[Ctx, Step]) {
@@ -69,4 +72,3 @@ object UseStateView {
   }
 
   object syntax extends HooksApiExt
-}
