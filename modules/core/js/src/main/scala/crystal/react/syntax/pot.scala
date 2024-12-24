@@ -24,6 +24,10 @@ trait pot {
         case Pot.Ready(a) => f(a)
         case _            => EmptyVdom
 
+  extension [A](self: Reusable[Pot[A]])
+    def sequencePot[B >: A]: Pot[Reusable[B]] =
+      self.value.map(self.withValue(_))
+
   given Reusability[Throwable] = Reusability.byRef[Throwable]
 
   given [A: Reusability]: Reusability[Pot[A]] =
