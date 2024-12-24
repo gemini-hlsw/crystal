@@ -21,8 +21,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   )
   .jsSettings(
     libraryDependencies ++= {
-      Settings.Libraries.ScalaJSReact.value ++
-        Settings.Libraries.LucumaReact.value
+      Settings.Libraries.ScalaJSReact.value
     }
   )
 
