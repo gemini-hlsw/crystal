@@ -11,7 +11,6 @@ object Settings {
     val disciplineMUnit = "2.0.0"
     val fs2             = "3.11.0"
     val log4Cats        = "2.7.0"
-    val lucumaReact     = "0.73.2"
     val monocle         = "3.3.0"
     val mUnit           = "1.0.3"
     val mUnitScalacheck = "1.0.0"
@@ -94,12 +93,6 @@ object Settings {
         "org.scalameta" %%% "munit"             % mUnit,
         "org.scalameta" %%% "munit-scalacheck"  % mUnitScalacheck,
         "org.typelevel" %%% "munit-cats-effect" % mUnitCatsEffect
-      )
-    )
-
-    val LucumaReact = Def.setting(
-      Seq[ModuleID](
-        "edu.gemini" %%% "lucuma-react-common" % lucumaReact
       )
     )
 
