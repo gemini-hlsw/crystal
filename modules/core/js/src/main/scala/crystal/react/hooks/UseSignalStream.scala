@@ -3,8 +3,8 @@
 
 package crystal.react.hooks
 
-import cats.Eq
 import cats.Endo
+import cats.Eq
 import cats.syntax.all.*
 import crystal.Pot
 import crystal.react.*
