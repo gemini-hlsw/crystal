@@ -59,7 +59,16 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
     //   ("org.webjars.npm" % "react"     % "18.3.1" % Test).intransitive(),
     //   ("org.webjars.npm" % "react-dom" % "18.3.1" % Test).intransitive()
     // ),
-    jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
+    // jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv()
+    jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(
+      org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
+        .Config()
+        .withEnv(
+          Map(
+            "NODE_PATH" -> (baseDirectory.value / "node_modules").absolutePath
+          )
+        )
+    ),
     Test / scalaJSLinkerConfig ~= {
       // Enable ECMAScript module output.
       _.withModuleKind(ModuleKind.ESModule)
