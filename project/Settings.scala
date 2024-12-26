@@ -110,6 +110,12 @@ object Settings {
       )
     )
 
+    val ScalaJSReactTest = Def.setting(
+      Seq[ModuleID](
+        "com.github.japgolly.scalajs-react" %%% "test" % scalajsReact
+      )
+    )
+
   }
 
 }

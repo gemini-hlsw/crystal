@@ -35,6 +35,7 @@ project/plugins/project/
 sbt-ctags-dep-srcs/
 buildinfo.properties
 .bsp/
+sbt-launch.jar
 
 # OS X
 .DS_Store

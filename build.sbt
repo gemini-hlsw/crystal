@@ -1,3 +1,5 @@
+import org.scalajs.linker.interface.OutputPatterns
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / crossScalaVersions := List("3.6.2")
@@ -37,6 +39,7 @@ lazy val testkit = crossProject(JVMPlatform, JSPlatform)
 lazy val tests = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/tests"))
   .enablePlugins(NoPublishPlugin)
+  // .configs(IntegrationTest)
   .settings(
     name := "crystal-tests",
     libraryDependencies ++=
@@ -48,4 +51,23 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
         Settings.Libraries.MonocleMacro.value ++
         Settings.Libraries.MonocleLaw.value).map(_ % Test)
   )
+  .jsSettings(
+    libraryDependencies ++= {
+      Settings.Libraries.ScalaJSReactTest.value.map(_ % Test)
+    },
+    // libraryDependencies ++= Seq(
+    //   ("org.webjars.npm" % "react"     % "18.3.1" % Test).intransitive(),
+    //   ("org.webjars.npm" % "react-dom" % "18.3.1" % Test).intransitive()
+    // ),
+    jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(),
+    Test / scalaJSLinkerConfig ~= {
+      // Enable ECMAScript module output.
+      _.withModuleKind(ModuleKind.ESModule)
+        // Use .mjs extension.
+        .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
+    }
+  )
+  // .jsSettings(
+  //   Defaults.itSettings: _*
+  // )
   .dependsOn(testkit)
