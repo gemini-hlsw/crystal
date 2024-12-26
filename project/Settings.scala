@@ -16,7 +16,7 @@ object Settings {
     val mUnitScalacheck = "1.0.0"
     val mUnitCatsEffect = "2.0.0"
     val scalaCheck      = "1.18.1"
-    val scalajsReact    = "3.0.0-beta8"
+    val scalajsReact    = "3.0.0-beta10"
   }
 
   object Libraries {
@@ -107,6 +107,12 @@ object Settings {
         "com.github.japgolly.scalajs-react" %%% "core-bundle-cb_io"  % scalajsReact,
         "com.github.japgolly.scalajs-react" %%% "extra"              % scalajsReact,
         "com.github.japgolly.scalajs-react" %%% "extra-ext-monocle3" % scalajsReact
+      )
+    )
+
+    val ScalaJSReactTest = Def.setting(
+      Seq[ModuleID](
+        "com.github.japgolly.scalajs-react" %%% "test" % scalajsReact
       )
     )
 

@@ -5,6 +5,16 @@ ThisBuild / tlBaseVersion      := "0.47"
 
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
+ThisBuild / githubWorkflowBuildPreamble ++= Seq(
+  WorkflowStep.Use(
+    UseRef.Public("actions", "setup-node", "v4"),
+    name = Some("Setup Node"),
+    params = Map("node-version" -> "22", "cache" -> "npm"),
+    cond = Some("matrix.project == 'rootJS'")
+  ),
+  WorkflowStep.Run(List("npm ci"))
+)
+
 lazy val root = tlCrossRootProject.aggregate(core, testkit, tests)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
@@ -47,5 +57,12 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
         Settings.Libraries.CatsEffectTestkit.value ++
         Settings.Libraries.MonocleMacro.value ++
         Settings.Libraries.MonocleLaw.value).map(_ % Test)
+  )
+  .jsSettings(
+    libraryDependencies ++= {
+      Settings.Libraries.ScalaJSReactTest.value.map(_ % Test)
+    },
+    jsEnv := new lucuma.LucumaJSDOMNodeJSEnv(),
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   .dependsOn(testkit)

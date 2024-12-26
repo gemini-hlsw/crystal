@@ -439,7 +439,7 @@ Like the `useEffect` family of hooks, this hook doesn't add any new parameters t
 
 ### `useSignalStream` / `useSignalStreamByReuse`
 
-Given a value, creates an `fs2.Stream` that will emit a new value every time the value changes. Equality is tested by `Eq`/`Reusability`. The stream is created when the component is mounted and memoized. This is backed by a `SignallingRef`, so intermediate values may be dropped during rapid bursts.
+Given a value, creates an `fs2.Stream` that will emit a new value every time the value changes. Equality is tested by `Eq`/`Reusability`. The stream is created when the component is mounted and memoized and terminates when the component unmounts.
 
 ``` scala
   useSignalStream[A: Eq](value: A): Reusable[Pot[fs2.Stream[DefaultA, A]]]
