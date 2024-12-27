@@ -13,8 +13,6 @@
 yarn.lock
 .tags*
 .java-version
-package.json
-package-lock.json
 metals.sbt
 .bloop/
 
@@ -70,7 +68,6 @@ smartgcal
 .jvmopts
 # Node modules
 node_modules/
-package-lock.json
 
 # Nix
 .direnv/

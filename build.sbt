@@ -1,11 +1,19 @@
-import org.scalajs.linker.interface.OutputPatterns
-
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / crossScalaVersions := List("3.6.2")
 ThisBuild / tlBaseVersion      := "0.47"
 
 ThisBuild / tlCiReleaseBranches := Seq("master")
+
+ThisBuild / githubWorkflowBuildPreamble ++= Seq(
+  WorkflowStep.Use(
+    UseRef.Public("actions", "setup-node", "v4"),
+    name = Some("Setup Node"),
+    params = Map("node-version" -> "22", "cache" -> "npm"),
+    cond = Some("matrix.project == 'rootJS'")
+  ),
+  WorkflowStep.Run(List("npm ci"))
+)
 
 lazy val root = tlCrossRootProject.aggregate(core, testkit, tests)
 
@@ -55,26 +63,8 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= {
       Settings.Libraries.ScalaJSReactTest.value.map(_ % Test)
     },
-    // libraryDependencies ++= Seq(
-    //   ("org.webjars.npm" % "react"     % "18.3.1" % Test).intransitive(),
-    //   ("org.webjars.npm" % "react-dom" % "18.3.1" % Test).intransitive()
-    // ),
-    // jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv()
-    jsEnv := new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(
-      org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
-        .Config()
-        .withEnv(
-          Map(
-            "NODE_PATH" -> (baseDirectory.value / "node_modules").absolutePath
-          )
-        )
-    ),
-    Test / scalaJSLinkerConfig ~= {
-      // Enable ECMAScript module output.
-      _.withModuleKind(ModuleKind.ESModule)
-        // Use .mjs extension.
-        .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
-    }
+    jsEnv := new lucuma.LucumaJSDOMNodeJSEnv(),
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   // .jsSettings(
   //   Defaults.itSettings: _*
