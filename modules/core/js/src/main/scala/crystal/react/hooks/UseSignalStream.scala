@@ -4,14 +4,14 @@
 package crystal.react.hooks
 
 import cats.Eq
+import cats.effect.std.Queue
 import cats.syntax.all.*
 import crystal.Pot
 import crystal.react.*
 import crystal.react.syntax.pot.given
+import fs2.Pipe
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
-import cats.effect.std.Queue
-import fs2.Pipe
 
 private final def useSignalStreamBuilder[A](
   value: A

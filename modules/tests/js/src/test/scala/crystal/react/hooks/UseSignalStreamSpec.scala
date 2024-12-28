@@ -3,16 +3,15 @@
 
 package crystal.react.hooks
 
-import munit.CatsEffectSuite
-import japgolly.scalajs.react.*
-import japgolly.scalajs.react.vdom.html_<^.*
-import japgolly.scalajs.react.test.ReactTestUtils2
-import cats.syntax.all.*
-import org.scalajs.dom
-import japgolly.scalajs.react.test.Simulate
 import cats.effect.IO
-import scala.concurrent.duration.*
 import cats.effect.kernel.Deferred
+import cats.syntax.all.*
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.test.ReactTestUtils2
+import japgolly.scalajs.react.test.Simulate
+import japgolly.scalajs.react.vdom.html_<^.*
+import munit.CatsEffectSuite
+import org.scalajs.dom
 
 class UseSignalStreamSuite extends CatsEffectSuite:
 
