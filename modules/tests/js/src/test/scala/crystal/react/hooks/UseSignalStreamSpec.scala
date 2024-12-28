@@ -3,19 +3,55 @@
 
 package crystal.react.hooks
 
-import munit.FunSuite
+// import munit.FunSuite
+import munit.CatsEffectSuite
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.test.ReactTestUtils2
+import cats.syntax.all.*
+import org.scalajs.dom
+import japgolly.scalajs.react.test.Simulate
+import cats.effect.IO
+import scala.concurrent.duration.*
 
-class UseSignalStreamSuite extends FunSuite:
+class UseSignalStreamSuite extends CatsEffectSuite:
+
+  // test("SEE If this runs"):
+  //   IO.println("*******RUNSSSSS*********") >>
+  //     IO(assertEquals(10, 11)) >>
+  //     assertIO(IO(42), 43)
 
   test("useSignalStreamSuite"):
-    println("HELLO")
-    println(org.scalajs.dom.window.location)
-    val comp = ScalaFnComponent[Unit]: _ =>
-      <.div
+    var result: List[Int] = List.empty
 
-    ReactTestUtils2.withRendered(comp()) { d =>
-      assertEquals(d.toString, "<div></div>")
-    }
+    def consume(stream: fs2.Stream[IO, Int]): IO[Unit] =
+      stream.compile.toList.map:
+        result = _
+
+    val inner = ScalaFnComponent[Int]: props =>
+      for
+        stream <- useSignalStream(props)
+        _      <- useEffectWhenDepsReady(stream)(s => consume(s.evalTap(IO.println(_))))
+      yield
+      // println(s"props: $props")
+      EmptyVdom
+
+    val buttonRef = Ref[dom.HTMLButtonElement]
+
+    val outer = ScalaFnComponent[Unit]: _ =>
+      for state <- useState(0)
+      yield React.Fragment(
+        inner(state.value),
+        <.button(^.onClick --> state.modState(_ + 1)).withRef(buttonRef)
+      )
+
+    ReactTestUtils2
+      .withRendered(outer())
+      .async: d =>
+        IO.sleep(100.millis) >> IO.println(" FDEFEWFWE") >> IO {
+          Simulate.click(buttonRef.unsafeGet())
+          d.unmount()
+          assertEquals(result, List(0, 1))
+        }
+    // .onError(IO.println(_))
+    // .unsafeRunAndForget()
