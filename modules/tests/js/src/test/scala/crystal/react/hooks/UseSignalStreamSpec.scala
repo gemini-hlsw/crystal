@@ -16,8 +16,6 @@ import org.scalajs.dom
 class UseSignalStreamSuite extends CatsEffectSuite:
 
   test("useSignalStreamSuite"):
-    // Completes when the stream ready and we then start the test.
-    val readyLatch: Deferred[IO, Unit]  = Deferred.unsafe[IO, Unit]
     // Completes when the stream terminates
     val result: Deferred[IO, List[Int]] = Deferred.unsafe[IO, List[Int]]
 
@@ -29,8 +27,7 @@ class UseSignalStreamSuite extends CatsEffectSuite:
     val inner = ScalaFnComponent[Int]: props =>
       for
         stream <- useSignalStream(props)
-        _      <- useEffectWhenDepsReady(stream): s =>
-                    readyLatch.complete(()) >> consume(s)
+        _      <- useEffectWhenDepsReady(stream)(consume(_))
       yield EmptyVdom
 
     val buttonRef = Ref[dom.HTMLButtonElement]
@@ -42,12 +39,24 @@ class UseSignalStreamSuite extends CatsEffectSuite:
         <.button(^.onClick --> state.modState(_ + 1)).withRef(buttonRef)
       )
 
-    ReactTestUtils2
-      .withRendered(outer())
-      .async: d =>
-        readyLatch.get >>
-          IO {
-            Simulate.click(buttonRef.unsafeGet())
-            d.unmount()
-          } >>
-          result.get.map(r => assertEquals(_, List(0, 1)))
+    import japgolly.scalajs.react.test.internal.WithDsl
+    import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
+    import japgolly.scalajs.react.util.Effect.Async
+    import japgolly.scalajs.react.test.TestDomWithRoot
+
+    @inline def actAsync[F[_], A](body: => A)(implicit F: Async[F]): F[A] =
+      ReactTestUtils2.actAsync(F.delay(body))
+
+    def renderAsync[F[_], A](
+      unmounted: A
+    )(implicit F: Async[F], renderable: Renderable[A]): F[TestDomWithRoot] =
+      F.flatMap(F.pure(ReactTestUtils2.withReactRoot.setup(implicitly, new WithDsl.Cleanup)))(
+        root => F.map(actAsync(root.render(unmounted)))(_ => root.selectFirstChild())
+      )
+
+    for
+      d <- renderAsync(outer())
+      _ <- actAsync(Simulate.click(buttonRef.unsafeGet()))
+      _ <- actAsync(d.unmount())
+      r <- result.get
+    yield assertEquals(r, List(0, 1))
