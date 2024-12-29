@@ -41,8 +41,7 @@ class UseSignalStreamSuite extends CatsEffectSuite:
       )
 
     for
-      d <- renderAsync(outer())
-      _ <- actAsync(Simulate.click(buttonRef.unsafeGet()))
-      _ <- actAsync(d.unmount())
+      _ <- withRenderedAsync(outer()): _ =>
+             actAsync(Simulate.click(buttonRef.unsafeGet()))
       r <- result.get
     yield assertEquals(r, List(0, 1))
