@@ -14,6 +14,7 @@ import munit.CatsEffectSuite
 import org.scalajs.dom
 
 class UseSignalStreamSuite extends CatsEffectSuite:
+  import ReactTestUtils2.*
 
   test("useSignalStreamSuite"):
     // Completes when the stream terminates
@@ -37,21 +38,6 @@ class UseSignalStreamSuite extends CatsEffectSuite:
       yield React.Fragment(
         inner(state.value),
         <.button(^.onClick --> state.modState(_ + 1)).withRef(buttonRef)
-      )
-
-    import japgolly.scalajs.react.test.internal.WithDsl
-    import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
-    import japgolly.scalajs.react.util.Effect.Async
-    import japgolly.scalajs.react.test.TestDomWithRoot
-
-    @inline def actAsync[F[_], A](body: => A)(implicit F: Async[F]): F[A] =
-      ReactTestUtils2.actAsync(F.delay(body))
-
-    def renderAsync[F[_], A](
-      unmounted: A
-    )(implicit F: Async[F], renderable: Renderable[A]): F[TestDomWithRoot] =
-      F.flatMap(F.pure(ReactTestUtils2.withReactRoot.setup(implicitly, new WithDsl.Cleanup)))(
-        root => F.map(actAsync(root.render(unmounted)))(_ => root.selectFirstChild())
       )
 
     for
