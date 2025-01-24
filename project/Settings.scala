@@ -13,7 +13,7 @@ object Settings {
     val log4Cats        = "2.7.0"
     val monocle         = "3.3.0"
     val mUnit           = "1.0.4"
-    val mUnitScalacheck = "1.0.0"
+    val mUnitScalacheck = "1.1.0"
     val mUnitCatsEffect = "2.0.0"
     val scalaCheck      = "1.18.1"
     val scalajsReact    = "3.0.0-beta10"
