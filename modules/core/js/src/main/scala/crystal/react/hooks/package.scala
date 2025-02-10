@@ -14,6 +14,7 @@ export UseSingleEffect.useSingleEffect, UseSerialState.useSerialState,
   UseStateCallback.useStateCallback, UseShadowRef.useShadowRef, UseStateView.useStateView,
   UseStateViewWithReuse.useStateViewWithReuse, UseSerialStateView.useSerialStateView,
   UseAsyncEffect.{useAsyncEffect, useAsyncEffectOnMount, useAsyncEffectWithDeps}, UseEffectResult.{
+  useEffectKeepResultOnMount,
   useEffectKeepResultWhenDepsReady,
   useEffectKeepResultWhenDepsReadyOrChange,
   useEffectKeepResultWithDeps,

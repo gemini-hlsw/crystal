@@ -19,6 +19,7 @@ private final def useSignalStreamBuilder[A](
   for
     queue  <- useEffectResultOnMount:
                 Queue.unbounded[DefaultA, Option[A]].flatTap(_.offer(value.some))
+              .map(_.value)
     _      <- useEffect(queue.toOption.map(_.offer(value.some)).orEmpty)
     stream <- useMemo(queue.void): _ =>
                 queue.map:
