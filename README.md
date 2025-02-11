@@ -73,6 +73,14 @@ This is useful to define `Reusability` for types where universal reusability can
 
 ## Hooks
 
+All hooks are implemented in their monadic versions.
+
+(*) marks hooks that are ONLY implemented in a monadic version.
+
+(**) marks hooks that don't make sense in a monadic version (namely, `By` versions) and are therefore only available in builder-style.
+
+Future hooks will only be implemented in their monadic versions, phasing out the usage of builder-style.
+
 ### useSingleEffect
 
 Provides a context in which to run a single effect at a time.
@@ -88,7 +96,7 @@ If a `debounce` is passed, the hooks guarantees that effect invocations are spac
 
   useSingleEffect(debounce: FiniteDuration): Reusable[UseSingleEffect]
 
-  useSingleEffectBy(debounce: Ctx => FiniteDuration): Reusable[UseSingleEffect]
+  useSingleEffectBy(debounce: Ctx => FiniteDuration): Reusable[UseSingleEffect] (**)
 ```
 
 where
@@ -152,7 +160,7 @@ Functionally equivalent to `useState` but the `View` is more practical to pass a
 ``` scala
   useStateView[A](initialValue: => A): View[A]
 
-  useStateViewBy[A](initialValue: Ctx => A): View[A]
+  useStateViewBy[A](initialValue: Ctx => A): View[A] (**)
 ```
 
 ### useStateViewWithReuse
@@ -162,7 +170,7 @@ Similar to `useStateView` but returns a `Reuse[View[A]]`. The resulting `View` i
 ``` scala
   useStateViewWithReuse[A: ClassTag: Reusability](initialValue: => A): Reuse[View[A]]
 
-  useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: Ctx => A): Reuse[View[A]]
+  useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: Ctx => A): Reuse[View[A]] (**)
 ```
 
 ### useThrottlingStateView
@@ -176,7 +184,7 @@ Creates component state that is reused as long as it's not updated.
 ``` scala
   useSerialState[A](initialValue: => A): UseSerialState[A]
 
-  useSerialStateBy[A](initialValue: Ctx => A): UseSerialState[A]
+  useSerialStateBy[A](initialValue: Ctx => A): UseSerialState[A] (**)
 ```
 
 where
@@ -199,7 +207,7 @@ Version of `useSerialState` that returns a `Reuse[View[A]]`.
 ``` scala
   useSerialStateView[A](initialValue: => A): Reuse[View[A]]
 
-  useSerialStateViewBy[A](initialValue: Ctx => A): Reuse[View[A]]
+  useSerialStateViewBy[A](initialValue: Ctx => A): Reuse[View[A]] (**)
 ```
 
 ### useEffectWhenDepsReady
@@ -210,22 +218,22 @@ Note that multiple `Pot` dependencies can be combined into one with `.tupled`.
 
 ``` scala
   useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => Callback)
-  useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => Callback)
+  useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => Callback) (**)
 
   useEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => Callback)
-  useEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => Callback)
+  useEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => Callback) (**)
 
   useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[Unit])
-  useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
+  useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit]) (**)
 
   useEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => IO[Unit])
-  useEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
+  useEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit]) (**)
 
   useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => CallbackTo[Callback]) // return cleanup
-  useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx =>D => CallbackTo[Callback]) // return cleanup
+  useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx =>D => CallbackTo[Callback]) (**) // return cleanup
 
   useEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => CallbackTo[Callback]) // return cleanup
-  useEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx =>D => CallbackTo[Callback]) // return cleanup
+  useEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx =>D => CallbackTo[Callback]) (**) // return cleanup
 ```
 
 ### useAsyncEffect
@@ -237,28 +245,28 @@ Also allows returning a cleanup effect, which `useEffect` only supports when use
 ``` scala
   useAsyncEffect(effect: IO[Unit])
   useAsyncEffect(effect: IO[IO[Unit]])  // return a cleanup effect
-  useAsyncEffectBy(effect: Ctx => IO[Unit])
-  useAsyncEffectBy(effect: Ctx => IO[IO[Unit]]) // return a cleanup effect
+  useAsyncEffectBy(effect: Ctx => IO[Unit]) (**)
+  useAsyncEffectBy(effect: Ctx => IO[IO[Unit]]) (**) // return a cleanup effect
 
   useAsyncEffectWithDeps[D: Reusability](deps: => D)(effect: D => IO[Unit])
   useAsyncEffectWithDeps[D: Reusability](deps: => D)(effect: D => IO[IO[Unit]]) // return a cleanup effect
-  useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[Unit])
-  useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[IO[Unit]]) // return a cleanup effect
+  useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[Unit]) (**)
+  useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[IO[Unit]]) (**) // return a cleanup effect
 
   useAsyncEffectOnMount(effect: IO[IO[Unit]])
   useAsyncEffectOnMount(effect: IO[Unit]) // return a cleanup effect
-  useAsyncEffectOnMountBy(effect: Ctx => IO[Unit])
-  useAsyncEffectOnMountBy(effect: Ctx => IO[IO[Unit]]) // return a cleanup effect
+  useAsyncEffectOnMountBy(effect: Ctx => IO[Unit]) (**)
+  useAsyncEffectOnMountBy(effect: Ctx => IO[IO[Unit]]) (**) // return a cleanup effect
 
   useAsyncEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[Unit])
   useAsyncEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => IO[IO[Unit]]) // return a cleanup effect
-  useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
-  useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) // return a cleanup effect
+  useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit]) (**)
+  useAsyncEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) (**) // return a cleanup effect
 
   useAsyncEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => IO[Unit])
   useAsyncEffectWhenDepsReadyOrChange[D: Reusability](deps: => Pot[D])(effect: D => IO[IO[Unit]]) // return a cleanup effect
-  useAsyncEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit])
-  useAsyncEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) // return a cleanup effect
+  useAsyncEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[Unit]) (**)
+  useAsyncEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) (**) // return a cleanup effect
 ```
 
 
@@ -274,43 +282,57 @@ There are also `WhenDepsReady` versions, which will only execute the effect when
 
 Furthermore, there are also `WhenDepsReadyOrChange` versions, which will only execute the effect when dependencies transition to `Ready` or change value once `Ready`. If they change or transition to `Pending` or `Error`, then the result will revert to `Pending`. However, if the `KeepResult` version is used, it will retain the last value.
 
+TODO: return type, mark "By" methods
+
+
 
 ``` scala
-  useEffectResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
-  useEffectResultWithDepsBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+  useEffectResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): UseEffectResult[A]
+  useEffectResultWithDepsBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): UseEffectResult[A] (**)
 
-  useEffectKeepResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
-  useEffectKeepResultWithDepsBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+  useEffectKeepResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): UseEffectResult[A]
+  useEffectKeepResultWithDepsBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): UseEffectResult[A] (**)
 
-  useEffectResultOnMount[A](effect: IO[A]): Pot[A]
-  useEffectResultOnMountBy[A](effect: Ctx => IO[A]): Pot[A]
+  useEffectResultOnMount[A](effect: IO[A]): UseEffectResult[A]
+  useEffectResultOnMountBy[A](effect: Ctx => IO[A]): UseEffectResult[A] (**)
 
-  useEffectResultWhenDepsReady[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
-  useEffectResultWhenDepsReadyBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+  useEffectKeepResultOnMount(effect: IO[A]): UseEffectResult[A] (*)
 
-  useEffectResultWhenDepsReadyOrChange[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
-  useEffectResultWhenDepsReadyOrChangeBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+  useEffectResultWhenDepsReady[D: Reusability, A](deps: => D)(effect: D => IO[A]): UseEffectResult[A]
+  useEffectResultWhenDepsReadyBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): UseEffectResult[A] (**)
 
-  useEffectKeepResultWhenDepsReady[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
-  useEffectKeepResultWhenDepsReadyBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+  useEffectResultWhenDepsReadyOrChange[D: Reusability, A](deps: => D)(effect: D => IO[A]): UseEffectResult[A]
+  useEffectResultWhenDepsReadyOrChangeBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): UseEffectResult[A] (**)
 
-  useEffectKeepResultWhenDepsReadyOrChange[D: Reusability, A](deps: => D)(effect: D => IO[A]): Pot[A]
-  useEffectKeepResultWhenDepsReadyOrChangeBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): Pot[A]
+  useEffectKeepResultWhenDepsReady[D: Reusability, A](deps: => D)(effect: D => IO[A]): UseEffectResult[A]
+  useEffectKeepResultWhenDepsReadyBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): UseEffectResult[A] (**)
+
+  useEffectKeepResultWhenDepsReadyOrChange[D: Reusability, A](deps: => D)(effect: D => IO[A]): UseEffectResult[A]
+  useEffectKeepResultWhenDepsReadyOrChangeBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): UseEffectResult[A] (**)
+```
+
+where
+
+``` scala
+trait UseEffectResult[A]:
+  val value:         Pot[A]             // The last value returned by the effect.
+  val isRunning:     Boolean            // Indicates whether the effect is currently running.
+  val refresh:       Reusable[Callback] // Forces a refresh, keeping the last value or not, depending on the hook used.
+  val refreshKeep:   Reusable[Callback] // Forces a refresh, always keeping the last value while running the effect.
+  val refreshNoKeep: Reusable[Callback] // Forces a refresh, always transitioning to `Pending` while running the effect.
 ```
 
 #### Example:
 ``` scala
-ScalaFnComponent
-  .withHooks[Props]
-  ...
-  .useEffectResultOnMount(UUIDGen.randomUUID)
-  .render( (..., uuidPot) => 
-    uuidPot.fold(
+ScalaFnComponent[Props]: _ =>
+  for
+    uuidResult <- useEffectResultOnMount(UUIDGen.randomUUID)
+  yield
+    uuidResult.value.fold(
       "Pending...",
       t => s"Error! ${e.getMessage}",
       uuid => s"Your fresh UUID: $uuid"
     )
-  )
 ```
 
 ### useResource
@@ -323,10 +345,10 @@ Note that all versions either have dependencies or are executed `onMount`. It do
 
 ``` scala
   useResource[D: Reusability, A](deps: => D)(resource: D => Resource[IO, A]): Pot[A]
-  useResourceBy[D: Reusability, A](deps: Ctx => D)(resource: Ctx => D => Resource[IO, A]): Pot[A]
+  useResourceBy[D: Reusability, A](deps: Ctx => D)(resource: Ctx => D => Resource[IO, A]): Pot[A] (**)
 
   useResourceOnMount[A](resource: Resource[IO, A]): Pot[A]
-  useResourceOnMountBy[A](resource: Ctx => Resource[IO, A]): Pot[A]
+  useResourceOnMountBy[A](resource: Ctx => Resource[IO, A]): Pot[A] (**)
 ```
 
 ### useStream
@@ -339,10 +361,10 @@ Note that all versions either have dependencies or are executed `onMount`. It do
 
 ``` scala
   useStream[D: Reusability, A](deps: => D)(stream: D => fs2.Stream[IO, A]): PotOption[A]
-  useStreamBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[A]
+  useStreamBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[A] (**)
 
   useStreamOnMount[A](stream: fs2.Stream[IO, A]): PotOption[A]
-  useStreamOnMountBy[A](stream: Ctx => fs2.Stream[IO, A]): PotOption[A]
+  useStreamOnMountBy[A](stream: Ctx => fs2.Stream[IO, A]): PotOption[A] (**)
 ```
 
 The resulting `PotOption[A]` takes one of these values:
@@ -359,10 +381,10 @@ In other words, the state will be modified on every new value produced by the st
 
 ``` scala
   useStreamView[D: Reusability, A](deps: => D)(stream: D => fs2.Stream[IO, A]): PotOption[View[A]]
-  useStreamViewBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[View[A]]
+  useStreamViewBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[View[A]] (**)
 
   useStreamViewOnMount[A](stream: fs2.Stream[IO, A]): PotOption[View[A]]
-  useStreamViewOnMountBy[A](stream: Ctx => fs2.Stream[IO, A]): PotOption[View[A]]
+  useStreamViewOnMountBy[A](stream: Ctx => fs2.Stream[IO, A]): PotOption[View[A]] (**)
 ```
 
 ### useStreamResource
@@ -377,10 +399,10 @@ The resource is also closed if the stream terminates.
 
 ``` scala
   useStreamResource[D: Reusability, A](deps: => D)(streamResource: D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
-  useStreamResourceBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
+  useStreamResourceBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A] (**)
 
   useStreamResourceOnMount[A](streamResource: Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
-  useStreamResourceOnMountBy[A](streamResource: Ctx => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
+  useStreamResourceOnMountBy[A](streamResource: Ctx => Resource[IO, fs2.Stream[IO, A]]): PotOption[A] (**)
 ```
 
 ### useStreamResourceView
@@ -391,10 +413,10 @@ Like `useStreamResource` but returns a `PotOption[View[A]]`, allowing local modi
 
 ``` scala
   useStreamResourceView[D: Reusability, A](deps: => D)(streamResource: D => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
-  useStreamResourceViewBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
+  useStreamResourceViewBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]] (**)
 
   useStreamResourceViewOnMount[A](streamResource: Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
-  useStreamResourceViewOnMountBy[A](streamResource: Ctx => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
+  useStreamResourceViewOnMountBy[A](streamResource: Ctx => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]] (**)
 ```
 
 ### useEffectStream
@@ -405,16 +427,16 @@ Like the `useEffect` family of hooks, this hook doesn't add any new parameters t
 
 ``` scala
   useEffectStream(stream: D => fs2.Stream[IO, Unit])
-  useEffectStreamBy(stream: Ctx => fs2.Stream[IO, Unit])
+  useEffectStreamBy(stream: Ctx => fs2.Stream[IO, Unit]) (**)
 
   useEffectStreamWithDeps[D: Reusability](deps: => D)(stream: D => fs2.Stream[IO, Unit])
-  useEffectStreamWithDepsBy[D: Reusability](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, Unit])
+  useEffectStreamWithDepsBy[D: Reusability](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, Unit]) (**)
 
   useEffectStreamOnMount(stream: fs2.Stream[IO, Unit])
-  useEffectStreamOnMountBy(stream: Ctx => fs2.Stream[IO, Unit])
+  useEffectStreamOnMountBy(stream: Ctx => fs2.Stream[IO, Unit]) (**)
 
   useEffectStreamWhenDepsReady[D](deps: => Pot[D])(stream: D => fs2.Stream[IO, Unit])
-  useEffectStreamWhenDepsReadyBy[D](deps: Ctx => Pot[D])(stream: Ctx => D => fs2.Stream[IO, Unit])
+  useEffectStreamWhenDepsReadyBy[D](deps: Ctx => Pot[D])(stream: Ctx => D => fs2.Stream[IO, Unit]) (**)
 ```
 
 ### useEffectStreamResource
@@ -425,16 +447,16 @@ Like the `useEffect` family of hooks, this hook doesn't add any new parameters t
 
 ``` scala
   useEffectStreamResource(stream: Resource[IO, fs2.Stream[IO, Unit]])
-  useEffectStreamResourceBy(stream: Ctx => Resource[IO, fs2.Stream[IO, Unit]])
+  useEffectStreamResourceBy(stream: Ctx => Resource[IO, fs2.Stream[IO, Unit]]) (**)
 
   useEffectStreamResourceWithDeps[D: Reusability](deps: => D)(stream: D => Resource[IO, fs2.Stream[IO, Unit]])
-  useEffectStreamResourceWithDepsBy[D: Reusability](deps: Ctx => D)(stream: Ctx => D => Resource[IO, fs2.Stream[IO, Unit]])
+  useEffectStreamResourceWithDepsBy[D: Reusability](deps: Ctx => D)(stream: Ctx => D => Resource[IO, fs2.Stream[IO, Unit]]) (**)
 
   useEffectStreamResourceOnMount(stream: Resource[IO, fs2.Stream[IO, Unit]])
-  useEffectStreamResourceOnMountBy(stream: Ctx => Resource[IO, fs2.Stream[IO, Unit]])
+  useEffectStreamResourceOnMountBy(stream: Ctx => Resource[IO, fs2.Stream[IO, Unit]]) (**)
 
   useEffectStreamResourceWhenDepsReady[D](deps: => Pot[D])(stream: D => Resource[IO, fs2.Stream[IO, Unit]])
-  useEffectStreamResourceWhenDepsReadyBy[D](deps: Ctx => Pot[D])(stream: Ctx => D => Resource[IO, fs2.Stream[IO, Unit]])
+  useEffectStreamResourceWhenDepsReadyBy[D](deps: Ctx => Pot[D])(stream: Ctx => D => Resource[IO, fs2.Stream[IO, Unit]]) (**)
 ```
 
 ### `useSignalStream` / `useSignalStreamByReuse`
@@ -442,8 +464,8 @@ Like the `useEffect` family of hooks, this hook doesn't add any new parameters t
 Given a value, creates an `fs2.Stream` that will emit a new value every time the value changes. Equality is tested by `Eq`/`Reusability`. The stream is created when the component is mounted and memoized and terminates when the component unmounts.
 
 ``` scala
-  useSignalStream[A: Eq](value: A): Reusable[Pot[fs2.Stream[DefaultA, A]]]
-  useSignalStreamByReuse[A: Reusability](value: A): Reusable[Pot[fs2.Stream[DefaultA, A]]]
+  useSignalStream[A: Eq](value: A): Reusable[Pot[fs2.Stream[IO, A]]] (*)
+  useSignalStreamByReuse[A: Reusability](value: A): Reusable[Pot[fs2.Stream[IO, A]]] (*)
 ```
 
 ### `scalajs-react` <-> `cats-effect` interop

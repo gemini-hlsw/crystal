@@ -13,10 +13,10 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import munit.CatsEffectSuite
 import org.scalajs.dom
 
-class UseSignalStreamSuite extends CatsEffectSuite:
+class UseSignalStreamSpec extends CatsEffectSuite:
   import ReactTestUtils2.*
 
-  test("useSignalStreamSuite"):
+  test("useSignalStream - build signal stream"):
     // Completes when the stream terminates
     val result: Deferred[IO, List[Int]] = Deferred.unsafe[IO, List[Int]]
 
@@ -41,7 +41,7 @@ class UseSignalStreamSuite extends CatsEffectSuite:
       )
 
     for
-      _ <- withRenderedAsync(outer()): _ =>
-             actAsync(Simulate.click(buttonRef.unsafeGet()))
+      _ <- withRendered(outer()): _ =>
+             act_(Simulate.click(buttonRef.unsafeGet()))
       r <- result.get
     yield assertEquals(r, List(0, 1))
