@@ -141,7 +141,6 @@ object PotOption {
             y match
               case PotOption.ReadyNone => true
               case _                   => false
-          case _                   => false
     }
 
   given [A: Eq]: Eq[PotOption[A]] =
