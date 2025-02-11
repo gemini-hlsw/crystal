@@ -126,7 +126,6 @@ object Pot:
             y match
               case Pot.Error(ty) => tx === ty
               case _             => false
-          case _             => false
     }
 
   given [A: Eq]: Eq[Pot[A]] =
