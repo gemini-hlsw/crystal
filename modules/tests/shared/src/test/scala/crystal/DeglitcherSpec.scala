@@ -11,14 +11,13 @@ import munit.CatsEffectSuite
 
 import scala.concurrent.duration.*
 
-class DeglitcherSuite extends CatsEffectSuite {
+class DeglitcherSpec extends CatsEffectSuite:
 
   def server[A](values: (A, FiniteDuration)*): Stream[IO, A] =
     Stream
       .emits(values)
-      .evalMap { (a, t) =>
+      .evalMap: (a, t) =>
         IO.sleep(t).as(a)
-      }
       .prefetchN(Int.MaxValue)
 
   test("emits elements immediately if unthrottled") {
@@ -74,5 +73,3 @@ class DeglitcherSuite extends CatsEffectSuite {
       }
       .assertEquals(List(0 -> 150.millis))
   }
-
-}
