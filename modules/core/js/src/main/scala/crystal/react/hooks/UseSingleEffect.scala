@@ -50,7 +50,7 @@ class UseSingleEffect[F[_]](
 
   // There's no need to clean up the fiber reference once the effect completes.
   // Worst case scenario, cancel will be called on it, which will do nothing.
-  def submit[G](effect: G)(using EffectWithCleanup[G, F]) =
+  def submit[G](effect: G)(using EffectWithCleanup[G, F]): F[Unit] =
     switchTo(effect.normalize)
 
 object UseSingleEffect:

@@ -11,14 +11,24 @@ import fs2.Stream
 
 import scala.concurrent.duration.FiniteDuration
 
+/**
+ * Allows arbitrarily debouncing a `fs2.Stream`.
+ */
 final class Deglitcher[F[_]] private (
   waitUntil: Ref[F, FiniteDuration],
   timeout:   FiniteDuration
 )(using F: Temporal[F]) {
 
+  /**
+   * When invoked, it will pause the stream until the timeout has passed, discarding all elements
+   * produced during the timeout but the last one.
+   */
   def throttle: F[Unit] =
     F.monotonic.flatMap(now => waitUntil.set(now + timeout))
 
+  /**
+   * `Pipe` through which the stream must go through to be debounced.
+   */
   def debounce[A]: Pipe[F, A, A] =
     _.switchMap { a =>
       Stream.eval {
