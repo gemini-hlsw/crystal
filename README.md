@@ -468,6 +468,15 @@ Given a value, creates an `fs2.Stream` that will emit a new value every time the
   useSignalStreamByReuse[A: Reusability](value: A): Reusable[Pot[fs2.Stream[IO, A]]] (*)
 ```
 
+### `useThrottledCallback`
+
+Given a callback, returns a memoized version of it that won't be run more than once every `spacedBy` duration, even if invoked more often. If multiple invocations occur within the `spacedBy` duration, only the last one will be run. The callback must be async (`IO`).
+
+``` scala
+  useThrottledCallback(spacedBy: FiniteDuration)(effect: IO[Unit]): Reusable[IO[Unit]]] (*)
+  useThrottledCallbackWithDeps[D: Reusability](deps: => D)(spacedBy: FiniteDuration)(effect: D => IO[Unit]): Reusable[IO[Unit]]] (*)
+```
+
 ### `scalajs-react` <-> `cats-effect` interop
 
 The `crystal.react.implicits.*` import will provide the following methods:
