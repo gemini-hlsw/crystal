@@ -52,7 +52,9 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/tests"))
   .enablePlugins(NoPublishPlugin)
   .settings(
-    name := "crystal-tests",
+    name                                    := "crystal-tests",
+    // temporary? fix for upgrading to Scala 3.7: https://github.com/scala/scala3/issues/22890
+    dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
     libraryDependencies ++=
       (Settings.Libraries.MUnit.value ++
         Settings.Libraries.Discipline.value ++
