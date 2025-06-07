@@ -25,7 +25,7 @@ trait view {
 
   extension (viewFModule: ViewF.type) def fromState: FromStateView = new FromStateView
 
-  extension [F[_], A: ClassTag: Reusability](view: ViewOptF[F, A])
+  extension [F[_], A: Reusability](view: ViewOptF[F, A])
     def reuseByValue: Reuse[ViewOptF[F, A]] = Reuse.by(view.get)(view)
 
   extension [F[_]: Monad, A](optView: Option[ViewF[F, A]])

@@ -24,7 +24,7 @@ object UseEffectStreamResource:
     useAsyncEffectWithDeps(deps): depsValue =>
       for
         latch      <- Deferred[DefaultA, Unit]   // Latch for stream termination.
-        (_, close) <- effectStreamResource(deps)
+        (_, close) <- effectStreamResource(depsValue)
                         .flatMap: stream =>
                           (stream.compile.drain >> latch.complete(())).background.void
                         .allocated

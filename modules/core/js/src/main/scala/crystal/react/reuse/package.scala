@@ -281,7 +281,7 @@ extension [R, S, T, U, V, B](fn: (R, S, T, U, V) => B)
     reuseR:    Reusability[(R, S, T, U, V)]
   ): Reuse[B] = Reuse.currying(r, s, t, u, v).in(fn)
 
-extension [F[_]: Monad, A](rv: Reuse[ViewF[F, A]])
+extension [F[_], A](rv: Reuse[ViewF[F, A]])
   def get: A = rv.value.get
 
   def modCB: (A => A, A => F[Unit]) => F[Unit] = rv.value.modCB
@@ -330,7 +330,7 @@ extension [F[_]: Monad, A](rv: Reuse[ViewF[F, A]])
   def mapValue[B, C](f: Reuse[ViewF[F, B]] => C)(using ev: A =:= Option[B]): Option[C] =
     get.map(a => f(zoom(_ => a)(f => a1 => ev.flip(a1.map(f)))))
 
-extension [F[_]: Monad, A](rvo: Reuse[ViewOptF[F, A]])
+extension [F[_], A](rvo: Reuse[ViewOptF[F, A]])
   def get: Option[A] = rvo.value.get
 
   @targetName("reuseViewOptModCB")
@@ -383,7 +383,7 @@ extension [F[_]: Monad, A](rvo: Reuse[ViewOptF[F, A]])
   // def modCB2: (A => A, Option[A] => F[Unit]) => F[Unit] = rvo.value.modCB
 
   @targetName("reuseViewOptMapValue")
-  def mapValue[B](f: Reuse[ViewF[F, A]] => B)(using ev: Monoid[F[Unit]]): Option[B] =
+  def mapValue[B](f: Reuse[ViewF[F, A]] => B)(using Monad[F], Monoid[F[Unit]]): Option[B] =
     get.map(a =>
       f(
         rvo.map(vo =>
@@ -399,7 +399,7 @@ extension [F[_]: Monad, A](rvo: Reuse[ViewOptF[F, A]])
       )
     )
 
-extension [F[_]: Monad, A](rvl: Reuse[ViewListF[F, A]])
+extension [F[_], A](rvl: Reuse[ViewListF[F, A]])
   def get: List[A] = rvl.value.get
 
   @targetName("reuseViewListModCB")

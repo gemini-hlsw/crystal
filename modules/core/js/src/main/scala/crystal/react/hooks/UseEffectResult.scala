@@ -22,7 +22,7 @@ class UseEffectResult[A](
   val refreshNoKeep: Reusable[DefaultS[Unit]] = refreshInternal.map(_(false))
 
 object UseEffectResult:
-  private case class Input[D, A, R: Reusability](
+  private case class Input[D, A, R](
     effect: WithPotDeps[D, DefaultA[A], R],
     keep:   Boolean
   ):
@@ -159,7 +159,7 @@ object UseEffectResult:
        * `Pending` while executing the new effect or while waiting for them to become `Ready` again.
        * For multiple dependencies, use `(par1, par2, ...).tupled`.
        */
-      final def useEffectResultWhenDepsReady[D: Reusability, A](
+      final def useEffectResultWhenDepsReady[D, A](
         deps: => Pot[D]
       )(effect: D => DefaultA[A])(using
         step: Step
@@ -183,7 +183,7 @@ object UseEffectResult:
        * value while executing the new effect or while waiting for them to become `Ready` again. For
        * multiple dependencies, use `(par1, par2, ...).tupled`.
        */
-      final def useEffectKeepResultWhenDepsReady[D: Reusability, A](
+      final def useEffectKeepResultWhenDepsReady[D, A](
         deps: => Pot[D]
       )(effect: D => DefaultA[A])(using
         step: Step

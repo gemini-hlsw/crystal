@@ -7,7 +7,6 @@ import cats.arrow.FunctionK
 import cats.effect.IO
 import cats.effect.testkit.TestControl
 import fs2.Stream
-import munit.CatsEffectSuite
 
 import scala.concurrent.duration.*
 

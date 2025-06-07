@@ -11,7 +11,6 @@ import crystal.react.syntax.pot.given
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
-import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 import scala.reflect.ClassTag
 
@@ -174,7 +173,7 @@ object UseStreamResource:
    * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
    * received.
    */
-  final def useStreamResourceViewWithReuse[D: Reusability, A: ClassTag: Reusability](
+  final def useStreamResourceViewWithReuse[D: Reusability, A: Reusability](
     deps:           => D
   )(
     streamResource: D => StreamResource[A]
@@ -195,7 +194,7 @@ object UseStreamResource:
    * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
    * received.
    */
-  final inline def useStreamResourceViewWithReuseOnMount[A: ClassTag: Reusability](
+  final inline def useStreamResourceViewWithReuseOnMount[A: Reusability](
     streamResource: StreamResource[A]
   ): HookResult[Reuse[PotOption[View[A]]]] =
     useStreamResourceViewWithReuse(())(_ => streamResource)
@@ -210,7 +209,7 @@ object UseStreamResource:
    * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
    * received.
    */
-  final inline def useStreamViewWithReuse[D: Reusability, A: ClassTag: Reusability](
+  final inline def useStreamViewWithReuse[D: Reusability, A: Reusability](
     deps:   => D
   )(
     stream: D => fs2.Stream[DefaultA, A]
@@ -226,7 +225,7 @@ object UseStreamResource:
    * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
    * received.
    */
-  final inline def useStreamViewWithReuseOnMount[A: ClassTag: Reusability](
+  final inline def useStreamViewWithReuseOnMount[A: Reusability](
     stream: fs2.Stream[DefaultA, A]
   ): HookResult[Reuse[PotOption[View[A]]]] =
     useStreamResourceViewWithReuseOnMount(Resource.pure(stream))
@@ -242,7 +241,7 @@ object UseStreamResource:
     : CustomHook[WithDeps[D, StreamResource[A]], PotOption[View[A]]] =
     CustomHook.fromHookResult(input => useStreamResourceView(input.deps)(input.fromDeps))
 
-  private def hookReuseView[D: Reusability, A: ClassTag: Reusability]
+  private def hookReuseView[D: Reusability, A: Reusability]
     : CustomHook[WithDeps[D, StreamResource[A]], Reuse[PotOption[View[A]]]] =
     CustomHook.fromHookResult(input => useStreamResourceViewWithReuse(input.deps)(input.fromDeps))
 
@@ -290,7 +289,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamViewWithReuse[D: Reusability, A: ClassTag: Reusability](
+      final def useStreamViewWithReuse[D: Reusability, A: Reusability](
         deps:   => D
       )(
         stream: D => fs2.Stream[DefaultA, A]
@@ -341,7 +340,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamViewWithReuseOnMount[A: ClassTag: Reusability](
+      final def useStreamViewWithReuseOnMount[A: Reusability](
         stream: fs2.Stream[DefaultA, A]
       )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseOnMount(Resource.pure(stream))
@@ -389,7 +388,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
+      final def useStreamViewWithReuseBy[D: Reusability, A: Reusability](
         deps:   Ctx => D
       )(
         stream: Ctx => D => fs2.Stream[DefaultA, A]
@@ -438,7 +437,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamViewWithReuseOnMountBy[A: ClassTag: Reusability](
+      final def useStreamViewWithReuseOnMountBy[A: Reusability](
         stream: Ctx => fs2.Stream[DefaultA, A]
       )(using
         step:   Step
@@ -494,7 +493,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamResourceViewWithReuse[D: Reusability, A: ClassTag: Reusability](
+      final def useStreamResourceViewWithReuse[D: Reusability, A: Reusability](
         deps:           => D
       )(
         streamResource: D => StreamResource[A]
@@ -546,7 +545,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamResourceViewWithReuseOnMount[A: ClassTag: Reusability](
+      final def useStreamResourceViewWithReuseOnMount[A: Reusability](
         streamResource: StreamResource[A]
       )(using step: Step): step.Next[Reuse[PotOption[View[A]]]] =
         useStreamResourceViewWithReuseOnMountBy(_ => streamResource)
@@ -602,7 +601,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamResourceViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
+      final def useStreamResourceViewWithReuseBy[D: Reusability, A: Reusability](
         deps:           Ctx => D
       )(
         streamResource: Ctx => D => StreamResource[A]
@@ -655,7 +654,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamResourceViewWithReuseOnMountBy[A: ClassTag: Reusability](
+      final def useStreamResourceViewWithReuseOnMountBy[A: Reusability](
         streamResource: Ctx => StreamResource[A]
       )(using
         step:           Step
@@ -715,7 +714,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
+      final def useStreamViewWithReuseBy[D: Reusability, A: Reusability](
         deps:   CtxFn[D]
       )(
         stream: CtxFn[D => fs2.Stream[DefaultA, A]]
@@ -770,7 +769,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamViewWithReuseOnMountBy[A: ClassTag: Reusability](
+      final def useStreamViewWithReuseOnMountBy[A: Reusability](
         stream: CtxFn[fs2.Stream[DefaultA, A]]
       )(using
         step:   Step
@@ -828,7 +827,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamResourceViewWithReuseBy[D: Reusability, A: ClassTag: Reusability](
+      final def useStreamResourceViewWithReuseBy[D: Reusability, A: Reusability](
         deps:           CtxFn[D]
       )(
         streamResource: CtxFn[D => StreamResource[A]]
@@ -878,7 +877,7 @@ object UseStreamResource:
        * stream is mounted but no value received yet, and `ReadySome(a)` when `a` is the last value
        * received.
        */
-      final def useStreamResourceViewWithReuseOnMountBy[A: ClassTag: Reusability](
+      final def useStreamResourceViewWithReuseOnMountBy[A: Reusability](
         streamResource: CtxFn[StreamResource[A]]
       )(using
         step:           Step

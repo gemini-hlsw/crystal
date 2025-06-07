@@ -7,7 +7,6 @@ import cats.arrow.FunctionK
 import cats.~>
 import crystal.*
 import crystal.react.reuse.Reuse
-import crystal.react.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
