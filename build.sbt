@@ -20,8 +20,10 @@ lazy val root = tlCrossRootProject.aggregate(core, testkit, tests)
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/core"))
   .settings(
-    name := "crystal",
+    name                                    := "crystal",
     scalacOptions += "-language:implicitConversions",
+    // temporary? fix for upgrading to Scala 3.7: https://github.com/scala/scala3/issues/22890
+    dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
     libraryDependencies ++=
       Settings.Libraries.CatsJS.value ++
         Settings.Libraries.CatsEffectJS.value ++
@@ -38,7 +40,9 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
 lazy val testkit = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/testkit"))
   .settings(
-    name := "crystal-testkit",
+    name                                    := "crystal-testkit",
+    // temporary? fix for upgrading to Scala 3.7: https://github.com/scala/scala3/issues/22890
+    dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
     libraryDependencies ++=
       Settings.Libraries.ScalaCheck.value
   )
