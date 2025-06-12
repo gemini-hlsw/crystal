@@ -10,7 +10,7 @@ object Settings {
     val discipline      = "1.7.0"
     val disciplineMUnit = "2.0.0"
     val fs2             = "3.12.0"
-    val log4Cats        = "2.7.0"
+    val log4Cats        = "2.7.1"
     val monocle         = "3.3.0"
     val mUnit           = "1.1.1"
     val mUnitScalacheck = "1.1.0"
