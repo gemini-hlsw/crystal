@@ -25,9 +25,9 @@ class Throttler[F[_]: Temporal] private (
     (queued.set(none) >> isRunning.getAndSet(true)).uncancelable
       .flatMap:
         case false =>
-          Temporal[F].sleep(spacedBy).both(f) >> // Completes when both complete.
+          (Temporal[F].sleep(spacedBy).both(f) >> // Completes when both complete.
             (isRunning.set(false) >> queued.getAndSet(none)).uncancelable
-              .flatMap(_.map(submit).orEmpty)
+              .flatMap(_.map(submit).orEmpty)).start.void // Execute everything in background.
         case true  =>
           queued.set(f.some)
 
