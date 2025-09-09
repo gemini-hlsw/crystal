@@ -15,7 +15,7 @@ object Settings {
     val mUnit           = "1.1.1"
     val mUnitScalacheck = "1.1.0"
     val mUnitCatsEffect = "2.1.0"
-    val scalaCheck      = "1.19.0"
+    val scalaCheck      = "1.20.1"
     val scalajsReact    = "3.0.0-beta12"
   }
 
