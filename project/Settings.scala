@@ -12,7 +12,7 @@ object Settings {
     val fs2             = "3.12.2"
     val log4Cats        = "2.7.1"
     val monocle         = "3.3.0"
-    val mUnit           = "1.1.1"
+    val mUnit           = "1.1.2"
     val mUnitScalacheck = "1.1.0"
     val mUnitCatsEffect = "2.1.0"
     val scalaCheck      = "1.19.0"
