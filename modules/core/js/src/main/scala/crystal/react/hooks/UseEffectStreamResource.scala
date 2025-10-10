@@ -30,9 +30,9 @@ object UseEffectStreamResource:
                         .allocated
         supervisor <- (latch.get >> close).start // Close the resource if the stream terminates.
       yield
-      // Cleanup closes resource and cancels the supervisor, unless resource is already closed.
-      (supervisor.cancel >> close).when:
-        latch.tryGet.map(_.isEmpty)
+        // Cleanup closes resource and cancels the supervisor, unless resource is already closed.
+        (supervisor.cancel >> close).when:
+          latch.tryGet.map(_.isEmpty)
 
   /**
    * Open a `Resource[Async, fs.Stream[Async, Unit]]` on each render, and drain the stream by
