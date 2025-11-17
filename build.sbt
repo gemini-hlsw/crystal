@@ -32,9 +32,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
         Settings.Libraries.Log4Cats.value
   )
   .jsSettings(
-    libraryDependencies ++= {
+    libraryDependencies ++=
       Settings.Libraries.ScalaJSReact.value
-    }
   )
 
 lazy val testkit = crossProject(JVMPlatform, JSPlatform)
@@ -65,9 +64,8 @@ lazy val tests = crossProject(JVMPlatform, JSPlatform)
         Settings.Libraries.MonocleLaw.value).map(_ % Test)
   )
   .jsSettings(
-    libraryDependencies ++= {
-      Settings.Libraries.ScalaJSReactTest.value.map(_ % Test)
-    },
+    libraryDependencies ++=
+      Settings.Libraries.ScalaJSReactTest.value.map(_ % Test),
     jsEnv := new lucuma.LucumaJSDOMNodeJSEnv(),
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )

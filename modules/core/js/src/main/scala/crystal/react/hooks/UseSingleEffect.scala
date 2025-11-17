@@ -38,9 +38,9 @@ class UseSingleEffect[F[_]](
       latch
         .modify: oldLatch =>
           (
-            newLatch.some,                        // Replace current latch with a new one.
+            newLatch.some, // Replace current latch with a new one.
             oldLatch.map(endOldEffect).orEmpty >> // Cancel and cleanup old effect, if any.
-              startNewEffect(effect, newLatch)    // Start new effect.
+              startNewEffect(effect, newLatch) // Start new effect.
           )
         .flatten
         .uncancelable // We can't cancel before new latch is set, otherwise we deadlock.

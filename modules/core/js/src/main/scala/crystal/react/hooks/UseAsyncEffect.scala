@@ -85,8 +85,9 @@ object UseAsyncEffect {
        * Run async effect and cancel previously running instances, thus avoiding race conditions.
        * Allows returning a cleanup effect.
        */
-      final def useAsyncEffectWithDepsBy[G, D: Reusability](deps: Ctx => D)(effect: Ctx => D => G)(
-        using
+      final def useAsyncEffectWithDepsBy[G, D: Reusability](
+        deps: Ctx => D
+      )(effect: Ctx => D => G)(using
         step: Step,
         G:    EffectWithCleanup[G, DefaultA]
       ): step.Self =
