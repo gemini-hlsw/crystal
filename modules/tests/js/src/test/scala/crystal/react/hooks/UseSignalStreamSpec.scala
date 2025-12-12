@@ -7,14 +7,14 @@ import cats.effect.IO
 import cats.effect.kernel.Deferred
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
-import japgolly.scalajs.react.test.ReactTestUtils2
-import japgolly.scalajs.react.test.Simulate
+import japgolly.scalajs.react.test.ReactTestUtils
+import japgolly.scalajs.react.testing_library.dom.Simulate
 import japgolly.scalajs.react.vdom.html_<^.*
 import munit.CatsEffectSuite
 import org.scalajs.dom
 
 class UseSignalStreamSpec extends CatsEffectSuite:
-  import ReactTestUtils2.*
+  import ReactTestUtils.*
 
   test("useSignalStream - build signal stream"):
     // Completes when the stream terminates
