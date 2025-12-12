@@ -12,7 +12,7 @@ import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 class UseEffectResult[A](
-  val value:       Pot[A],
+  val value:       Reusable[Pot[A]],
   val isRunning:   Boolean,
   refreshInternal: Reusable[Boolean => DefaultS[Unit]],
   defaultKeep:     Boolean
@@ -47,7 +47,7 @@ object UseEffectResult:
     deps: Pot[D]
   )(effect: D => DefaultA[A], keep: Boolean, reuseBy: Option[R]): HookResult[UseEffectResult[A]] =
     for
-      state     <- useState(Pot.pending[A])
+      state     <- useSerialState(Pot.pending[A])
       isRunning <- useState(false)
       effectOpt <- useMemo(reuseBy): _ => // Memo Option[effect]
                      deps.toOption.map(effect)

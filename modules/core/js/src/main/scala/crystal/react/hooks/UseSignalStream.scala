@@ -20,9 +20,9 @@ private final def useSignalStreamBuilder[A](
     queue  <- useEffectResultOnMount:
                 Queue.unbounded[DefaultA, Option[A]].flatTap(_.offer(value.some))
               .map(_.value)
-    _      <- useEffect(queue.toOption.map(_.offer(value.some)).orEmpty)
-    stream <- useMemo(queue.void): _ =>
-                queue.map:
+    _      <- useEffect(queue.value.toOption.map(_.offer(value.some)).orEmpty)
+    stream <- useMemo(queue.value.void): _ =>
+                queue.value.map:
                   fs2.Stream.fromQueueNoneTerminated(_).through(coalesce)
     _      <- useEffectWhenDepsReady(queue): q => // terminate stream on unmount
                 CallbackTo(q.offer(none))

@@ -46,12 +46,12 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,true)")
+             d.innerHTML.assert("(Reusable(Pending),true)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet())) // force rerender
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
              yield ()
     yield ()
 
@@ -72,18 +72,18 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,true)")
+             d.innerHTML.assert("(Reusable(Pending),true)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // refresh
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(2),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")
                _ <- act_(Simulate.doubleClick(buttonRef.unsafeGet())) // refreshKeep
-               _  = d.innerHTML.assert("(Ready(2),true)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(3),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(3)),false)")
              yield ()
     yield ()
 
@@ -104,20 +104,20 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,true)")
+             d.innerHTML.assert("(Reusable(Pending),true)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // force rerender, should reuse
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // force rerender
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(2),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")
                _ <- act_(Simulate.doubleClick(buttonRef.unsafeGet())) // refresh
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(3),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(3)),false)")
              yield ()
     yield ()
 
@@ -138,22 +138,22 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,false)")
+             d.innerHTML.assert("(Reusable(Pending),false)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Pending,false)")             // Still pending
+               _  = d.innerHTML.assert("(Reusable(Pending),false)")   // Still pending
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Change to ready
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Increment, don't change value
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.doubleClick(buttonRef.unsafeGet())) // Change to error
-               _  = d.innerHTML.assert("(Ready(1),false)")            // No change in value
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")  // No change in value
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Change to ready again
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(2),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")
              yield ()
     yield ()
 
@@ -174,26 +174,26 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,false)")
+             d.innerHTML.assert("(Reusable(Pending),false)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Pending,false)")             // Still pending
+               _  = d.innerHTML.assert("(Reusable(Pending),false)")   // Still pending
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Change to ready
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Increment, don't change value
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Increment again, should change
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(2),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")
                _ <- act_(Simulate.doubleClick(buttonRef.unsafeGet())) // Change to error
-               _  = d.innerHTML.assert("(Ready(2),false)")            // No change in value
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")  // No change in value
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Change to ready again
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(3),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(3)),false)")
              yield ()
     yield ()
 
@@ -210,12 +210,12 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,true)")
+             d.innerHTML.assert("(Reusable(Pending),true)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet())) // force rerender
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
              yield ()
     yield ()
 
@@ -236,18 +236,18 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,true)")
+             d.innerHTML.assert("(Reusable(Pending),true)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // refresh
-               _  = d.innerHTML.assert("(Ready(1),true)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(2),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")
                _ <- act_(Simulate.doubleClick(buttonRef.unsafeGet())) // refreshNoKeep
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(3),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(3)),false)")
              yield ()
     yield ()
 
@@ -268,20 +268,20 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,true)")
+             d.innerHTML.assert("(Reusable(Pending),true)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // force rerender, should reuse
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // force rerender
-               _  = d.innerHTML.assert("(Ready(1),true)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(2),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")
                _ <- act_(Simulate.doubleClick(buttonRef.unsafeGet())) // refresh
-               _  = d.innerHTML.assert("(Ready(2),true)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(3),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(3)),false)")
              yield ()
     yield ()
 
@@ -302,22 +302,22 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,false)")
+             d.innerHTML.assert("(Reusable(Pending),false)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Pending,false)")             // Still pending
+               _  = d.innerHTML.assert("(Reusable(Pending),false)")   // Still pending
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Change to ready
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Increment, don't change value
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.doubleClick(buttonRef.unsafeGet())) // Change to error
-               _  = d.innerHTML.assert("(Ready(1),false)")            // No change in value
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")  // No change in value
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Change to ready again
-               _  = d.innerHTML.assert("(Ready(1),true)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(2),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")
              yield ()
     yield ()
 
@@ -338,25 +338,25 @@ class UseEffectResultSpec extends CatsEffectSuite:
     for
       q <- buildQueue
       _ <- withRendered(comp(q)): d =>
-             d.innerHTML.assert("(Pending,false)")
+             d.innerHTML.assert("(Reusable(Pending),false)")
              for
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Pending,false)")             // Still pending
+               _  = d.innerHTML.assert("(Reusable(Pending),false)")   // Still pending
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Change to ready
-               _  = d.innerHTML.assert("(Pending,true)")
+               _  = d.innerHTML.assert("(Reusable(Pending),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Increment, don't change value
-               _  = d.innerHTML.assert("(Ready(1),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),false)")
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Increment again, should change
-               _  = d.innerHTML.assert("(Ready(1),true)")
+               _  = d.innerHTML.assert("(Reusable(Ready(1)),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(2),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")
                _ <- act_(Simulate.doubleClick(buttonRef.unsafeGet())) // Change to error
-               _  = d.innerHTML.assert("(Ready(2),false)")            // No change in value
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),false)")  // No change in value
                _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // Change to ready again
-               _  = d.innerHTML.assert("(Ready(2),true)")
+               _  = d.innerHTML.assert("(Reusable(Ready(2)),true)")
                _ <- act(IO.sleep(50.millis))
-               _  = d.innerHTML.assert("(Ready(3),false)")
+               _  = d.innerHTML.assert("(Reusable(Ready(3)),false)")
              yield ()
     yield ()

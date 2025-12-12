@@ -19,7 +19,7 @@ object UseThrottlingStateView:
     for
       view      <- useStateView(input._1)
       throttler <- useEffectResultOnMount(ViewThrottler[A](input._2)).map(_.value)
-    yield throttler.map(_.throttle(view))
+    yield throttler.value.map(_.throttle(view))
 
   // *** The rest is to support builder-style hooks *** //
 
