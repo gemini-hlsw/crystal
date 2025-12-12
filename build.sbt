@@ -48,27 +48,31 @@ lazy val testkit = crossProject(JVMPlatform, JSPlatform)
   )
   .dependsOn(core)
 
-lazy val tests = crossProject(JVMPlatform, JSPlatform)
-  .in(file("modules/tests"))
-  .enablePlugins(NoPublishPlugin)
-  .settings(
-    name                                    := "crystal-tests",
-    // temporary? fix for upgrading to Scala 3.7: https://github.com/scala/scala3/issues/22890
-    dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
-    libraryDependencies ++=
-      (Settings.Libraries.MUnit.value ++
-        Settings.Libraries.Discipline.value ++
-        Settings.Libraries.DisciplineMUnit.value ++
-        Settings.Libraries.CatsLaws.value ++
-        Settings.Libraries.CatsEffectTestkit.value ++
-        Settings.Libraries.MonocleMacro.value ++
-        Settings.Libraries.MonocleLaw.value).map(_ % Test)
-  )
-  .jsSettings(
-    libraryDependencies ++= {
-      Settings.Libraries.ScalaJSReactTest.value.map(_ % Test)
-    },
-    jsEnv := new lucuma.LucumaJSDOMNodeJSEnv(),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
-  )
-  .dependsOn(testkit)
+lazy val tests =
+  crossProject(JVMPlatform, JSPlatform)
+    .in(file("modules/tests"))
+    .enablePlugins(NoPublishPlugin)
+    .jsConfigure(_.enablePlugins(JSDependenciesPlugin))
+    .settings(
+      name                                    := "crystal-tests",
+      // temporary? fix for upgrading to Scala 3.7: https://github.com/scala/scala3/issues/22890
+      dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
+      libraryDependencies ++=
+        (Settings.Libraries.MUnit.value ++
+          Settings.Libraries.Discipline.value ++
+          Settings.Libraries.DisciplineMUnit.value ++
+          Settings.Libraries.CatsLaws.value ++
+          Settings.Libraries.CatsEffectTestkit.value ++
+          Settings.Libraries.MonocleMacro.value ++
+          Settings.Libraries.MonocleLaw.value).map(_ % Test)
+    )
+    .jsSettings(
+      libraryDependencies ++= {
+        Settings.Libraries.ScalaJSReactTest.value.map(_ % Test)
+      },
+      jsDependencies += ("org.webjars.npm" % "testing-library__dom" % Settings.LibraryVersions.testingLibraryDom / "dom.umd.js")
+        .commonJSName("TestingLibraryDom") % Test,
+      jsEnv                               := new lucuma.LucumaJSDOMNodeJSEnv(),
+      scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+    )
+    .dependsOn(testkit)
