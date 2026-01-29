@@ -102,6 +102,13 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (A, A) => F[Unit]) =
   def zoom[B](traversal: Traversal[A, B]): ViewListF[F, B] =
     zoomList(traversal.getAll)(traversal.modify)
 
+  /**
+   * Creates a new ViewF that executes a callback effect after any `mod`/`set` operation. The
+   * callback also receives the previous value, allowing for more complex side-effect logic.
+   *
+   * @param f
+   *   (`oldValue`, `newValue`) => `effect`
+   */
   def withOnMod(f: (A, A) => F[Unit]): ViewF[F, A] =
     new ViewF[F, A](
       get,
@@ -109,8 +116,40 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (A, A) => F[Unit]) =
         modCB(modF, (previous, current) => f(previous, current) >> cb(previous, current))
     )
 
+  /**
+   * Creates a new ViewF that executes a callback effect after any `mod`/`set` operation.
+   *
+   * @param f
+   *   `newValue` => `effect`
+   */
   def withOnMod(f: A => F[Unit]): ViewF[F, A] =
     withOnMod((_, current) => f(current))
+
+  /**
+   * Creates a new ViewF with a function that is applied to the result of any `mod`/`set` operation.
+   * The function also receives the previous value, allowing for more complex patching logic.
+   *
+   * This is useful for example to enforce model invariants.
+   *
+   * @param modPatch
+   *   (`oldValue`, `newValue`) => `patchedValue`
+   */
+  def withModPatch(modPatch: (A, A) => A): ViewF[F, A] =
+    new ViewF[F, A](
+      get,
+      (f: A => A, cb: (A, A) => F[Unit]) => modCB(oldA => modPatch(oldA, f(oldA)), cb)
+    )
+
+  /**
+   * Creates a new ViewF with a function that is applied to the result of any `mod`/`set` operation.
+   *
+   * This is useful for example to enforce model invariants.
+   *
+   * @param modPatch
+   *   `newValue` => `patchedValue`
+   */
+  def withModPatch(modPatch: A => A): ViewF[F, A] =
+    withModPatch((_, newA) => modPatch(newA))
 
   def widen[B >: A]: ViewF[F, B] = self.asInstanceOf[ViewF[F, B]]
 

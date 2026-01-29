@@ -52,6 +52,15 @@ class ViewFSpec extends munit.CatsEffectSuite {
     }
   }
 
+  test("ViewF[Int].withModPatch(Int => Int).mod") {
+    for {
+      ref <- Ref[IO].of(value)
+      view = ViewF(value, refModCB(ref)).withModPatch(newA => newA + 10)
+      _   <- view.mod(_ + 1)
+      get <- ref.get
+    } yield assert(get === 11)
+  }
+
   val wrappedValue = Wrap(0)
   val lens         = Wrap.a[Int]
 
