@@ -12,11 +12,13 @@ import japgolly.scalajs.react.util.DefaultEffects.Async as DefaultA
 import japgolly.scalajs.react.util.DefaultEffects.Sync as DefaultS
 
 class UseEffectResult[A](
-  val value:       Reusable[Pot[A]],
+  val state:       Reusable[Pot[View[A]]],
   val isRunning:   Boolean,
   refreshInternal: Reusable[Boolean => DefaultS[Unit]],
   defaultKeep:     Boolean
 ):
+  lazy val value: Reusable[Pot[A]] = state.map(_.map(_.get))
+
   val refresh: Reusable[DefaultS[Unit]]       = refreshInternal.map(_(defaultKeep))
   val refreshKeep: Reusable[DefaultS[Unit]]   = refreshInternal.map(_(true))
   val refreshNoKeep: Reusable[DefaultS[Unit]] = refreshInternal.map(_(false))
@@ -47,13 +49,13 @@ object UseEffectResult:
     deps: Pot[D]
   )(effect: D => DefaultA[A], keep: Boolean, reuseBy: Option[R]): HookResult[UseEffectResult[A]] =
     for
-      state     <- useSerialState(Pot.pending[A])
+      state     <- useSerialStateView(Pot.pending[A])
       isRunning <- useState(false)
       effectOpt <- useMemo(reuseBy): _ => // Memo Option[effect]
                      deps.toOption.map(effect)
-      refresh    = effectOpt.map(_.foldMap(doRefresh(_, state.setState, isRunning.setState)))
+      refresh    = effectOpt.map(_.foldMap(doRefresh(_, state.set, isRunning.setState)))
       _         <- useEffectWithDeps(refresh)(_(keep))
-    yield UseEffectResult(state.value, isRunning.value, refresh, keep)
+    yield UseEffectResult(state.map(_.toPotView), isRunning.value, refresh, keep)
 
   /**
    * Runs an async effect and stores the result in a state, which is provided as a `Pot[A]`. When
