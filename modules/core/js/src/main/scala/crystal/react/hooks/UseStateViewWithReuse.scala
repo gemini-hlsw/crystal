@@ -4,7 +4,6 @@
 package crystal.react.hooks
 
 import crystal.react.*
-import crystal.react.ReuseView
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 
@@ -14,12 +13,12 @@ object UseStateViewWithReuse:
   /** Creates component state as a View */
   final def useStateViewWithReuse[A: ClassTag: Reusability](
     initialValue: => A
-  ): HookResult[ReuseView[A]] =
-    useStateView(initialValue).map(_.reuseByValue)
+  ): HookResult[Reusable[View[A]]] =
+    useStateView(initialValue).map(_.reusableByValue)
 
   // *** The rest is to support builder-style hooks *** //
 
-  private def hook[A: ClassTag: Reusability]: CustomHook[A, ReuseView[A]] =
+  private def hook[A: ClassTag: Reusability]: CustomHook[A, Reusable[View[A]]] =
     CustomHook.fromHookResult(useStateViewWithReuse(_))
 
   object HooksApiExt {
@@ -28,13 +27,13 @@ object UseStateViewWithReuse:
       /** Creates component state as a View */
       final def useStateViewWithReuse[A: ClassTag: Reusability](initialValue: => A)(using
         step: Step
-      ): step.Next[ReuseView[A]] =
+      ): step.Next[Reusable[View[A]]] =
         useStateViewWithReuseBy(_ => initialValue)
 
       /** Creates component state as a View */
       final def useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: Ctx => A)(using
         step: Step
-      ): step.Next[ReuseView[A]] =
+      ): step.Next[Reusable[View[A]]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
           hookInstance(initialValue(ctx))
@@ -48,7 +47,7 @@ object UseStateViewWithReuse:
       /** Creates component state as a View */
       def useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: CtxFn[A])(using
         step: Step
-      ): step.Next[ReuseView[A]] =
+      ): step.Next[Reusable[View[A]]] =
         useStateViewWithReuseBy(step.squash(initialValue)(_))
     }
   }

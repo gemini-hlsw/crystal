@@ -3,20 +3,20 @@
 
 package crystal.react.hooks
 
-import crystal.react.ReuseView
-import crystal.react.reuse.*
+import crystal.react.View
+import crystal.react.syntax.view.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.CustomHook
 
 object UseSerialStateView:
   /** Creates component state as a View that is reused while it's not updated. */
-  final def useSerialStateView[A](initialValue: => A): HookResult[ReuseView[A]] =
-    useStateView(SerialState.initial(initialValue)).map: serialStateView =>
-      Reuse.by(serialStateView.get.serial)(serialStateView.zoom(_.value)(mod => _.update(mod)))
+  final def useSerialStateView[A](initialValue: => A): HookResult[Reusable[View[A]]] =
+    useStateView(SerialState.initial(initialValue)).map:
+      _.reusableBy(_.serial).map(_.zoom(_.value)(mod => _.update(mod)))
 
   // *** The rest is to support builder-style hooks *** //
 
-  private def hook[A]: CustomHook[A, ReuseView[A]] =
+  private def hook[A]: CustomHook[A, Reusable[View[A]]] =
     CustomHook.fromHookResult(useSerialStateView(_))
 
   object HooksApiExt {
@@ -25,13 +25,13 @@ object UseSerialStateView:
       /** Creates component state as a View that is reused while it's not updated. */
       final def useSerialStateView[A](initialValue: => A)(using
         step: Step
-      ): step.Next[ReuseView[A]] =
+      ): step.Next[Reusable[View[A]]] =
         useSerialStateViewBy(_ => initialValue)
 
       /** Creates component state as a View that is reused while it's not updated. */
       final def useSerialStateViewBy[A](initialValue: Ctx => A)(using
         step: Step
-      ): step.Next[ReuseView[A]] =
+      ): step.Next[Reusable[View[A]]] =
         api.customBy { ctx =>
           val hookInstance = hook[A]
           hookInstance(initialValue(ctx))
@@ -45,7 +45,7 @@ object UseSerialStateView:
       /** Creates component state as a View that is reused while it's not updated. */
       def useSerialStateViewBy[A](initialValue: CtxFn[A])(using
         step: Step
-      ): step.Next[ReuseView[A]] =
+      ): step.Next[Reusable[View[A]]] =
         useSerialStateViewBy(step.squash(initialValue)(_))
     }
   }
