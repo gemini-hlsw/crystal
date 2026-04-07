@@ -22,8 +22,9 @@ object UseResource:
       state <- useState(Pot.pending[A])
       _     <- useAsyncEffectWithDeps(deps): deps =>
                  (for
-                   (value, close) <- resource(deps).allocated
-                   _              <- state.setStateAsync(value.ready)
+                   t             <- resource(deps).allocated
+                   (value, close) = t
+                   _             <- state.setStateAsync(value.ready)
                  yield close).handleErrorWith: t =>
                    state.setStateAsync(Pot.error(t)).as(DefaultA.delay(()))
     yield state.value

@@ -24,10 +24,11 @@ object UseEffectStreamResource:
     useAsyncEffectWithDeps(deps): depsValue =>
       for
         latch      <- Deferred[DefaultA, Unit]   // Latch for stream termination.
-        (_, close) <- effectStreamResource(depsValue)
+        close      <- effectStreamResource(depsValue)
                         .flatMap: stream =>
                           (stream.compile.drain >> latch.complete(())).background.void
                         .allocated
+                        .map(_._2)
         supervisor <- (latch.get >> close).start // Close the resource if the stream terminates.
       yield
         // Cleanup closes resource and cancels the supervisor, unless resource is already closed.
