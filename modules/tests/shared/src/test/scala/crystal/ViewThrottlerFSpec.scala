@@ -34,13 +34,14 @@ class ViewThrottlerFSpec extends munit.CatsEffectSuite:
     TestControl
       .executeEmbed:
         for
-          (_, throttledView, getAccum) <- buildViews(10.millis)
-          _                            <-
+          t                           <- buildViews(10.millis)
+          (_, throttledView, getAccum) = t
+          _                           <-
             server(plus(1) -> 1.millis, plus(1) -> 1.millis, plus(1) -> 1.millis)
               .evalMap(throttledView.mod)
               .compile
               .drain
-          accum                        <- getAccum
+          accum                       <- getAccum
         yield accum.toList
       .assertEquals(List(0 -> 0.millis, 1 -> 1.millis, 2 -> 2.millis, 3 -> 3.millis))
 
@@ -48,8 +49,9 @@ class ViewThrottlerFSpec extends munit.CatsEffectSuite:
     TestControl
       .executeEmbed:
         for
-          (throttlerView, throttledView, getAccum) <- buildViews(100.millis)
-          _                                        <-
+          t                                       <- buildViews(100.millis)
+          (throttlerView, throttledView, getAccum) = t
+          _                                       <-
             server(plus(1) -> 10.millis, plus(1) -> 20.millis, plus(1) -> 200.millis)
               .evalMap(throttledView.mod)
               .compile
@@ -57,7 +59,7 @@ class ViewThrottlerFSpec extends munit.CatsEffectSuite:
               .background
               .use: result =>
                 IO.sleep(1.millis) >> throttlerView.mod(plus(1)) >> result.flatMap(_.embedError)
-          accum                                    <- getAccum
+          accum                                   <- getAccum
         yield accum.toList
       .assertEquals(List(0 -> 0.millis, 1 -> 1.millis, 3 -> 101.millis, 4 -> 230.millis))
   }
@@ -66,8 +68,9 @@ class ViewThrottlerFSpec extends munit.CatsEffectSuite:
     TestControl
       .executeEmbed:
         for
-          (throttlerView, throttledView, getAccum) <- buildViews(100.millis)
-          _                                        <-
+          t                                       <- buildViews(100.millis)
+          (throttlerView, throttledView, getAccum) = t
+          _                                       <-
             server(plus(1) -> 20.millis)
               .evalMap(throttledView.mod)
               .compile
@@ -77,8 +80,8 @@ class ViewThrottlerFSpec extends munit.CatsEffectSuite:
                 IO.sleep(10.millis) >> throttlerView.mod(plus(1)) >>
                   IO.sleep(40.millis) >> throttlerView.mod(plus(1)) >>
                   result.flatMap(_.embedError)
-          _                                        <- IO.sleep(101.millis) // Wait for background threads
-          accum                                    <- getAccum
+          _                                       <- IO.sleep(101.millis) // Wait for background threads
+          accum                                   <- getAccum
         yield accum.toList
       .assertEquals(List(0 -> 0.millis, 1 -> 10.millis, 2 -> 50.millis, 3 -> 150.millis))
   }

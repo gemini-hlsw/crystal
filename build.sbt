@@ -1,15 +1,15 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / crossScalaVersions := List("3.7.4")
+ThisBuild / crossScalaVersions := List("3.3.7")
 ThisBuild / tlBaseVersion      := "0.51"
 
 ThisBuild / tlCiReleaseBranches := Seq("master")
 
 ThisBuild / githubWorkflowBuildPreamble ++= Seq(
   WorkflowStep.Use(
-    UseRef.Public("actions", "setup-node", "v4"),
+    UseRef.Public("actions", "setup-node", "v6"),
     name = Some("Setup Node"),
-    params = Map("node-version" -> "22", "cache" -> "npm"),
+    params = Map("node-version" -> "24", "cache" -> "npm"),
     cond = Some("matrix.project == 'rootJS'")
   ),
   WorkflowStep.Run(List("npm ci"))
@@ -20,10 +20,8 @@ lazy val root = tlCrossRootProject.aggregate(core, testkit, tests)
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/core"))
   .settings(
-    name                                    := "crystal",
+    name := "crystal",
     scalacOptions += "-language:implicitConversions",
-    // temporary? fix for upgrading to Scala 3.7: https://github.com/scala/scala3/issues/22890
-    dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
     libraryDependencies ++=
       Settings.Libraries.CatsJS.value ++
         Settings.Libraries.CatsEffectJS.value ++
@@ -39,9 +37,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
 lazy val testkit = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/testkit"))
   .settings(
-    name                                    := "crystal-testkit",
-    // temporary? fix for upgrading to Scala 3.7: https://github.com/scala/scala3/issues/22890
-    dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
+    name := "crystal-testkit",
     libraryDependencies ++=
       Settings.Libraries.ScalaCheck.value
   )
@@ -53,9 +49,7 @@ lazy val tests =
     .enablePlugins(NoPublishPlugin)
     .jsConfigure(_.enablePlugins(JSDependenciesPlugin))
     .settings(
-      name                                    := "crystal-tests",
-      // temporary? fix for upgrading to Scala 3.7: https://github.com/scala/scala3/issues/22890
-      dependencyOverrides += "org.scala-lang" %% "scala3-library" % scalaVersion.value,
+      name := "crystal-tests",
       libraryDependencies ++=
         (Settings.Libraries.MUnit.value ++
           Settings.Libraries.Discipline.value ++
