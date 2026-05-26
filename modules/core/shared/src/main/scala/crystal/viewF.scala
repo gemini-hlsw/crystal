@@ -44,7 +44,7 @@ class ViewF[F[_]: Monad, A](val get: A, val modCB: (A => A, (A, A) => F[Unit]) =
         val (fa, b) = f(a)
         cb(b.asRight)
         fa
-      // No need to run cb on errors, it will fail the async installation effect.
+        // No need to run cb on errors, it will fail the async installation effect.
       }.as(F.unit.some)
     }
 

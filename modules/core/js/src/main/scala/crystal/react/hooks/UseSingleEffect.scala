@@ -38,7 +38,7 @@ class UseSingleEffect[F[_]](
       latch
         .modify: oldLatch =>
           (
-            newLatch.some, // Replace current latch with a new one.
+            newLatch.some,                     // Replace current latch with a new one.
             oldLatch.map(endOldEffect).orEmpty >> // Cancel and cleanup old effect, if any.
               startNewEffect(effect, newLatch) // Start new effect.
           )
