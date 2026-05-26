@@ -1,3 +1,3 @@
-addSbtPlugin("edu.gemini"   % "sbt-lucuma-lib"     % "0.14.15")
+addSbtPlugin("edu.gemini"   % "sbt-lucuma-lib"     % "0.14.16")
 addSbtPlugin("org.scala-js" % "sbt-jsdependencies" % "1.0.2")
-libraryDependencies += "edu.gemini" %% "lucuma-jsdom" % "0.14.15"
+libraryDependencies += "edu.gemini" %% "lucuma-jsdom" % "0.14.16"
