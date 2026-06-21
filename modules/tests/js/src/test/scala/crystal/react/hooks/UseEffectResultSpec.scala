@@ -360,3 +360,29 @@ class UseEffectResultSpec extends CatsEffectSuite:
                _  = d.innerHTML.assert("(Reusable(Ready(3)),false)")
              yield ()
     yield ()
+
+  test("useEffectResultWithDeps - deps change cancels in-flight effect (no stale overwrite)"):
+    val buttonRef = Ref[dom.HTMLButtonElement]
+
+    // The first deps' effect is slow and the second deps' effect is fast, so the first one would
+    // resolve *after* the second. If the in-flight effect is not cancelled when deps change, its
+    // stale result overwrites the newer one.
+    val comp = ScalaFnComponent[Unit]: _ =>
+      for
+        s <- useState(0)
+        v <- useEffectResultWithDeps(s.value): d =>
+               if d === 0 then IO.sleep(100.millis).as(10) else IO.sleep(10.millis).as(20)
+      yield <.button((v.value, v.isRunning).toString, ^.onClick --> s.modState(_ + 1))
+        .withRef(buttonRef)
+
+    withRendered(comp()): d =>
+      d.innerHTML.assert("(Reusable(Pending),true)")
+      for
+        _ <- act(IO.sleep(20.millis))                          // slow effect (deps 0) still running
+        _ <- act_(Simulate.click(buttonRef.unsafeGet()))       // change deps -> start fast effect
+        _  = d.innerHTML.assert("(Reusable(Pending),true)")
+        _ <- act(IO.sleep(10.millis))                          // fast effect (deps 1) completes
+        _  = d.innerHTML.assert("(Reusable(Ready(20)),false)")
+        _ <- act(IO.sleep(100.millis))                         // slow effect (deps 0) would complete
+        _  = d.innerHTML.assert("(Reusable(Ready(20)),false)") // must NOT be overwritten by stale 10
+      yield ()

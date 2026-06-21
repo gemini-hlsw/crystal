@@ -258,8 +258,8 @@ Also allows returning a cleanup effect, which `useEffect` only supports when use
   useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[Unit]) (**)
   useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[IO[Unit]]) (**) // return a cleanup effect
 
-  useAsyncEffectOnMount(effect: IO[IO[Unit]])
-  useAsyncEffectOnMount(effect: IO[Unit]) // return a cleanup effect
+  useAsyncEffectOnMount(effect: IO[Unit])
+  useAsyncEffectOnMount(effect: IO[IO[Unit]]) // return a cleanup effect
   useAsyncEffectOnMountBy(effect: Ctx => IO[Unit]) (**)
   useAsyncEffectOnMountBy(effect: Ctx => IO[IO[Unit]]) (**) // return a cleanup effect
 
@@ -285,8 +285,6 @@ Also note that when dependencies change, the hook value will revert to `Pending`
 There are also `WhenDepsReady` versions, which will only execute the effect when dependencies transition to `Ready`. If they transition to `Pending` or `Error`, then the result will revert to `Pending`. However, if the `KeepResult` version is used, it will retain the last value.
 
 Furthermore, there are also `WhenDepsReadyOrChange` versions, which will only execute the effect when dependencies transition to `Ready` or change value once `Ready`. If they change or transition to `Pending` or `Error`, then the result will revert to `Pending`. However, if the `KeepResult` version is used, it will retain the last value.
-
-TODO: return type, mark "By" methods
 
 ```scala
   useEffectResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): UseEffectResult[A]

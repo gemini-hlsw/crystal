@@ -3,6 +3,7 @@
 
 package crystal.react.hooks
 
+import cats.effect.Outcome
 import cats.syntax.all.*
 import crystal.*
 import crystal.react.*
@@ -31,17 +32,26 @@ object UseEffectResult:
     val depsOpt: Option[D] = effect.deps.toOption
 
   private def doRefresh[A](
-    effect:     DefaultA[A],
-    set:        Pot[A] => DefaultS[Unit],
-    setRunning: Boolean => DefaultS[Unit]
+    effect:       DefaultA[A],
+    set:          Pot[A] => DefaultS[Unit],
+    setRunning:   Boolean => DefaultS[Unit],
+    singleEffect: UseSingleEffect[DefaultA]
   )(
-    keep:       Boolean
+    keep:         Boolean
   ): DefaultS[Unit] =
     set(Pot.pending).unless(keep).void >>
       setRunning(true) >>
-      (effect >>= (a => set(a.ready).toAsync))
-        .handleErrorWith(t => set(Pot.error(t)).toAsync)
-        .guarantee(setRunning(false).toAsync)
+      // Route through `singleEffect` so a new refresh (deps change or manual) cancels the previous
+      // in-flight effect, preventing a stale result from overwriting a newer one. `setRunning(false)`
+      // must not run on cancellation: the new run already set `isRunning` to `true`, so a cancelled
+      // run clearing it would leave the flag wrong for the duration of the new effect.
+      singleEffect
+        .submit:
+          (effect >>= (a => set(a.ready).toAsync))
+            .handleErrorWith(t => set(Pot.error(t)).toAsync)
+            .guaranteeCase:
+              case Outcome.Canceled() => ().pure[DefaultA]
+              case _                  => setRunning(false).toAsync
         .runAsyncAndForget
 
   // Provides functionality for all the flavors
@@ -49,12 +59,15 @@ object UseEffectResult:
     deps: Pot[D]
   )(effect: D => DefaultA[A], keep: Boolean, reuseBy: Option[R]): HookResult[UseEffectResult[A]] =
     for
-      state     <- useSerialStateView(Pot.pending[A])
-      isRunning <- useState(false)
-      effectOpt <- useMemo(reuseBy): _ => // Memo Option[effect]
-                     deps.toOption.map(effect)
-      refresh    = effectOpt.map(_.foldMap(doRefresh(_, state.set, isRunning.setState)))
-      _         <- useEffectWithDeps(refresh)(_(keep))
+      state        <- useSerialStateView(Pot.pending[A])
+      isRunning    <- useState(false)
+      singleEffect <- useSingleEffect
+      effectOpt    <- useMemo(reuseBy): _ => // Memo Option[effect]
+                        deps.toOption.map(effect)
+      refresh       = effectOpt.map(
+                        _.foldMap(doRefresh(_, state.set, isRunning.setState, singleEffect.value))
+                      )
+      _            <- useEffectWithDeps(refresh)(_(keep))
     yield UseEffectResult(state.map(_.toPotView), isRunning.value, refresh, keep)
 
   /**
