@@ -96,10 +96,6 @@ If a `debounce` is passed, the hooks guarantees that effect invocations are spac
 
 ```scala
   useSingleEffect(): Reusable[UseSingleEffect]
-
-  useSingleEffect(debounce: FiniteDuration): Reusable[UseSingleEffect]
-
-  useSingleEffectBy(debounce: Ctx => FiniteDuration): Reusable[UseSingleEffect] (**)
 ```
 
 where
@@ -116,9 +112,9 @@ trait UseSingleEffect:
 ScalaFnComponent
   .withHooks[Props]
   ...
-  .useSingleEffect(1.second)
+  .useSingleEffect()
   .useEffectWithDepsBy( ... => deps)( (..., singleEffect) => deps => singleEffect.submit(longRunningEffect) )
-  // Previous `longRunningEffect` is cancelled immediately and new one is ran after 1 second
+  // Previous `longRunningEffect` is cancelled immediately and new one is ran
 ```
 
 ### useShadowRef
