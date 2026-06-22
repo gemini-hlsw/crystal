@@ -8,6 +8,8 @@ import cats.effect.Temporal
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import cats.~>
+import monocle.Focus
+import monocle.Lens
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -28,39 +30,40 @@ import scala.concurrent.duration.FiniteDuration
  *   G The async effect. This will be used for concurrency.
  */
 final class ViewThrottlerF[F[_], G[_], A] private (
-  waitUntil:     Ref[G, FiniteDuration],
-  nextUpdate:    Ref[G, Option[ViewThrottlerF.ModCBType[G, A]]],
+  state:         Ref[G, ViewThrottlerF.State[G, A]],
   timeout:       FiniteDuration,
   syncToAsync:   F ~> G,
   dispatchAsync: G[Unit] => F[Unit]
 )(using G: Temporal[G]) {
+  import ViewThrottlerF.State
 
   private def throttle: F[Unit] =
     dispatchAsync:
-      G.monotonic.flatMap(now => waitUntil.set(now + timeout))
+      G.monotonic.flatMap(now => state.update(State.waitUntil[G, A].replace(now + timeout)))
 
   private def throttlerView(view: ViewF[F, A]): ViewF[F, A] =
     view.withOnMod(_ => throttle)
 
   private def attemptSet(modCB: (A => A, (A, A) => G[Unit]) => G[Unit]): G[Unit] =
-    (waitUntil.get, G.monotonic).flatMapN: (waitUntil, now) =>
-      if (waitUntil > now)
-        (G.sleep(waitUntil - now) >> attemptSet(modCB)).start.void
-      else
-        nextUpdate
-          .flatModify: accumModCb =>
-            (none, accumModCb.map((mod, cb) => modCB(mod, cb)).getOrElse(G.unit))
-          .flatTap(_ => G.unit)
+    G.monotonic.flatMap: now =>
+      state
+        .modify: s =>
+          if (s.waitUntil > now)
+            (s, (G.sleep(s.waitUntil - now) >> attemptSet(modCB)).start.void)
+          else
+            (State.nextUpdate[G, A].replace(none)(s),
+             s.nextUpdate.map((mod, cb) => modCB(mod, cb)).getOrElse(G.unit)
+            )
+        .flatten
 
   private def throttledView(view: ViewF[F, A]): ViewF[G, A] =
     new ViewF[G, A](
       get = view.get,
       modCB = (mod, cb) =>
-        nextUpdate.update: x =>
-          x match
-            case None            => (mod, cb).some
-            case Some(oldMod, _) => (oldMod.andThen(mod), cb).some // We only keep last CB
-        >>
+        state.update(State.nextUpdate[G, A].modify {
+          case None            => (mod, cb).some
+          case Some(oldMod, _) => (oldMod.andThen(mod), cb).some // We only keep last CB
+        }) >>
           attemptSet: (newMod, newCB) =>
             syncToAsync(view.modCB(newMod, (oldA, newA) => dispatchAsync(newCB(oldA, newA))))
     )
@@ -70,13 +73,25 @@ final class ViewThrottlerF[F[_], G[_], A] private (
 }
 
 object ViewThrottlerF {
+  // The type of ViewF.modCB's parameters, to avoid repeating everywhere.
   private type ModCBType[F[_], A] = (A => A, (A, A) => F[Unit])
+
+  // `waitUntil` (pause deadline) and `nextUpdate` (last accumulated update) are kept in a single
+  // `Ref` so that, in `attemptSet`, deciding whether the pause has elapsed and taking the pending
+  // update happen as one atomic transition.
+  private case class State[G[_], A](waitUntil: FiniteDuration, nextUpdate: Option[ModCBType[G, A]])
+  private object State:
+    def waitUntil[G[_], A]: Lens[State[G, A], FiniteDuration]           =
+      Focus[State[G, A]](_.waitUntil)
+    def nextUpdate[G[_], A]: Lens[State[G, A], Option[ModCBType[G, A]]] =
+      Focus[State[G, A]](_.nextUpdate)
 
   def apply[F[_], G[_], A](
     timeout:       FiniteDuration,
     syncToAsync:   F ~> G,
     dispatchAsync: G[Unit] => F[Unit]
   )(using G: Temporal[G]): G[ViewThrottlerF[F, G, A]] =
-    (G.monotonic.flatMap(G.ref(_)), G.ref(none[ModCBType[G, A]]))
-      .mapN(new ViewThrottlerF(_, _, timeout, syncToAsync, dispatchAsync))
+    G.monotonic
+      .flatMap(now => G.ref(State[G, A](now, none)))
+      .map(new ViewThrottlerF(_, timeout, syncToAsync, dispatchAsync))
 }

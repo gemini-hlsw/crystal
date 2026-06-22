@@ -1,7 +1,5 @@
 # Crystal
 
-[![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org) ![Build Status](https://github.com/rpiaggio/crystal/workflows/build/badge.svg) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.rpiaggio/crystal_3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.rpiaggio/crystal_3)
-
 `crystal` is a toolbelt to help build reactive UI apps in Scala by providing:
 
 - A structure for managing delayed values (`Pot`, `PotOption`).
@@ -18,15 +16,18 @@
 A `Pot[A]` represents a value of type `A` that has been requested somewhere and may or not be available yet, or the request may have failed.
 
 It is a sum type consisting of:
+
 - `Pending`.
 - `Ready(<A>)`.
 - `Error(<Throwable>)`.
 
 The `crystal.implicits.*` import will provide:
+
 - Instances for `cats` `MonadError`, `Traverse`, `Align` and `Eq` (as long as there's an `Eq[A]` in scope).
 - Convenience extension methods: `<Any>.ready`, `<Option[A]>.toPot`, `<Try[A]>.toPot` and `<Option[Try[A]]>.toPot`.
 
 The `crystal.react.implicits.*` import will provide:
+
 - `Reusability[Pot[A]]` (as long as there's a `Reusability[A]` in scope).
 - Extesion methods:
   - `renderPending(f: => VdomNode): VdomNode`
@@ -36,6 +37,7 @@ The `crystal.react.implicits.*` import will provide:
 ## PotOption[A]
 
 Similar to `Pot[A]` but provides one additinal state. Its values can be:
+
 - `Pending`.
 - `ReadyNone`.
 - `ReadySome(<A>)`.
@@ -58,10 +60,11 @@ It provides several `zoom` functions for drilling down its properties. It also a
 ## ViewThrottler[A]
 
 A `ViewThrowttler[A]` creates two `View[A]` from a given `View[A]`:
-  - A `throttledView`, which can be paused. While paused, it accumulates updates and applies them all at once upon timeout. The callback is called only once and only to the function provided in the last update during the pause. If unpaused, it acts as a normal `ViewF`.
-  - A `throttlerView`, which will pause the `throttledView` whenever it is modified.
 
- This is particularly useful for values that can be both updated from a UI and from a server. The `throttlerView` should be used in the UI, while the `throttledView` should be used for the server updates. This way, the server updates will pause whenever the user changes a value. If the server sends updates for every changed value, the throttling will avoid the UI from glitching between old and new values when the UI is updated quickly.
+- A `throttledView`, which can be paused. While paused, it accumulates updates and applies them all at once upon timeout. The callback is called only once and only to the function provided in the last update during the pause. If unpaused, it acts as a normal `ViewF`.
+- A `throttlerView`, which will pause the `throttledView` whenever it is modified.
+
+This is particularly useful for values that can be both updated from a UI and from a server. The `throttlerView` should be used in the UI, while the `throttledView` should be used for the server updates. This way, the server updates will pause whenever the user changes a value. If the server sends updates for every changed value, the throttling will avoid the UI from glitching between old and new values when the UI is updated quickly.
 
 ## Reuse[A]
 
@@ -75,9 +78,9 @@ This is useful to define `Reusability` for types where universal reusability can
 
 All hooks are implemented in their monadic versions.
 
-(*) marks hooks that are ONLY implemented in a monadic version.
+(\*) marks hooks that are ONLY implemented in a monadic version.
 
-(**) marks hooks that don't make sense in a monadic version (namely, `By` versions) and are therefore only available in builder-style.
+(\*\*) marks hooks that don't make sense in a monadic version (namely, `By` versions) and are therefore only available in builder-style.
 
 Future hooks will only be implemented in their monadic versions, phasing out the usage of builder-style.
 
@@ -91,30 +94,27 @@ A submitted effect can be explicitly canceled too.
 
 If a `debounce` is passed, the hooks guarantees that effect invocations are spaced at least by the specified duration.
 
-``` scala
+```scala
   useSingleEffect(): Reusable[UseSingleEffect]
-
-  useSingleEffect(debounce: FiniteDuration): Reusable[UseSingleEffect]
-
-  useSingleEffectBy(debounce: Ctx => FiniteDuration): Reusable[UseSingleEffect] (**)
 ```
 
 where
 
-``` scala
+```scala
 trait UseSingleEffect:
   def submit(effect: IO[Unit]): IO[Unit]
   val cancel: IO[Unit]
 ```
 
 #### Example:
-``` scala
+
+```scala
 ScalaFnComponent
   .withHooks[Props]
   ...
-  .useSingleEffect(1.second)
+  .useSingleEffect()
   .useEffectWithDepsBy( ... => deps)( (..., singleEffect) => deps => singleEffect.submit(longRunningEffect) )
-  // Previous `longRunningEffect` is cancelled immediately and new one is ran after 1 second
+  // Previous `longRunningEffect` is cancelled immediately and new one is ran
 ```
 
 ### useShadowRef
@@ -123,7 +123,7 @@ When passed a value, this hooks keeps the value in a ref with the latest value, 
 
 This is useful when a stable callback (as those created by `useCallback`) wants to access a value that can change, but we don't want to redefine the callback in each render.
 
-``` scala
+```scala
   useShadowRef[A](value: Ctx => A): NonEmptyRef.Get[A]
 ```
 
@@ -135,18 +135,19 @@ This is not available in functional components. This hook seeks to emulate such 
 
 Given a state created with `.useState`, the hook allows us to register a callback that will be ran once, the next time the state changes. The callback will be passed the new state value.
 
-``` scala
+```scala
   useStateCallbackBy[A](state: Ctx => Hooks.UseState[A]): (A => Callback) => Callback
 ```
 
 #### Example:
-``` scala
+
+```scala
 ScalaFnComponent
   .withHooks[Props]
   ...
   .useState(SomeValue)
   .useStateCallbackBy( (..., state) => state)
-  .useEffectBy( (..., state, stateCallback) => 
+  .useEffectBy( (..., state, stateCallback) =>
     state.modState(...) >> stateCallback(value => effect(value))
   ) // `effect` is run with new `value`, after `modState` completes.
 ```
@@ -157,7 +158,7 @@ Provides state as a `View`.
 
 Functionally equivalent to `useState` but the `View` is more practical to pass around to child components, zoom into members and define callbacks upon state change.
 
-``` scala
+```scala
   useStateView[A](initialValue: => A): View[A]
 
   useStateViewBy[A](initialValue: Ctx => A): View[A] (**)
@@ -167,7 +168,7 @@ Functionally equivalent to `useState` but the `View` is more practical to pass a
 
 Similar to `useStateView` but returns a `Reuse[View[A]]`. The resulting `View` is reused by its value and thus requires an implicit `Reusability[A]`, as well as a `ClassTag[A]`.
 
-``` scala
+```scala
   useStateViewWithReuse[A: ClassTag: Reusability](initialValue: => A): Reuse[View[A]]
 
   useStateViewWithReuseBy[A: ClassTag: Reusability](initialValue: Ctx => A): Reuse[View[A]] (**)
@@ -181,7 +182,7 @@ Same as `useStateView` but provides 2 `View`s over the same value, See [`ViewThr
 
 Creates component state that is reused as long as it's not updated.
 
-``` scala
+```scala
   useSerialState[A](initialValue: => A): UseSerialState[A]
 
   useSerialStateBy[A](initialValue: Ctx => A): UseSerialState[A] (**)
@@ -189,7 +190,7 @@ Creates component state that is reused as long as it's not updated.
 
 where
 
-``` scala
+```scala
 trait UseSerialState[A]:
   val value: Reusable[A]
   val setState: Reusable[A => Callback]
@@ -204,7 +205,7 @@ Usage is the same as for `.useState`/`.useStateBy`.
 
 Version of `useSerialState` that returns a `Reuse[View[A]]`.
 
-``` scala
+```scala
   useSerialStateView[A](initialValue: => A): Reuse[View[A]]
 
   useSerialStateViewBy[A](initialValue: Ctx => A): Reuse[View[A]] (**)
@@ -216,7 +217,7 @@ Version of `useEffect` applicable only when there's a unique dependency of type 
 
 Note that multiple `Pot` dependencies can be combined into one with `.tupled`.
 
-``` scala
+```scala
   useEffectWhenDepsReady[D](deps: => Pot[D])(effect: D => Callback)
   useEffectWhenDepsReadyBy[D](deps: Ctx => Pot[D])(effect: Ctx => D => Callback) (**)
 
@@ -242,7 +243,7 @@ Version of `useEffect` that avoids race conditions when executing async effects.
 
 Also allows returning a cleanup effect, which `useEffect` only supports when used with the default sync effect (usually `CallbackTo`).
 
-``` scala
+```scala
   useAsyncEffect(effect: IO[Unit])
   useAsyncEffect(effect: IO[IO[Unit]])  // return a cleanup effect
   useAsyncEffectBy(effect: Ctx => IO[Unit]) (**)
@@ -253,8 +254,8 @@ Also allows returning a cleanup effect, which `useEffect` only supports when use
   useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[Unit]) (**)
   useAsyncEffectWithDepsBy[D: Reusability](deps: Ctx => D)(effect: Ctx => D => IO[IO[Unit]]) (**) // return a cleanup effect
 
-  useAsyncEffectOnMount(effect: IO[IO[Unit]])
-  useAsyncEffectOnMount(effect: IO[Unit]) // return a cleanup effect
+  useAsyncEffectOnMount(effect: IO[Unit])
+  useAsyncEffectOnMount(effect: IO[IO[Unit]]) // return a cleanup effect
   useAsyncEffectOnMountBy(effect: Ctx => IO[Unit]) (**)
   useAsyncEffectOnMountBy(effect: Ctx => IO[IO[Unit]]) (**) // return a cleanup effect
 
@@ -269,7 +270,6 @@ Also allows returning a cleanup effect, which `useEffect` only supports when use
   useAsyncEffectWhenDepsReadyOrChangeBy[D: Reusability](deps: Ctx => Pot[D])(effect: Ctx => D => IO[IO[Unit]]) (**) // return a cleanup effect
 ```
 
-
 ### useEffectResult
 
 Stores the result `A` of an effect in state. The state is provided as `Pot[A]`, with value `Pending` until the effect completes (and `Error` if it fails).
@@ -282,11 +282,7 @@ There are also `WhenDepsReady` versions, which will only execute the effect when
 
 Furthermore, there are also `WhenDepsReadyOrChange` versions, which will only execute the effect when dependencies transition to `Ready` or change value once `Ready`. If they change or transition to `Pending` or `Error`, then the result will revert to `Pending`. However, if the `KeepResult` version is used, it will retain the last value.
 
-TODO: return type, mark "By" methods
-
-
-
-``` scala
+```scala
   useEffectResultWithDeps[D: Reusability, A](deps: => D)(effect: D => IO[A]): UseEffectResult[A]
   useEffectResultWithDepsBy[D: Reusability, A](deps: Ctx => D)(effect: Ctx => D => IO[A]): UseEffectResult[A] (**)
 
@@ -313,7 +309,7 @@ TODO: return type, mark "By" methods
 
 where
 
-``` scala
+```scala
 trait UseEffectResult[A]:
   val value:         Pot[A]             // The last value returned by the effect.
   val isRunning:     Boolean            // Indicates whether the effect is currently running.
@@ -323,7 +319,8 @@ trait UseEffectResult[A]:
 ```
 
 #### Example:
-``` scala
+
+```scala
 ScalaFnComponent[Props]: _ =>
   for
     uuidResult <- useEffectResultOnMount(UUIDGen.randomUUID)
@@ -343,7 +340,7 @@ The resource is gracefully closed upon unmount or dependency change.
 
 Note that all versions either have dependencies or are executed `onMount`. It doesn't make sense to open a resource on each render since once the resource is acquired it will alter state and force a rerender, which would provoke a render loop.
 
-``` scala
+```scala
   useResource[D: Reusability, A](deps: => D)(resource: D => Resource[IO, A]): Pot[A]
   useResourceBy[D: Reusability, A](deps: Ctx => D)(resource: Ctx => D => Resource[IO, A]): Pot[A] (**)
 
@@ -359,7 +356,7 @@ The fiber evaluating the stream is canceled upon unmount or dependency change.
 
 Note that all versions either have dependencies or are executed `onMount`. It doesn't make sense to open a stream on each render since executing the stream will alter state and force a rerender, which would provoke a render loop.
 
-``` scala
+```scala
   useStream[D: Reusability, A](deps: => D)(stream: D => fs2.Stream[IO, A]): PotOption[A]
   useStreamBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[A] (**)
 
@@ -368,6 +365,7 @@ Note that all versions either have dependencies or are executed `onMount`. It do
 ```
 
 The resulting `PotOption[A]` takes one of these values:
+
 - `Pending`: Fiber hasn't started yet
 - `ReadyNone`: Fiber has started but no value has been produced by the stream yet.
 - `ReadySome(a)`: `a` is the last value produced by the stream.
@@ -379,7 +377,7 @@ Like `useStream` but returns a `PotOption[View[A]]`, allowing local modification
 
 In other words, the state will be modified on every new value produced by the stream, and also on every invocation to `set` or `mod` on the `View`.
 
-``` scala
+```scala
   useStreamView[D: Reusability, A](deps: => D)(stream: D => fs2.Stream[IO, A]): PotOption[View[A]]
   useStreamViewBy[D: Reusability, A](deps: Ctx => D)(stream: Ctx => D => fs2.Stream[IO, A]): PotOption[View[A]] (**)
 
@@ -397,7 +395,7 @@ Upon unmount or dependency change, the evaluating fiber is cancelled and the res
 
 The resource is also closed if the stream terminates.
 
-``` scala
+```scala
   useStreamResource[D: Reusability, A](deps: => D)(streamResource: D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A]
   useStreamResourceBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[A] (**)
 
@@ -411,7 +409,7 @@ Given a `Resource[IO, fs2.Stream[IO, A]]`, combines `useResource` and `useStream
 
 Like `useStreamResource` but returns a `PotOption[View[A]]`, allowing local modifications to the state once it's `Ready`.
 
-``` scala
+```scala
   useStreamResourceView[D: Reusability, A](deps: => D)(streamResource: D => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]]
   useStreamResourceViewBy[D: Reusability, A](deps: Ctx => D)(streamResource: Ctx => D => Resource[IO, fs2.Stream[IO, A]]): PotOption[View[A]] (**)
 
@@ -425,7 +423,7 @@ Executes and drains a `fs2.Stream[IO, Unit]` upon mount or dependency change. If
 
 Like the `useEffect` family of hooks, this hook doesn't add any new parameters to the context.
 
-``` scala
+```scala
   useEffectStream(stream: D => fs2.Stream[IO, Unit])
   useEffectStreamBy(stream: Ctx => fs2.Stream[IO, Unit]) (**)
 
@@ -445,7 +443,7 @@ Given a `Resource[IO, fs2.Stream[IO, Unit]]`, opens the resource and executes an
 
 Like the `useEffect` family of hooks, this hook doesn't add any new parameters to the context.
 
-``` scala
+```scala
   useEffectStreamResource(stream: Resource[IO, fs2.Stream[IO, Unit]])
   useEffectStreamResourceBy(stream: Ctx => Resource[IO, fs2.Stream[IO, Unit]]) (**)
 
@@ -463,7 +461,7 @@ Like the `useEffect` family of hooks, this hook doesn't add any new parameters t
 
 Given a value, creates an `fs2.Stream` that will emit a new value every time the value changes. Equality is tested by `Eq`/`Reusability`. The stream is created when the component is mounted and memoized and terminates when the component unmounts.
 
-``` scala
+```scala
   useSignalStream[A: Eq](value: A): Reusable[Pot[fs2.Stream[IO, A]]] (*)
   useSignalStreamByReuse[A: Reusability](value: A): Reusable[Pot[fs2.Stream[IO, A]]] (*)
 ```
@@ -472,7 +470,7 @@ Given a value, creates an `fs2.Stream` that will emit a new value every time the
 
 Given a callback, returns a memoized version of it that won't be run more than once every `spacedBy` duration, even if invoked more often. If multiple invocations occur within the `spacedBy` duration, only the last one will be run. The callback must be async (`IO`).
 
-``` scala
+```scala
   useThrottledCallback(spacedBy: FiniteDuration)(effect: IO[Unit]): Reusable[IO[Unit]]] (*)
   useThrottledCallbackWithDeps[D: Reusability](deps: => D)(spacedBy: FiniteDuration)(effect: D => IO[Unit]): Reusable[IO[Unit]]] (*)
 ```
