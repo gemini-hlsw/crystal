@@ -179,3 +179,21 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_CREDENTIAL_HOST: ${{ secrets.SONATYPE_CREDENTIAL_HOST }}
         run: sbt tlCiRelease
+
+  required-checks:
+    name: REQUIRED CHECKS FOR BRANCH PROTECTION - AGGREGATED
+    needs: [build]
+    if: always()
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Fail if a required job did not pass
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "::error::a required job did not pass"
+          exit 1
+
+      - name: Report success
+        run: echo "all of build passed or were skipped"
