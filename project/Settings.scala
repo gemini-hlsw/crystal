@@ -16,7 +16,7 @@ object Settings {
     val mUnitScalacheck   = "1.3.1"
     val mUnitCatsEffect   = "2.2.1"
     val scalaCheck        = "1.20.0"
-    val scalajsReact      = "4.0.0"
+    val scalajsReact      = "4.1.0"
     val testingLibraryDom = "10.4.2"
   }
 
