@@ -19,6 +19,7 @@ import scala.concurrent.duration.FiniteDuration
  *     all at once upon timeout. The callback is called only once and only to the function provided
  *     in the last update during the pause. If unpaused, it acts as a normal `ViewF`.
  *   - A `throttlerView`, which will pause the `throttledView` whenever it is modified.
+ *   - An `unpause` effect, which ends the current pause and applies any held update at once.
  * This is particularly useful for values that can be both updated from a UI and from a server. The
  * `throttlerView` should be used in the UI, while the `throttledView` should be used for the server
  * updates. This way, the server updates will pause whenever the user changes a value. If the server
@@ -56,6 +57,9 @@ final class ViewThrottlerF[F[_], G[_], A] private (
             )
         .flatten
 
+  private def applyTo(view: ViewF[F, A]): (A => A, (A, A) => G[Unit]) => G[Unit] =
+    (mod, cb) => syncToAsync(view.modCB(mod, (oldA, newA) => dispatchAsync(cb(oldA, newA))))
+
   private def throttledView(view: ViewF[F, A]): ViewF[G, A] =
     new ViewF[G, A](
       get = view.get,
@@ -63,13 +67,16 @@ final class ViewThrottlerF[F[_], G[_], A] private (
         state.update(State.nextUpdate[G, A].modify {
           case None            => (mod, cb).some
           case Some(oldMod, _) => (oldMod.andThen(mod), cb).some // We only keep last CB
-        }) >>
-          attemptSet: (newMod, newCB) =>
-            syncToAsync(view.modCB(newMod, (oldA, newA) => dispatchAsync(newCB(oldA, newA))))
+        }) >> attemptSet(applyTo(view))
     )
 
+  // Pending sleepers from the old pause wake up harmlessly: they find no update or a newer deadline.
+  private def unpause(view: ViewF[F, A]): G[Unit] =
+    G.monotonic.flatMap(now => state.update(State.waitUntil[G, A].replace(now))) >>
+      attemptSet(applyTo(view))
+
   def throttle(view: ViewF[F, A]): ThrottlingViewF[F, G, A] =
-    ThrottlingViewF(throttlerView(view), throttledView(view))
+    ThrottlingViewF(throttlerView(view), throttledView(view), unpause(view))
 }
 
 object ViewThrottlerF {

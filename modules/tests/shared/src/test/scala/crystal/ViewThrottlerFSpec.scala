@@ -85,3 +85,54 @@ class ViewThrottlerFSpec extends munit.CatsEffectSuite:
         yield accum.toList
       .assertEquals(List(0 -> 0.millis, 1 -> 10.millis, 2 -> 50.millis, 3 -> 150.millis))
   }
+
+  def buildThrottling(
+    timeout: FiniteDuration
+  ): IO[(ThrottlingViewF[IO, IO, Int], IO[List[(Int, FiniteDuration)]])] =
+    for
+      view      <- AccumulatingViewF.of[IO, Int](0)
+      throttler <- ViewThrottlerF[IO, IO, Int](timeout, FunctionK.id[IO], identity)
+    yield (throttler.throttle(view), view.accumulated.map(_.toList))
+
+  test("unpause applies held update immediately and only once"):
+    TestControl
+      .executeEmbed:
+        for
+          t             <- buildThrottling(100.millis)
+          (tv, getAccum) = t
+          _             <- IO.sleep(10.millis) >> tv.throttlerView.mod(plus(1))
+          _             <- IO.sleep(10.millis) >> tv.throttledView.mod(plus(1))
+          _             <- IO.sleep(30.millis) >> tv.unpause
+          _             <- IO.sleep(200.millis)
+          accum         <- getAccum
+        yield accum
+      .assertEquals(List(0 -> 0.millis, 1 -> 10.millis, 2 -> 50.millis))
+
+  test("unpause keeps held updates before later ones"):
+    TestControl
+      .executeEmbed:
+        for
+          t             <- buildThrottling(100.millis)
+          (tv, getAccum) = t
+          _             <- IO.sleep(10.millis) >> tv.throttlerView.mod(plus(1))
+          _             <- IO.sleep(10.millis) >> tv.throttledView.mod(_ * 10)
+          _             <- IO.sleep(30.millis) >> tv.unpause >> tv.throttledView.mod(plus(5))
+          _             <- IO.sleep(200.millis)
+          accum         <- getAccum
+        yield accum
+      .assertEquals(List(0 -> 0.millis, 1 -> 10.millis, 10 -> 50.millis, 15 -> 50.millis))
+
+  test("throttling after unpause pauses again"):
+    TestControl
+      .executeEmbed:
+        for
+          t             <- buildThrottling(100.millis)
+          (tv, getAccum) = t
+          _             <- IO.sleep(10.millis) >> tv.throttlerView.mod(plus(1))
+          _             <- IO.sleep(10.millis) >> tv.unpause
+          _             <- IO.sleep(10.millis) >> tv.throttlerView.mod(plus(1))
+          _             <- IO.sleep(10.millis) >> tv.throttledView.mod(plus(1))
+          _             <- IO.sleep(200.millis)
+          accum         <- getAccum
+        yield accum
+      .assertEquals(List(0 -> 0.millis, 1 -> 10.millis, 2 -> 30.millis, 3 -> 130.millis))

@@ -8,5 +8,6 @@ package crystal
  */
 case class ThrottlingViewF[F[_], G[_], A](
   throttlerView: ViewF[F, A],
-  throttledView: ViewF[G, A]
+  throttledView: ViewF[G, A],
+  unpause:       G[Unit]
 )

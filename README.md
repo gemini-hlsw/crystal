@@ -63,6 +63,7 @@ A `ViewThrowttler[A]` creates two `View[A]` from a given `View[A]`:
 
 - A `throttledView`, which can be paused. While paused, it accumulates updates and applies them all at once upon timeout. The callback is called only once and only to the function provided in the last update during the pause. If unpaused, it acts as a normal `ViewF`.
 - A `throttlerView`, which will pause the `throttledView` whenever it is modified.
+- An `unpause` effect, which ends the current pause and applies any held update at once. Use it when the held updates are no longer relevant to wait for, for example when switching to a different entity.
 
 This is particularly useful for values that can be both updated from a UI and from a server. The `throttlerView` should be used in the UI, while the `throttledView` should be used for the server updates. This way, the server updates will pause whenever the user changes a value. If the server sends updates for every changed value, the throttling will avoid the UI from glitching between old and new values when the UI is updated quickly.
 
@@ -176,7 +177,7 @@ Similar to `useStateView` but returns a `Reuse[View[A]]`. The resulting `View` i
 
 ### useThrottlingStateView
 
-Same as `useStateView` but provides 2 `View`s over the same value, See [`ViewThrottler[A]`](#viewthrottlera).
+Same as `useStateView` but provides 2 `View`s over the same value plus an `unpause` effect, See [`ViewThrottler[A]`](#viewthrottlera).
 
 ### useSerialState
 
